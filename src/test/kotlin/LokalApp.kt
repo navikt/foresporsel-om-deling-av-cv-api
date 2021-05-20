@@ -3,7 +3,9 @@ fun main() {
 }
 
 fun startLokalApp(): App {
-    val app = App()
+    val database = TestDatabase()
+    val app = App(database.dataSource)
+
     app.start()
 
     return app

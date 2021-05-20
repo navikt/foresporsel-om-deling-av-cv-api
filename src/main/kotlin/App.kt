@@ -1,8 +1,10 @@
 import io.javalin.Javalin
+import utils.Cluster
 import utils.log
 import java.io.Closeable
+import javax.sql.DataSource
 
-class App : Closeable {
+class App(dataSource: DataSource) : Closeable {
 
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"
@@ -28,8 +30,11 @@ class App : Closeable {
 }
 
 fun main() {
+
     try {
-        App().start()
+        val database = Database()
+
+        App(database.dataSource).start()
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)
     }

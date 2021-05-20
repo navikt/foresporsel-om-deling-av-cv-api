@@ -24,6 +24,12 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:6.3")
 
+    implementation("org.flywaydb:flyway-core:7.9.1")
+    implementation("org.postgresql:postgresql:42.2.20")
+    implementation("com.zaxxer:HikariCP:4.0.3")
+    implementation("no.nav:vault-jdbc:1.3.7")
+
     testImplementation(kotlin("test"))
+    testImplementation("com.h2database:h2:1.4.200")
     testImplementation("org.assertj:assertj-core:3.19.0")
 }
