@@ -8,6 +8,8 @@ metadata:
 spec:
   image: {{image}}
   port: 8333
+  vault:
+    enabled: true
   ingresses:
   {{#each ingress as |url|}}
      - {{url}}
