@@ -13,7 +13,6 @@ class App : Closeable {
 
     fun start() {
         webServer.start(8333)
-        print("Kjører app")
     }
 
     override fun close() {

@@ -21,7 +21,8 @@ dependencies {
     implementation("io.javalin:javalin:3.13.7")
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
+    implementation("net.logstash.logback:logstash-logback-encoder:6.3")
 
     testImplementation(kotlin("test"))
     testImplementation("org.assertj:assertj-core:3.19.0")
