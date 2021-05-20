@@ -1,4 +1,5 @@
 import io.javalin.Javalin
+import utils.log
 import java.io.Closeable
 
 class App : Closeable {
@@ -12,7 +13,13 @@ class App : Closeable {
     }
 
     fun start() {
-        webServer.start(8333)
+        try {
+            webServer.start(8333)
+
+        } catch (exception: Exception) {
+            close()
+            throw exception
+        }
     }
 
     override fun close() {
@@ -21,5 +28,9 @@ class App : Closeable {
 }
 
 fun main() {
-    App().start()
+    try {
+        App().start()
+    } catch (exception: Exception) {
+        log("main()").error("Noe galt skjedde", exception)
+    }
 }
