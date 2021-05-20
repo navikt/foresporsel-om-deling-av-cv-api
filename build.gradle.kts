@@ -18,6 +18,10 @@ tasks.test {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("io.javalin:javalin:3.13.7")
+    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
+    implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
+    implementation("org.slf4j:slf4j-simple:1.7.30")
 
     testImplementation(kotlin("test"))
     testImplementation("org.assertj:assertj-core:3.19.0")
