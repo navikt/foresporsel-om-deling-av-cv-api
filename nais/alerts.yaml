@@ -1,0 +1,23 @@
+apiVersion: "nais.io/v1"
+kind: "Alert"
+metadata:
+  name: foresporsel-om-deling-av-cv-api
+  namespace: arbeidsgiver-inkludering
+  labels:
+    team: arbeidsgiver-inkludering
+spec:
+  receivers:
+    slack:
+      channel: 'inkludering-alerts-prod'
+  alerts:
+    - alert: Applikasjon nede
+      expr: sum(up{app="foresporsel-om-deling-av-cv-api", job="kubernetes-pods"}) == 0
+      for: 1s
+      description: "foresporsel-om-deling-av-cv-api er nede"
+      action: "Sjekk logs.adeo.no for logger: https://logs.adeo.no/goto/79573b16d0d653679c481c14e5af65f3"
+
+    - alert: Det har skjedd en feil i foresporsel-om-deling-av-cv-api
+      expr: sum(increase(logd_messages_total{log_app="foresporsel-om-deling-av-cv-api",log_level="Error"}[10m])) > 0
+      for: 10s
+      description: "foresporsel-om-deling-av-cv-api har logget en feil"
+      action: "Sjekk logs.adeo.no for logger: https://logs.adeo.no/goto/404fa2be7cff7f9408494a3007d2f44e"
