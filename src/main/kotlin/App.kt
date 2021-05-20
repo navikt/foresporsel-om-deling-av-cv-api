@@ -1,12 +1,13 @@
 import io.javalin.Javalin
+import no.nav.security.token.support.core.configuration.IssuerProperties
 import utils.log
 import java.io.Closeable
 
-class App(service: Service) : Closeable {
+class App(service: Service, issuerProperties: IssuerProperties) : Closeable {
 
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"
-        before(validerToken)
+        before(validerToken(issuerProperties))
         routes {
             get("/internal/isAlive") { it.status(200) }
             get("/internal/isReady") { it.status(200) }

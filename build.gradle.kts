@@ -28,6 +28,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.2.20")
     implementation("com.zaxxer:HikariCP:4.0.3")
     implementation("no.nav:vault-jdbc:1.3.7")
+    implementation("no.nav.security:token-validation-core:1.3.7")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")
