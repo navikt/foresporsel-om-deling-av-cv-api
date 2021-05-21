@@ -1,9 +1,9 @@
 import io.javalin.http.Context
-import io.javalin.http.ForbiddenResponse
+import io.javalin.http.UnauthorizedResponse
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
+import no.nav.security.token.support.core.context.TokenValidationContext
 import no.nav.security.token.support.core.http.HttpRequest
-import no.nav.security.token.support.core.jwt.JwtTokenClaims
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
 import utils.log
 
@@ -21,29 +21,22 @@ val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties -
         val skalValidereToken = !endepunktUtenTokenvalidering.contains(url)
 
         if (skalValidereToken) {
-            val claims = hentClaimsFraValidertToken(ctx, issuerProperties)
+            val validerteTokens = hentValiderteTokens(ctx, issuerProperties)
 
-            if (!tokenErGyldig(claims)) {
-                throw ForbiddenResponse()
+            if (!validerteTokens.hasValidToken()) {
+                throw UnauthorizedResponse()
             }
         }
     }
 }
 
-fun hentClaimsFraValidertToken(ctx: Context, issuerProperties: IssuerProperties): JwtTokenClaims {
+fun hentValiderteTokens(ctx: Context, issuerProperties: IssuerProperties): TokenValidationContext {
     val cookieName = issuerProperties.cookieName
-    val tokenValidationHandler =
-        JwtTokenValidationHandler(
-            MultiIssuerConfiguration(mapOf(Pair(cookieName, issuerProperties)))
-        )
+    val tokenValidationHandler = JwtTokenValidationHandler(
+        MultiIssuerConfiguration(mapOf(Pair(cookieName, issuerProperties)))
+    )
 
-    val tokenValidationContext = tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
-    return tokenValidationContext.getClaims(cookieName)
-}
-
-fun tokenErGyldig(claims: JwtTokenClaims?): Boolean {
-    if (claims == null || claims["NAVident"] == null) return false
-    return claims["NAVident"].toString().isNotEmpty()
+    return tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
 }
 
 private fun getHttpRequest(context: Context): HttpRequest = object : HttpRequest {
