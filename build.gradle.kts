@@ -33,4 +33,5 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")
     testImplementation("org.assertj:assertj-core:3.19.0")
+    testImplementation("no.nav.security:mock-oauth2-server:0.3.2")
 }

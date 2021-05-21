@@ -5,6 +5,8 @@ class Service {
 
     val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         log.info("lagre forespørsel")
+
+        ctx.status(201)
     }
 }
 
