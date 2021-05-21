@@ -22,6 +22,7 @@ class TokenValideringTest {
     @AfterAll
     fun teardown() {
         lokalApp.close()
+        mockOAuth2Server.shutdown()
     }
 
     @Test
@@ -54,8 +55,10 @@ class TokenValideringTest {
         assertThat(response.statusCode).isNotEqualTo(401)
     }
 
-    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("isso-idtoken", "someclientid",
-        DefaultOAuth2TokenCallback(
+    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        issuerId = "isso-idtoken",
+        clientId = "someclientid",
+        tokenCallback = DefaultOAuth2TokenCallback(
             issuerId = "isso-idtoken",
             claims = mapOf(
                 Pair("name", "navn"),
@@ -66,8 +69,10 @@ class TokenValideringTest {
         )
     )
 
-    private fun hentUgyldigToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("feilissuer", "someclientid",
-        DefaultOAuth2TokenCallback(
+    private fun hentUgyldigToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        issuerId = "feilissuer",
+        clientId = "someclientid",
+        tokenCallback = DefaultOAuth2TokenCallback(
             issuerId = "feilissuer",
             claims = mapOf(
                 Pair("name", "navn"),

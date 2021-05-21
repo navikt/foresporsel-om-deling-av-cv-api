@@ -5,9 +5,9 @@ fun main() {
     startLokalApp()
 }
 
-fun startLokalApp(): App {
-    val database = TestDatabase()
-    val service = Service()
+fun startLokalApp(repository: Repository = Repository(TestDatabase().dataSource)): App {
+    val service = Service(repository)
+
     val issuerProperties = IssuerProperties(
         URL("http://localhost:18300/isso-idtoken/.well-known/openid-configuration"),
         listOf("audience"),

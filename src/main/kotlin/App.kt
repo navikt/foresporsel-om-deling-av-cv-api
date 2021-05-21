@@ -36,7 +36,8 @@ fun main() {
 
     try {
         val database = Database()
-        val service = Service()
+        val repository = Repository(database.dataSource)
+        val service = Service(repository)
 
         val issuerProperties = when (Cluster.current) {
             Cluster.DEV_FSS -> IssuerProperties(
