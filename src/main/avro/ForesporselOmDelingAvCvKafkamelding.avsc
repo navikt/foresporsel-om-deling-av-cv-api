@@ -14,21 +14,26 @@
       }
     },
     { "name": "callId", "type": "string" },
-
     { "name": "stillingstittel", "type": "string" },
-    {
-      "name": "soknadsfrist",
-      "type": "string"
-    },
+    { "name": "soknadsfrist", "type": "string" },
     { "name": "arbeidsgiver", "type": "string" },
     {
-      "name": "arbeidssted",
-      "type": "record",
-      "namespace": "no.nav.rekrutteringsbistand.avro",
-      "fields": [
-        {
-          "name": ""
+      "name": "arbeidssteder",
+      "type": {
+        "type": "array",
+        "items" : {
+          "type": "record",
+          "name": "Arbeidssted",
+          "fields": [
+            { "name": "adresse", "type": "string" },
+            { "name": "postkode", "type": "string" },
+            { "name": "by", "type": "string" },
+            { "name": "kommune", "type": "string" },
+            { "name": "fylke", "type": "string" },
+            { "name": "land", "type": "string" }
+          ]
         }
-    ]}
+      }
+    }
   ]
 }
