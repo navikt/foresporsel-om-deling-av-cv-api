@@ -1,7 +1,6 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import no.nav.security.mock.oauth2.MockOAuth2Server
-import org.apache.kafka.clients.producer.MockProducer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -19,6 +18,7 @@ class ForespørselOmDelingAvCvTest {
     private val database = TestDatabase()
     private val repository = Repository(database.dataSource)
     private val mockProducer = mockProducer()
+    private val kafkaService = KafkaService(repository)
     private val lokalApp = startLokalApp(repository, mockProducer)
     private val mockOAuth2Server = MockOAuth2Server()
 
@@ -37,7 +37,7 @@ class ForespørselOmDelingAvCvTest {
     fun `Kall til endepunkt skal lagre informasjon om forespørselen i database`() {
         val inboundDto = ForespørselOmDelingAvCvInboundDto(
             stillingsId = UUID.randomUUID().toString(),
-            aktorIder = listOf("234")
+            aktorIder = listOf("234", "345", "456")
         )
 
         Fuel.post("http://localhost:8333/foresporsler")
@@ -45,7 +45,7 @@ class ForespørselOmDelingAvCvTest {
             .objectBody(inboundDto)
             .response()
 
-        val lagredeForespørsler = repository.hentAlleForespørsler()
+        val lagredeForespørsler = database.hentAlleForespørsler()
 
         assertThat(lagredeForespørsler.size).isEqualTo(inboundDto.aktorIder.size)
 
@@ -60,4 +60,37 @@ class ForespørselOmDelingAvCvTest {
             assertThat(lagretForespørsel.svarTidspunkt).isNull()
         }
     }
+
+    @Test
+    fun `Usendte forespørsler skal sendes på Kafka og oppdateres med rett status i databasen`() {
+        val nå = LocalDateTime.now()
+        val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
+
+        val forespørsler = listOf(
+            enForespørsel("123", DeltStatus.IKKE_SENDT),
+            enForespørsel("456", DeltStatus.SENDT, enHalvtimeSiden)
+        )
+
+        database.lagreBatch(forespørsler)
+        kafkaService.sendUsendteForespørsler()
+
+        val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
+
+        assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
+        assertThat(lagredeForespørsler["123"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+
+        assertThat(lagredeForespørsler["456"]!!.deltTidspunkt).isEqualTo(enHalvtimeSiden)
+        assertThat(lagredeForespørsler["456"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+    }
+
+    private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now()) = ForespørselOmDelingAvCv(
+        aktørId = aktørId,
+        stillingsId = UUID.randomUUID().toString(),
+        deltStatus = deltStatus,
+        deltTidspunkt = deltTidspunkt,
+        deltAv = "veileder",
+        svar = Svar.IKKE_SVART,
+        svarTidspunkt = null,
+        sendtTilKafkaTidspunkt = null
+    )
 }

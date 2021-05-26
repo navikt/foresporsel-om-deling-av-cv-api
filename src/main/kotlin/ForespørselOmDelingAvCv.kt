@@ -11,6 +11,8 @@ data class ForespørselOmDelingAvCv(
 
     val svar: Svar,
     val svarTidspunkt: LocalDateTime?,
+
+    val sendtTilKafkaTidspunkt: LocalDateTime?
 ) {
     companion object {
         fun fromDb(rs: ResultSet) = ForespørselOmDelingAvCv(
@@ -20,7 +22,8 @@ data class ForespørselOmDelingAvCv(
             deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
             deltAv = rs.getString("delt_av"),
             svar = Svar.valueOf(rs.getString("svar")),
-            svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime()
+            svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
+            sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime()
         )
     }
 }

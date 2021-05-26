@@ -1,31 +1,33 @@
 import java.sql.Timestamp
+import java.time.LocalDateTime
 import javax.sql.DataSource
 
 class Repository(private val dataSource: DataSource) {
 
-    fun lagreBatch(forespørselOmDelingAvCver: List<ForespørselOmDelingAvCv>) {
+    fun lagreUsendteForespørsler(aktørIder: List<String>, stillingsId: String, deltAvNavIdent: String) {
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(LAGRE_BATCH_SQL)
 
-            forespørselOmDelingAvCver.forEach {
-                statement.setString(1, it.aktørId)
-                statement.setString(2, it.stillingsId)
-                statement.setString(3, it.deltStatus.toString())
-                statement.setTimestamp(4, Timestamp.valueOf(it.deltTidspunkt))
-                statement.setString(5, it.deltAv)
-                statement.setString(6, it.svar.toString())
+            aktørIder.forEach {
+                statement.setString(1, it)
+                statement.setString(2, stillingsId)
+                statement.setString(3, DeltStatus.IKKE_SENDT.toString())
+                statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()))
+                statement.setString(5, deltAvNavIdent)
+                statement.setString(6, Svar.IKKE_SVART.toString())
                 statement.setTimestamp(7, null)
+                statement.setTimestamp(8, null)
 
                 statement.addBatch()
             }
 
-            statement.executeUpdate()
+            statement.executeBatch()
         }
     }
 
-    fun hentAlleForespørsler(): List<ForespørselOmDelingAvCv> {
+    fun hentUsendteForespørsler(): List<ForespørselOmDelingAvCv> {
         dataSource.connection.use { connection ->
-            val resultSet = connection.prepareStatement(HENT_ALLE_SQL).executeQuery()
+            val resultSet = connection.prepareStatement(HENT_USENDTE_SQL).executeQuery()
 
             return generateSequence {
                 if (resultSet.next()) ForespørselOmDelingAvCv.fromDb(resultSet)
@@ -37,12 +39,12 @@ class Repository(private val dataSource: DataSource) {
     companion object {
         val LAGRE_BATCH_SQL = """
             INSERT INTO foresporsel_om_deling_av_cv (
-                aktor_id, stilling_id, delt_status, delt_tidspunkt, delt_av, svar, svar_tidspunkt
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                aktor_id, stilling_id, delt_status, delt_tidspunkt, delt_av, svar, svar_tidspunkt, sendt_til_kafka_tidspunkt
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
-        val HENT_ALLE_SQL = """
-            SELECT * from foresporsel_om_deling_av_cv;
+        val HENT_USENDTE_SQL = """
+            SELECT * from foresporsel_om_deling_av_cv WHERE delt_status = '${DeltStatus.IKKE_SENDT}'
         """.trimIndent()
     }
 }

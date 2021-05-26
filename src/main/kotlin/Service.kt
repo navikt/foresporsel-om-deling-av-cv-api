@@ -1,7 +1,6 @@
 import io.javalin.http.Context
 import utils.log
 import java.time.LocalDateTime
-import javax.sql.DataSource
 
 class Service(repository: Repository) {
 
@@ -9,22 +8,13 @@ class Service(repository: Repository) {
         log.info("lagre forespørsel")
 
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselOmDelingAvCvInboundDto::class.java)
+        repository.lagreUsendteForespørsler(
+            forespørselOmDelingAvCvDto.aktorIder,
+            forespørselOmDelingAvCvDto.stillingsId,
+            "veileder" // TODO
+        )
 
-        val nå = LocalDateTime.now()
-
-        val forespørselOmDelingAvCver = forespørselOmDelingAvCvDto.aktorIder.map {
-            ForespørselOmDelingAvCv(
-                aktørId = it,
-                stillingsId = forespørselOmDelingAvCvDto.stillingsId,
-                deltStatus = DeltStatus.IKKE_SENDT,
-                deltTidspunkt = nå,
-                deltAv = "veileder", // TODO
-                svar = Svar.IKKE_SVART,
-                svarTidspunkt = null
-            )
-        }
-
-        repository.lagreBatch(forespørselOmDelingAvCver)
+        // scheduler.sendUsendteMeldinger()
 
         ctx.status(201)
     }

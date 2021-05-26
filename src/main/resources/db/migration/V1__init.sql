@@ -6,5 +6,6 @@ CREATE TABLE foresporsel_om_deling_av_cv (
     delt_tidspunkt TIMESTAMP(3),
     delt_av TEXT,
     svar TEXT,
-    svar_tidspunkt TIMESTAMP(3)
+    svar_tidspunkt TIMESTAMP(3),
+    sendt_til_kafka_tidspunkt TIMESTAMP(3)
 )
