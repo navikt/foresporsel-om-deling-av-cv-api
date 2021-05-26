@@ -10,6 +10,10 @@ application {
 
 repositories {
     mavenCentral()
+
+    maven {
+        url = uri("https://packages.confluent.io/maven/")
+    }
 }
 
 tasks.test {
@@ -19,8 +23,10 @@ tasks.test {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.javalin:javalin:3.13.7")
+
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
+
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:6.3")
 
@@ -29,6 +35,9 @@ dependencies {
     implementation("com.zaxxer:HikariCP:4.0.3")
     implementation("no.nav:vault-jdbc:1.3.7")
     implementation("no.nav.security:token-validation-core:1.3.7")
+
+    implementation("org.apache.kafka:kafka-clients:2.8.0")
+    implementation("io.confluent:kafka-avro-serializer:6.0.1")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")

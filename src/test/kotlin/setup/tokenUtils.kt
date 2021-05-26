@@ -1,3 +1,5 @@
+package setup
+
 import com.github.kittinunf.fuel.core.Request
 import no.nav.security.mock.oauth2.MockOAuth2Server
 

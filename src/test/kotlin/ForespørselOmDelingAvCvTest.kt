@@ -1,15 +1,13 @@
 import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.core.Request
-import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.jackson.objectBody
-import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
-import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import setup.TestDatabase
+import setup.medVeilederCookie
 import java.time.LocalDateTime
 import java.util.*
 

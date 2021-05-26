@@ -1,4 +1,6 @@
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import setup.TestDatabase
+import setup.mockProducer
 import java.net.URL
 
 fun main() {
@@ -14,7 +16,7 @@ fun startLokalApp(repository: Repository = Repository(TestDatabase().dataSource)
         "isso-idtoken"
     )
 
-    val app = App(service, issuerProperties)
+    val app = App(service, issuerProperties, mockProducer())
 
     app.start()
 

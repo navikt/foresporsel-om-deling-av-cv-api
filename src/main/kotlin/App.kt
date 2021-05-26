@@ -1,11 +1,13 @@
 import io.javalin.Javalin
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import org.apache.kafka.clients.producer.MockProducer
+import org.apache.kafka.clients.producer.Producer
 import utils.Cluster
 import utils.log
 import java.io.Closeable
 import java.net.URL
 
-class App(service: Service, issuerProperties: IssuerProperties) : Closeable {
+class App(service: Service, issuerProperties: IssuerProperties, producer: Producer<String, String>) : Closeable {
 
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"
@@ -52,7 +54,11 @@ fun main() {
             )
         }
 
-        App(service, issuerProperties).start()
+
+        // TODO: Bytt til ekte producer
+        val producer: Producer<String, String> = MockProducer(true, null, null)
+
+        App(service, issuerProperties, producer).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)
