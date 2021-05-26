@@ -1,7 +1,6 @@
 import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.core.extensions.authentication
+import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
-import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -33,11 +32,8 @@ class TokenValideringTest {
 
     @Test
     fun `Sikrede endepunkter skal returnere 401 hvis requesten inneholder et ugyldig token`() {
-        val token = hentUgyldigToken(mockOAuth2Server)
-
         val (_, response, _) = Fuel.post("http://localhost:8333/foresporsler")
-            .authentication()
-            .bearer(token.serialize())
+            .header("Cookie", "isso-idtoken=${hentUgyldigToken().serialize()}")
             .response()
 
         assertThat(response.statusCode).isEqualTo(401)
@@ -45,41 +41,14 @@ class TokenValideringTest {
 
     @Test
     fun `Sikrede endepunkter skal returnere noe annet enn 401 hvis requesten inneholder et gyldig token`() {
-        val token = hentToken(mockOAuth2Server)
-
         val (_, response, _) = Fuel.post("http://localhost:8333/foresporsler")
-            .authentication()
-            .bearer(token.serialize())
+            .medVeilederCookie(mockOAuth2Server)
             .response()
 
         assertThat(response.statusCode).isNotEqualTo(401)
     }
 
-    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        issuerId = "isso-idtoken",
-        clientId = "someclientid",
-        tokenCallback = DefaultOAuth2TokenCallback(
-            issuerId = "isso-idtoken",
-            claims = mapOf(
-                Pair("name", "navn"),
-                Pair("NAVident", "NAVident"),
-                Pair("unique_name", "unique_name"),
-            ),
-            audience = listOf("audience")
-        )
-    )
-
-    private fun hentUgyldigToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        issuerId = "feilissuer",
-        clientId = "someclientid",
-        tokenCallback = DefaultOAuth2TokenCallback(
-            issuerId = "feilissuer",
-            claims = mapOf(
-                Pair("name", "navn"),
-                Pair("NAVident", "NAVident"),
-                Pair("unique_name", "unique_name"),
-            ),
-            audience = listOf("audience")
-        )
-    )
+    private fun hentUgyldigToken(): SignedJWT {
+        return mockOAuth2Server.issueToken(issuerId = "feilissuer")
+    }
 }
