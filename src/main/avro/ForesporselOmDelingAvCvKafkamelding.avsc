@@ -1,5 +1,5 @@
 {
-  "namespace": "no.nav.arbeid.cv.avro",
+  "namespace": "no.nav.rekrutteringsbistand.avro",
   "type": "record",
   "name": "ForesporselOmDelingAvCvKafkamelding",
   "fields": [
@@ -21,6 +21,14 @@
       "type": "string"
     },
     { "name": "arbeidsgiver", "type": "string" },
-    { "name": "arbeidssted", "type": "string" }
+    {
+      "name": "arbeidssted",
+      "type": "record",
+      "namespace": "no.nav.rekrutteringsbistand.avro",
+      "fields": [
+        {
+          "name": ""
+        }
+    ]}
   ]
 }
