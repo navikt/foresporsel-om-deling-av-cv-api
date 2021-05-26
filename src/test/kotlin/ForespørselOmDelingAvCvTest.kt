@@ -1,6 +1,7 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import no.nav.security.mock.oauth2.MockOAuth2Server
+import org.apache.kafka.clients.producer.MockProducer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
 import setup.medVeilederCookie
+import setup.mockProducer
 import java.time.LocalDateTime
 import java.util.*
 
@@ -16,7 +18,8 @@ class ForespørselOmDelingAvCvTest {
 
     private val database = TestDatabase()
     private val repository = Repository(database.dataSource)
-    private val lokalApp = startLokalApp(repository)
+    private val mockProducer = mockProducer()
+    private val lokalApp = startLokalApp(repository, mockProducer)
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
@@ -57,5 +60,4 @@ class ForespørselOmDelingAvCvTest {
             assertThat(lagretForespørsel.svarTidspunkt).isNull()
         }
     }
-
 }

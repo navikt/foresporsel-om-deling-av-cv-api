@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "1.5.0"
     id("com.github.johnrengelman.shadow") version "6.1.0"
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.0"
     application
 }
 
@@ -38,6 +39,7 @@ dependencies {
 
     implementation("org.apache.kafka:kafka-clients:2.8.0")
     implementation("io.confluent:kafka-avro-serializer:6.0.1")
+    implementation("org.apache.avro:avro:1.10.2")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")

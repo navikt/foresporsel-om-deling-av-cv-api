@@ -1,0 +1,26 @@
+{
+  "namespace": "no.nav.arbeid.cv.avro",
+  "type": "record",
+  "name": "ForesporselOmDelingAvCvKafkamelding",
+  "fields": [
+    { "name": "aktorId", "type": "string" },
+    { "name": "stillingsId", "type": "string" },
+    { "name": "opprettetAv", "type": "string" },
+    {
+      "name": "opprettet",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    { "name": "callId", "type": "string" },
+
+    { "name": "stillingstittel", "type": "string" },
+    {
+      "name": "soknadsfrist",
+      "type": "string"
+    },
+    { "name": "arbeidsgiver", "type": "string" },
+    { "name": "arbeidssted", "type": "string" }
+  ]
+}

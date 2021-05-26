@@ -1,4 +1,5 @@
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import org.apache.kafka.clients.producer.Producer
 import setup.TestDatabase
 import setup.mockProducer
 import java.net.URL
@@ -7,7 +8,10 @@ fun main() {
     startLokalApp()
 }
 
-fun startLokalApp(repository: Repository = Repository(TestDatabase().dataSource)): App {
+fun startLokalApp(
+    repository: Repository = Repository(TestDatabase().dataSource),
+    producer: Producer<String, String> = mockProducer()
+): App {
     val service = Service(repository)
 
     val issuerProperties = IssuerProperties(
@@ -16,7 +20,7 @@ fun startLokalApp(repository: Repository = Repository(TestDatabase().dataSource)
         "isso-idtoken"
     )
 
-    val app = App(service, issuerProperties, mockProducer())
+    val app = App(service, issuerProperties, producer)
 
     app.start()
 
