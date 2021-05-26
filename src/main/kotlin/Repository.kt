@@ -36,11 +36,27 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
+    fun markerForespørselSendt(id: Int) {
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(OPPDATER_SQL)
+
+            statement.setString(1, DeltStatus.SENDT.toString())
+            statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()))
+            statement.setInt(3, id)
+
+            statement.executeUpdate()
+        }
+    }
+
     companion object {
         val LAGRE_BATCH_SQL = """
             INSERT INTO foresporsel_om_deling_av_cv (
                 aktor_id, stilling_id, delt_status, delt_tidspunkt, delt_av, svar, svar_tidspunkt, sendt_til_kafka_tidspunkt
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """.trimIndent()
+
+        val OPPDATER_SQL = """
+            UPDATE foresporsel_om_deling_av_cv SET delt_status = ?, sendt_til_kafka_tidspunkt = ? WHERE id = ?
         """.trimIndent()
 
         val HENT_USENDTE_SQL = """

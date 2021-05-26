@@ -2,6 +2,7 @@ import java.sql.ResultSet
 import java.time.LocalDateTime
 
 data class ForespørselOmDelingAvCv(
+    val id: Int,
     val aktørId: String,
     val stillingsId: String,
 
@@ -16,6 +17,7 @@ data class ForespørselOmDelingAvCv(
 ) {
     companion object {
         fun fromDb(rs: ResultSet) = ForespørselOmDelingAvCv(
+            id = rs.getInt("id"),
             aktørId = rs.getString("aktor_id"),
             stillingsId = rs.getString("stilling_id"),
             deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),

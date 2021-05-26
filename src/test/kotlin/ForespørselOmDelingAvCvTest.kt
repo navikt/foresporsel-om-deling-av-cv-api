@@ -68,7 +68,8 @@ class ForespørselOmDelingAvCvTest {
 
         val forespørsler = listOf(
             enForespørsel("123", DeltStatus.IKKE_SENDT),
-            enForespørsel("456", DeltStatus.SENDT, enHalvtimeSiden)
+            enForespørsel("234", DeltStatus.IKKE_SENDT),
+            enForespørsel("345", DeltStatus.SENDT, enHalvtimeSiden)
         )
 
         database.lagreBatch(forespørsler)
@@ -79,11 +80,15 @@ class ForespørselOmDelingAvCvTest {
         assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
         assertThat(lagredeForespørsler["123"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
 
-        assertThat(lagredeForespørsler["456"]!!.deltTidspunkt).isEqualTo(enHalvtimeSiden)
-        assertThat(lagredeForespørsler["456"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+        assertThat(lagredeForespørsler["234"]!!.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
+        assertThat(lagredeForespørsler["234"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+
+        assertThat(lagredeForespørsler["345"]!!.deltTidspunkt).isEqualToIgnoringNanos(enHalvtimeSiden)
+        assertThat(lagredeForespørsler["345"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
     }
 
     private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now()) = ForespørselOmDelingAvCv(
+        id = 0,
         aktørId = aktørId,
         stillingsId = UUID.randomUUID().toString(),
         deltStatus = deltStatus,

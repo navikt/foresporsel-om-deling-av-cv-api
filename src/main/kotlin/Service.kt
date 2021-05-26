@@ -14,8 +14,6 @@ class Service(repository: Repository) {
             "veileder" // TODO
         )
 
-        // scheduler.sendUsendteMeldinger()
-
         ctx.status(201)
     }
 }

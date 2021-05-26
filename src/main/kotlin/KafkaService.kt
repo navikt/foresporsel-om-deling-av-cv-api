@@ -1,10 +1,10 @@
 class KafkaService(private val repository: Repository) {
 
     fun sendUsendteForespørsler() {
+        repository.hentUsendteForespørsler().forEach {
+            // TODO: Send forespørsel på Kafka
 
-        val usendteForespørsler = repository.hentUsendteForespørsler()
-
-        // TODO: Send usendte forespørsler på Kafka
-        // TODO: Oppdater delt-status i databasen
+            repository.markerForespørselSendt(it.id)
+        }
     }
 }
