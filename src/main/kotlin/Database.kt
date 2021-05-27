@@ -8,12 +8,7 @@ import javax.sql.DataSource
 class Database {
     val dataSource: DataSource
 
-    init {
-        dataSource = opprettDataSource(role = "user")
-        kjørFlywayMigreringer()
-    }
-
-    private val config = when (Cluster.current) {
+    private val config: DbConf = when (Cluster.current) {
         Cluster.DEV_FSS -> DbConf(
             mountPath = "postgresql/preprod-fss",
             jdbcUrl = "jdbc:postgresql://b27dbvl024.preprod.local:5432/foresporsel-om-deling-av-cv"
@@ -22,6 +17,11 @@ class Database {
             mountPath = "postgresql/prod-fss",
             jdbcUrl = "jdbc:postgresql://A01DBVL022.adeo.no:5432/foresporsel-om-deling-av-cv"
         )
+    }
+
+    init {
+        dataSource = opprettDataSource(role = "user")
+        kjørFlywayMigreringer()
     }
 
     private fun opprettDataSource(role: String): HikariDataSource {
