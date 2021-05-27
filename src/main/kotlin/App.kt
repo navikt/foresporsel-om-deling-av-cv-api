@@ -5,14 +5,17 @@ import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.clients.producer.Producer
 import utils.Cluster
 import utils.log
+import utils.settCallId
 import java.io.Closeable
 import java.net.URL
 
-class App(val service: Service, val issuerProperties: IssuerProperties, val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>) : Closeable {
+class App(val service: Service, val issuerProperties: IssuerProperties, val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>) :
+    Closeable {
 
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"
         before(validerToken(issuerProperties))
+        before(settCallId)
         routes {
             get("/internal/isAlive") { it.status(200) }
             get("/internal/isReady") { it.status(200) }

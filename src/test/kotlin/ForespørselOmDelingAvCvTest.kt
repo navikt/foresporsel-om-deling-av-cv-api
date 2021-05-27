@@ -6,6 +6,7 @@ import org.junit.jupiter.api.*
 import setup.TestDatabase
 import setup.medVeilederCookie
 import setup.mockProducer
+import utils.foretrukkenCallIdHeaderKey
 import java.time.LocalDateTime
 import java.util.*
 
@@ -41,9 +42,11 @@ class ForespørselOmDelingAvCvTest {
             stillingsId = UUID.randomUUID().toString(),
             aktorIder = listOf("234", "345", "456")
         )
+        val callId = UUID.randomUUID()
 
         Fuel.post("http://localhost:8333/foresporsler")
             .medVeilederCookie(mockOAuth2Server)
+            .header(foretrukkenCallIdHeaderKey, callId.toString())
             .objectBody(inboundDto)
             .response()
 
@@ -54,12 +57,13 @@ class ForespørselOmDelingAvCvTest {
         val nå = LocalDateTime.now()
         lagredeForespørsler.forEachIndexed { index, lagretForespørsel ->
             assertThat(lagretForespørsel.aktørId).isEqualTo(inboundDto.aktorIder[index])
-            assertThat(lagretForespørsel.stillingsId).isEqualTo(inboundDto.stillingsId)
+            assertThat(lagretForespørsel.stillingsId.toString()).isEqualTo(inboundDto.stillingsId)
             assertThat(lagretForespørsel.deltAv).isEqualTo("veileder") // TODO
             assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
             assertThat(lagretForespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
             assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
             assertThat(lagretForespørsel.svarTidspunkt).isNull()
+            assertThat(lagretForespørsel.callId).isEqualTo(callId)
         }
     }
 
@@ -119,12 +123,13 @@ class ForespørselOmDelingAvCvTest {
     private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now()) = ForespørselOmDelingAvCv(
         id = 0,
         aktørId = aktørId,
-        stillingsId = UUID.randomUUID().toString(),
+        stillingsId = UUID.randomUUID(),
         deltStatus = deltStatus,
         deltTidspunkt = deltTidspunkt,
         deltAv = "veileder",
         svar = Svar.IKKE_SVART,
         svarTidspunkt = null,
-        sendtTilKafkaTidspunkt = null
+        sendtTilKafkaTidspunkt = null,
+        callId = UUID.randomUUID()
     )
 }
