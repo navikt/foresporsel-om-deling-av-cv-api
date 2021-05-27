@@ -77,10 +77,10 @@ class ForespørselOmDelingAvCvTest {
 
         val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
-        assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
+        assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isEqualToIgnoringSeconds(nå)
         assertThat(lagredeForespørsler["123"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
 
-        assertThat(lagredeForespørsler["234"]!!.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
+        assertThat(lagredeForespørsler["234"]!!.deltTidspunkt).isEqualToIgnoringSeconds(nå)
         assertThat(lagredeForespørsler["234"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
 
         assertThat(lagredeForespørsler["345"]!!.deltTidspunkt).isEqualToIgnoringNanos(enHalvtimeSiden)
