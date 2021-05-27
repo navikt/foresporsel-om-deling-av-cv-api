@@ -14,7 +14,7 @@ class KafkaService(
         repository.hentUsendteForespørsler().forEach {
 
             // TODO: Hent stilling fra API
-            val stilling = Stilling("blabla")
+            val stilling = EsStilling("blabla")
 
             val melding = ProducerRecord(topic, it.aktørId, it.tilKafkamelding(stilling))
             producer.send(melding)
@@ -23,9 +23,3 @@ class KafkaService(
         }
     }
 }
-
-
-// TODO, flytt
-data class Stilling(
-    val blabla: String
-)

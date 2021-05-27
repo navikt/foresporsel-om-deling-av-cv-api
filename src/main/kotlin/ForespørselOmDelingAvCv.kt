@@ -35,7 +35,7 @@ data class ForespørselOmDelingAvCv(
         )
     }
 
-    fun tilKafkamelding(stilling: Stilling): ForesporselOmDelingAvCvKafkamelding {
+    fun tilKafkamelding(stilling: EsStilling): ForesporselOmDelingAvCvKafkamelding {
         return ForesporselOmDelingAvCvKafkamelding(
             aktørId,
             stillingsId.toString(),
