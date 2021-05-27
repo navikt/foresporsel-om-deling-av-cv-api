@@ -14,7 +14,7 @@ val endepunktUtenTokenvalidering = listOf(
 val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties ->
     { ctx ->
         val url = ctx.req.requestURL.toString()
-        val skalValidereToken = endepunktUtenTokenvalidering.any { url.contains(it) }
+        val skalValidereToken = endepunktUtenTokenvalidering.none { url.contains(it) }
 
         if (skalValidereToken) {
             val validerteTokens = hentValiderteTokens(ctx, issuerProperties)
