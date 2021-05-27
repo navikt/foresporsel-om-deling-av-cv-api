@@ -37,6 +37,9 @@ class App(val service: Service, val issuerProperties: IssuerProperties, val prod
 fun main() {
 
     try {
+
+        log("main").info("Starter app i cluster ${Cluster.current}")
+
         val database = Database()
         val repository = Repository(database.dataSource)
         val service = Service(repository)
