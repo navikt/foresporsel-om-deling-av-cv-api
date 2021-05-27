@@ -2,10 +2,7 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import setup.TestDatabase
 import setup.medVeilederCookie
 import setup.mockProducer
@@ -25,6 +22,11 @@ class ForespørselOmDelingAvCvTest {
     @BeforeAll
     fun init() {
         mockOAuth2Server.start(port = 18300)
+    }
+
+    @BeforeEach
+    fun beforeEach() {
+        database.slettAlt()
     }
 
     @AfterAll
@@ -62,7 +64,34 @@ class ForespørselOmDelingAvCvTest {
     }
 
     @Test
-    fun `Usendte forespørsler skal sendes på Kafka og oppdateres med rett status i databasen`() {
+    fun `Usendte forespørsler skal sendes på Kafka`() {
+        val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
+
+        val forespørsler = listOf(
+            enForespørsel("123", DeltStatus.IKKE_SENDT),
+            enForespørsel("234", DeltStatus.IKKE_SENDT),
+            enForespørsel("345", DeltStatus.SENDT, enHalvtimeSiden)
+        )
+
+        database.lagreBatch(forespørsler)
+        kafkaService.sendUsendteForespørsler()
+
+        val meldingerSendtPåKafka = mockProducer.history()
+        assertThat(meldingerSendtPåKafka.size).isEqualTo(2)
+
+        meldingerSendtPåKafka.map { it.value() }.forEachIndexed { index, forespørsel ->
+            assertThat(forespørsel.getAktorId()).isEqualTo(forespørsler[index].aktørId)
+            assertThat(forespørsel.getStillingsId()).isEqualTo(forespørsler[index].stillingsId)
+            assertThat(forespørsel.getOpprettet()).isEqualTo(forespørsler[index].deltTidspunkt)
+            assertThat(forespørsel.getOpprettetAv()).isEqualTo(forespørsler[index].deltAv)
+
+            // TODO: Assert på stilling
+            // TODO: Assert callId
+        }
+    }
+
+    @Test
+    fun `Usendte forespørsler skal oppdateres med rett status i databasen når de sendes på Kafka`() {
         val nå = LocalDateTime.now()
         val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
 

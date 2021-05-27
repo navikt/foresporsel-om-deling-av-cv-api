@@ -1,4 +1,5 @@
 import io.javalin.Javalin
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.clients.producer.Producer
@@ -7,7 +8,7 @@ import utils.log
 import java.io.Closeable
 import java.net.URL
 
-class App(val service: Service, val issuerProperties: IssuerProperties, val producer: Producer<String, String>) : Closeable {
+class App(val service: Service, val issuerProperties: IssuerProperties, val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>) : Closeable {
 
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"
@@ -58,7 +59,7 @@ fun main() {
         }
 
         // TODO: Bytt til ekte producer
-        val producer: Producer<String, String> = MockProducer(true, null, null)
+        val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = MockProducer(true, null, null)
 
         App(service, issuerProperties, producer).start()
 

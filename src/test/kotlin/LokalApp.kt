@@ -1,3 +1,4 @@
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.producer.Producer
 import org.junit.jupiter.api.Test
@@ -11,7 +12,7 @@ fun main() {
 
 fun startLokalApp(
     repository: Repository = Repository(TestDatabase().dataSource),
-    producer: Producer<String, String> = mockProducer()
+    producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = mockProducer()
 ): App {
     val service = Service(repository)
 

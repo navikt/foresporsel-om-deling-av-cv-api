@@ -63,4 +63,12 @@ class TestDatabase {
             }.toList()
         }
     }
+
+    fun slettAlt() {
+        dataSource.connection.use { connection ->
+            connection.prepareStatement(
+                "DELETE FROM foresporsel_om_deling_av_cv"
+            ).execute()
+        }
+    }
 }
