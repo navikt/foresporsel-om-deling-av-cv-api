@@ -38,7 +38,7 @@ fun main() {
 
     try {
 
-        log("main").info("Starter app i cluster ${Cluster.current}")
+        log("main").info("Starter app i cluster ${Cluster.current.asString()}")
 
         val database = Database()
         val repository = Repository(database.dataSource)
