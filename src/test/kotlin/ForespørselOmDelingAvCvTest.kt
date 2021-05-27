@@ -6,6 +6,8 @@ import org.junit.jupiter.api.*
 import setup.TestDatabase
 import setup.medVeilederCookie
 import setup.mockProducer
+import stilling.Arbeidssted
+import stilling.Stilling
 import utils.foretrukkenCallIdHeaderKey
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -17,7 +19,8 @@ class ForespørselOmDelingAvCvTest {
     private val database = TestDatabase()
     private val repository = Repository(database.dataSource)
     private val mockProducer = mockProducer()
-    private val kafkaService = KafkaService(mockProducer, repository)
+    private val kafkaService = KafkaService(mockProducer, repository) { enStilling() }
+
     private val lokalApp = startLokalApp(repository, mockProducer)
     private val mockOAuth2Server = MockOAuth2Server()
 
@@ -133,4 +136,7 @@ class ForespørselOmDelingAvCvTest {
         sendtTilKafkaTidspunkt = null,
         callId = UUID.randomUUID()
     )
+
+    private fun enStilling() = Stilling("hoffnarr", "2021-04-08T08:12:51.243199","Kongelige hoff", listOf(
+        Arbeidssted("Slottsplassen 1","0001", "OSLO", "OSLO", "OSLO","Norge")))
 }

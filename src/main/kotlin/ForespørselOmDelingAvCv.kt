@@ -1,5 +1,6 @@
 import no.nav.rekrutteringsbistand.avro.Arbeidssted
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
+import stilling.Stilling
 import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -35,26 +36,26 @@ data class ForespørselOmDelingAvCv(
         )
     }
 
-    fun tilKafkamelding(stilling: EsStilling): ForesporselOmDelingAvCvKafkamelding {
-        return ForesporselOmDelingAvCvKafkamelding(
-            aktørId,
-            stillingsId.toString(),
-            deltAv,
-            deltTidspunkt.toInstant(ZoneOffset.UTC),
-            callId.toString(),
-            "todo",
-            "todo",
-            "todo",
-            listOf(Arbeidssted(
-                "todo",
-                "todo",
-                "todo",
-                "todo",
-                "todo",
-                "todo"
-            )),
-        )
-    }
+    fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCvKafkamelding(
+        aktørId,
+        stillingsId.toString(),
+        deltAv,
+        deltTidspunkt.toInstant(ZoneOffset.UTC),
+        callId.toString(),
+        stilling.stillingtittel,
+        stilling.søknadsfrist,
+        stilling.arbeidsgiver,
+        stilling.arbeidssteder.map { arbeidssted ->
+            Arbeidssted(
+                arbeidssted.adresse,
+                arbeidssted.postkode,
+                arbeidssted.by,
+                arbeidssted.kommune,
+                arbeidssted.fylke,
+                arbeidssted.land
+            )
+        }
+    )
 }
 
 enum class DeltStatus {
