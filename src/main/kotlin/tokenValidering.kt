@@ -5,20 +5,16 @@ import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import no.nav.security.token.support.core.context.TokenValidationContext
 import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
-import utils.log
 
-const val baseUrl = "http://localhost:8333"
 val endepunktUtenTokenvalidering = listOf(
-    "$baseUrl/internal/isAlive",
-    "$baseUrl/internal/isReady"
+    "/internal/isAlive",
+    "/internal/isReady"
 )
 
 val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties ->
     { ctx ->
-        log("validerToken()").info("Validerer token")
-
         val url = ctx.req.requestURL.toString()
-        val skalValidereToken = !endepunktUtenTokenvalidering.contains(url)
+        val skalValidereToken = endepunktUtenTokenvalidering.any { url.contains(it) }
 
         if (skalValidereToken) {
             val validerteTokens = hentValiderteTokens(ctx, issuerProperties)
