@@ -19,3 +19,6 @@ spec:
   readiness:
     path: /internal/isReady
   webproxy: true
+  azure:
+    application:
+      enabled: true

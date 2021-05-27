@@ -1,24 +1,29 @@
 package stilling
 
+import AccessTokenClient
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.Result
 import utils.Cluster
 import java.util.*
 
-private val stillingssokProxyDokumentUrl = when (Cluster.current) {
-    Cluster.DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
-    Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
-}
+class StillingClient(private val accessToken: () -> String) {
+    private val stillingssokProxyDokumentUrl = when (Cluster.current) {
+        Cluster.DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
+        Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
+    }
 
-fun hentStilling(uuid: UUID): Stilling {
-    val result = Fuel
-        .get("$stillingssokProxyDokumentUrl/$uuid")
-        .responseObject<EsResponse>().third
+    fun hentStilling(uuid: UUID): Stilling {
+        val result = Fuel
+            .get("$stillingssokProxyDokumentUrl/$uuid")
+            .authentication().bearer(accessToken())
+            .responseObject<EsResponse>().third
 
-    when (result) {
-        is Result.Success -> return result.value.toStilling()
-        is Result.Failure -> throw RuntimeException("Kunne ikke hente stilling med id $uuid", result.error)
+        when (result) {
+            is Result.Success -> return result.value.toStilling()
+            is Result.Failure -> throw RuntimeException("Kunne ikke hente stilling med id $uuid", result.error)
+        }
     }
 }
 
