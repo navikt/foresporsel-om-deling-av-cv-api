@@ -1,6 +1,5 @@
 package stilling
 
-import AccessTokenClient
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.jackson.responseObject

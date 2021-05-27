@@ -9,8 +9,8 @@ class Repository(private val dataSource: DataSource) {
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(LAGRE_BATCH_SQL)
 
-            aktørIder.forEach {
-                statement.setString(1, it)
+            aktørIder.forEach { aktørId ->
+                statement.setString(1, aktørId)
                 statement.setString(2, stillingsId.toString())
                 statement.setString(3, DeltStatus.IKKE_SENDT.toString())
                 statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()))

@@ -6,17 +6,17 @@ import no.nav.security.token.support.core.context.TokenValidationContext
 import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
 
-val endepunktUtenTokenvalidering = listOf(
+private val endepunktUtenTokenvalidering = listOf(
     "/internal/isAlive",
     "/internal/isReady"
 )
+private val skalValideres: String.() -> Boolean = { endepunktUtenTokenvalidering.none(this::contains) }
 
 val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties ->
     { ctx ->
         val url = ctx.req.requestURL.toString()
-        val skalValidereToken = endepunktUtenTokenvalidering.none { url.contains(it) }
 
-        if (skalValidereToken) {
+        if (url.skalValideres()) {
             val validerteTokens = hentValiderteTokens(ctx, issuerProperties)
 
             if (!validerteTokens.hasValidToken()) {
@@ -26,7 +26,7 @@ val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties -
     }
 }
 
-fun hentValiderteTokens(ctx: Context, issuerProperties: IssuerProperties): TokenValidationContext {
+private fun hentValiderteTokens(ctx: Context, issuerProperties: IssuerProperties): TokenValidationContext {
     val cookieName = issuerProperties.cookieName
     val tokenValidationHandler = JwtTokenValidationHandler(
         MultiIssuerConfiguration(mapOf(Pair(cookieName, issuerProperties)))

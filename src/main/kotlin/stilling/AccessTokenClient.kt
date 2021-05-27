@@ -1,3 +1,5 @@
+package stilling
+
 import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.jackson.responseObject
 import java.time.LocalDateTime
