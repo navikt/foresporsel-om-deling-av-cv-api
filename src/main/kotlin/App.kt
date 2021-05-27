@@ -9,8 +9,11 @@ import utils.settCallId
 import java.io.Closeable
 import java.net.URL
 
-class App(val service: Service, val issuerProperties: IssuerProperties, val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>) :
-    Closeable {
+class App(
+    private val service: Service,
+    private val issuerProperties: IssuerProperties,
+    private val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>
+) : Closeable {
 
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"

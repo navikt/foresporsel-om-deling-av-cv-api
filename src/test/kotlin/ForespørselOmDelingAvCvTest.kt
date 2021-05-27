@@ -8,6 +8,7 @@ import setup.medVeilederCookie
 import setup.mockProducer
 import utils.foretrukkenCallIdHeaderKey
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -16,7 +17,7 @@ class ForespørselOmDelingAvCvTest {
     private val database = TestDatabase()
     private val repository = Repository(database.dataSource)
     private val mockProducer = mockProducer()
-    private val kafkaService = KafkaService(repository)
+    private val kafkaService = KafkaService(mockProducer, repository)
     private val lokalApp = startLokalApp(repository, mockProducer)
     private val mockOAuth2Server = MockOAuth2Server()
 
@@ -85,12 +86,12 @@ class ForespørselOmDelingAvCvTest {
 
         meldingerSendtPåKafka.map { it.value() }.forEachIndexed { index, forespørsel ->
             assertThat(forespørsel.getAktorId()).isEqualTo(forespørsler[index].aktørId)
-            assertThat(forespørsel.getStillingsId()).isEqualTo(forespørsler[index].stillingsId)
-            assertThat(forespørsel.getOpprettet()).isEqualTo(forespørsler[index].deltTidspunkt)
+            assertThat(forespørsel.getStillingsId()).isEqualTo(forespørsler[index].stillingsId.toString())
+            assertThat(LocalDateTime.ofInstant(forespørsel.getOpprettet(), ZoneId.of("UTC"))).isEqualToIgnoringNanos(forespørsler[index].deltTidspunkt)
             assertThat(forespørsel.getOpprettetAv()).isEqualTo(forespørsler[index].deltAv)
+            assertThat(forespørsel.getCallId()).isEqualTo(forespørsler[index].callId.toString())
 
             // TODO: Assert på stilling
-            // TODO: Assert callId
         }
     }
 

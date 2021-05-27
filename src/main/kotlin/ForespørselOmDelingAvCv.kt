@@ -1,5 +1,8 @@
+import no.nav.rekrutteringsbistand.avro.Arbeidssted
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import java.sql.ResultSet
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 data class ForespørselOmDelingAvCv(
@@ -29,6 +32,27 @@ data class ForespørselOmDelingAvCv(
             svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
             sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
             callId = UUID.fromString(rs.getString("call_id"))
+        )
+    }
+
+    fun tilKafkamelding(stilling: Stilling): ForesporselOmDelingAvCvKafkamelding {
+        return ForesporselOmDelingAvCvKafkamelding(
+            aktørId,
+            stillingsId.toString(),
+            deltAv,
+            deltTidspunkt.toInstant(ZoneOffset.UTC),
+            callId.toString(),
+            "todo",
+            "todo",
+            "todo",
+            listOf(Arbeidssted(
+                "todo",
+                "todo",
+                "todo",
+                "todo",
+                "todo",
+                "todo"
+            )),
         )
     }
 }
