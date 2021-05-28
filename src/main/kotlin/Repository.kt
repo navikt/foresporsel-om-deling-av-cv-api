@@ -11,14 +11,14 @@ class Repository(private val dataSource: DataSource) {
 
             aktørIder.forEach { aktørId ->
                 statement.setString(1, aktørId)
-                statement.setString(2, stillingsId.toString())
+                statement.setObject(2, stillingsId)
                 statement.setString(3, DeltStatus.IKKE_SENDT.toString())
                 statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()))
                 statement.setString(5, deltAvNavIdent)
                 statement.setString(6, Svar.IKKE_SVART.toString())
                 statement.setTimestamp(7, null)
                 statement.setTimestamp(8, null)
-                statement.setString(9, callId.toString())
+                statement.setObject(9, callId)
                 statement.addBatch()
             }
 

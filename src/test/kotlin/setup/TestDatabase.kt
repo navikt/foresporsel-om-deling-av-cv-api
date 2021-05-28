@@ -36,14 +36,14 @@ class TestDatabase {
 
             forespørselOmDelingAvCver.forEach {
                 statement.setString(1, it.aktørId)
-                statement.setString(2, it.stillingsId.toString())
+                statement.setObject(2, it.stillingsId)
                 statement.setString(3, it.deltStatus.toString())
                 statement.setTimestamp(4, Timestamp.valueOf(it.deltTidspunkt))
                 statement.setString(5, it.deltAv)
                 statement.setString(6, it.svar.toString())
                 statement.setTimestamp(7, null)
                 statement.setTimestamp(8, null)
-                statement.setString(9, it.callId.toString())
+                statement.setObject(9, it.callId)
 
                 statement.addBatch()
             }
