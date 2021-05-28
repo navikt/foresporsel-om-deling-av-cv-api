@@ -9,7 +9,7 @@ import org.junit.jupiter.api.TestInstance
 import setup.medVeilederCookie
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TokenValideringTest {
+class TokenUtilsTest {
 
     private val lokalApp = startLokalApp()
     private val mockOAuth2Server = MockOAuth2Server()

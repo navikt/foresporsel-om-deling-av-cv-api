@@ -10,6 +10,10 @@ private val endepunktUtenTokenvalidering = listOf(
     "/internal/isAlive",
     "/internal/isReady"
 )
+
+const val navIdentClaimKey = "NAVident"
+const val navIdentAttributeKey = "navIdent"
+
 private val skalValideres: String.() -> Boolean = { endepunktUtenTokenvalidering.none(this::contains) }
 
 val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties ->
@@ -19,11 +23,22 @@ val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties -
         if (url.skalValideres()) {
             val validerteTokens = hentValiderteTokens(ctx, issuerProperties)
 
-            if (!validerteTokens.hasValidToken()) {
+            if (validerteTokens.hasValidToken()) {
+                val navIdent = validerteTokens
+                    .getClaims(issuerProperties.cookieName)
+                    .getStringClaim(navIdentClaimKey)
+
+                ctx.attribute(navIdentAttributeKey, navIdent)
+
+            } else {
                 throw UnauthorizedResponse()
             }
         }
     }
+}
+
+fun Context.hentNavIdent(): String {
+    return attribute(navIdentAttributeKey)!!
 }
 
 private fun hentValiderteTokens(ctx: Context, issuerProperties: IssuerProperties): TokenValidationContext {

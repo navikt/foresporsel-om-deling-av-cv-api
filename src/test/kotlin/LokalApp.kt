@@ -1,7 +1,6 @@
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.producer.Producer
-import org.junit.jupiter.api.Test
 import setup.TestDatabase
 import setup.mockProducer
 import java.net.URL

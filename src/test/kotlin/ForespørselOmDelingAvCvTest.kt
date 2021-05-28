@@ -48,8 +48,10 @@ class ForespørselOmDelingAvCvTest {
         )
         val callId = UUID.randomUUID()
 
+        val navIdent = "X12345"
+
         Fuel.post("http://localhost:8333/foresporsler")
-            .medVeilederCookie(mockOAuth2Server)
+            .medVeilederCookie(mockOAuth2Server, navIdent)
             .header(foretrukkenCallIdHeaderKey, callId.toString())
             .objectBody(inboundDto)
             .response()
@@ -62,7 +64,7 @@ class ForespørselOmDelingAvCvTest {
         lagredeForespørsler.forEachIndexed { index, lagretForespørsel ->
             assertThat(lagretForespørsel.aktørId).isEqualTo(inboundDto.aktorIder[index])
             assertThat(lagretForespørsel.stillingsId.toString()).isEqualTo(inboundDto.stillingsId)
-            assertThat(lagretForespørsel.deltAv).isEqualTo("veileder") // TODO
+            assertThat(lagretForespørsel.deltAv).isEqualTo(navIdent)
             assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
             assertThat(lagretForespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
             assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
