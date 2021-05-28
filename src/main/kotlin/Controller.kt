@@ -2,7 +2,7 @@ import io.javalin.http.Context
 import utils.hentCallId
 import java.util.*
 
-class Service(repository: Repository) {
+class Controller(repository: Repository) {
 
     val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselOmDelingAvCvInboundDto::class.java)

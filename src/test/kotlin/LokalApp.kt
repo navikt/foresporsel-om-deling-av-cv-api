@@ -13,7 +13,7 @@ fun startLokalApp(
     repository: Repository = Repository(TestDatabase().dataSource),
     producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = mockProducer()
 ): App {
-    val service = Service(repository)
+    val controller = Controller(repository)
 
     val issuerProperties = IssuerProperties(
         URL("http://localhost:18300/default/.well-known/openid-configuration"),
@@ -21,7 +21,7 @@ fun startLokalApp(
         "isso-idtoken"
     )
 
-    val app = App(service, issuerProperties, producer)
+    val app = App(controller, issuerProperties, producer)
 
     app.start()
 

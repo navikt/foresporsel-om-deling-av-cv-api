@@ -10,7 +10,7 @@ import java.io.Closeable
 import java.net.URL
 
 class App(
-    private val service: Service,
+    private val controller: Controller,
     private val issuerProperties: IssuerProperties,
     private val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>
 ) : Closeable {
@@ -22,7 +22,7 @@ class App(
         routes {
             get("/internal/isAlive") { it.status(200) }
             get("/internal/isReady") { it.status(200) }
-            post("/foresporsler", service.lagreForespørselOmDelingAvCv)
+            post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
         }
     }
 
@@ -44,12 +44,11 @@ class App(
 fun main() {
 
     try {
-
         log("main").info("Starter app i cluster ${Cluster.current.asString()}")
 
         val database = Database()
         val repository = Repository(database.dataSource)
-        val service = Service(repository)
+        val controller = Controller(repository)
 
         val issuerProperties = when (Cluster.current) {
             Cluster.DEV_FSS -> IssuerProperties(
@@ -67,7 +66,7 @@ fun main() {
         // TODO: Bytt til ekte producer
         val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = MockProducer(true, null, null)
 
-        App(service, issuerProperties, producer).start()
+        App(controller, issuerProperties, producer).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)
