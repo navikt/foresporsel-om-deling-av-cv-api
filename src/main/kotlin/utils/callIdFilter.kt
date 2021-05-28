@@ -7,7 +7,7 @@ const val foretrukkenCallIdHeaderKey = "Nav-Call-Id"
 
 val settCallId: (Context) -> Unit = {
     val callId = it.header(foretrukkenCallIdHeaderKey) ?: it.header("Nav-CallId") ?: it.header("X-Nav-CallId") ?: UUID.randomUUID().toString()
-    it.header(foretrukkenCallIdHeaderKey, callId)
+    it.attribute(foretrukkenCallIdHeaderKey, callId)
 }
 
-fun Context.hentCallId() = UUID.fromString(header(foretrukkenCallIdHeaderKey)!!)
+fun Context.hentCallId() = UUID.fromString(attribute(foretrukkenCallIdHeaderKey)!!)
