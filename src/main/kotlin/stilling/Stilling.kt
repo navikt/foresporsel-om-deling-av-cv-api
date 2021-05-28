@@ -1,13 +1,13 @@
 package stilling
 
-class Stilling(
+data class Stilling(
     val stillingtittel: String,
     val søknadsfrist: String,
     val arbeidsgiver: String,
     val arbeidssteder: List<Arbeidssted>
 )
 
-class Arbeidssted(
+data class Arbeidssted(
     val adresse: String?,
     val postkode: String?,
     val by: String?,

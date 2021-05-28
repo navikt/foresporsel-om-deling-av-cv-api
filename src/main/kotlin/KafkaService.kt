@@ -17,15 +17,13 @@ class KafkaService(
     fun sendUsendteForespørsler() {
         val usendteForespørsler = repository.hentUsendteForespørsler()
         log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
-        usendteForespørsler.forEach {
+        usendteForespørsler.associateBy { it.stillingsId }
+            .map { hentStilling(it.key) to it.value }
+            .forEach { (stilling, usendtForespørsel) ->
+                val melding = ProducerRecord(topic, usendtForespørsel.aktørId, usendtForespørsel.tilKafkamelding(stilling))
+                producer.send(melding)
 
-            val stilling = hentStilling(it.stillingsId)
-            log.info("Hentet stilling $stilling")
-
-            val melding = ProducerRecord(topic, it.aktørId, it.tilKafkamelding(stilling))
-            producer.send(melding)
-
-            repository.markerForespørselSendt(it.id)
-        }
+                repository.markerForespørselSendt(usendtForespørsel.id)
+            }
     }
 }

@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.Result
 import utils.Cluster
+import utils.log
 import java.util.*
 
 class StillingClient(private val accessToken: () -> String) {
@@ -19,10 +20,10 @@ class StillingClient(private val accessToken: () -> String) {
             .authentication().bearer(accessToken())
             .responseObject<EsResponse>().third
 
-        when (result) {
-            is Result.Success -> return result.value.toStilling()
+        return when (result) {
+            is Result.Success -> result.value.toStilling()
             is Result.Failure -> throw RuntimeException("Kunne ikke hente stilling med id $uuid", result.error)
-        }
+        }.also { log.info("Hentet stilling $it") }
     }
 }
 
