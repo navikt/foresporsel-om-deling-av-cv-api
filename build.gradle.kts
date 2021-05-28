@@ -45,4 +45,7 @@ dependencies {
     testImplementation("com.h2database:h2:1.4.200")
     testImplementation("org.assertj:assertj-core:3.19.0")
     testImplementation("no.nav.security:mock-oauth2-server:0.3.2")
+    val shedlockVersion = "4.23.0"
+    implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 }

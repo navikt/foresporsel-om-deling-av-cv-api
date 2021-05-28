@@ -3,6 +3,7 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
+import sendforespørsel.KafkaService
 import setup.TestDatabase
 import setup.medVeilederCookie
 import setup.mockProducer
@@ -21,7 +22,7 @@ class ForespørselOmDelingAvCvTest {
     private val mockProducer = mockProducer()
     private val kafkaService = KafkaService(mockProducer, repository) { enStilling() }
 
-    private val lokalApp = startLokalApp(repository, mockProducer, kafkaService)
+    private val lokalApp = startLokalApp(database, repository, mockProducer, kafkaService)
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
