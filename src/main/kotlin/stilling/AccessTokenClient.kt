@@ -61,5 +61,5 @@ class AzureConfig (
     val scope = when(Cluster.current) {
         Cluster.DEV_FSS -> "dev-gcp"
         Cluster.PROD_FSS -> "prod-gcp"
-    }.let { cluster -> "api://${cluster}.arbeidsgiver.rekrutteringsbistand-stilling-proxy/.default" }
+    }.let { cluster -> "api://${cluster}.arbeidsgiver.rekrutteringsbistand-stillingssok-proxy/.default" }
 }
