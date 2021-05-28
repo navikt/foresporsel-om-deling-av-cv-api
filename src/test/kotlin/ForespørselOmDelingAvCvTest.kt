@@ -21,7 +21,7 @@ class ForespørselOmDelingAvCvTest {
     private val mockProducer = mockProducer()
     private val kafkaService = KafkaService(mockProducer, repository) { enStilling() }
 
-    private val lokalApp = startLokalApp(repository, mockProducer)
+    private val lokalApp = startLokalApp(repository, mockProducer, kafkaService)
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
@@ -89,14 +89,25 @@ class ForespørselOmDelingAvCvTest {
         val meldingerSendtPåKafka = mockProducer.history()
         assertThat(meldingerSendtPåKafka.size).isEqualTo(2)
 
+        val stilling = enStilling()
+
         meldingerSendtPåKafka.map { it.value() }.forEachIndexed { index, forespørsel ->
             assertThat(forespørsel.getAktorId()).isEqualTo(forespørsler[index].aktørId)
             assertThat(forespørsel.getStillingsId()).isEqualTo(forespørsler[index].stillingsId.toString())
             assertThat(LocalDateTime.ofInstant(forespørsel.getOpprettet(), ZoneId.of("UTC"))).isEqualToIgnoringNanos(forespørsler[index].deltTidspunkt)
             assertThat(forespørsel.getOpprettetAv()).isEqualTo(forespørsler[index].deltAv)
             assertThat(forespørsel.getCallId()).isEqualTo(forespørsler[index].callId.toString())
+            assertThat(forespørsel.getStillingstittel()).isEqualTo(stilling.stillingtittel)
+            assertThat(forespørsel.getSoknadsfrist()).isEqualTo(stilling.søknadsfrist)
 
-            // TODO: Assert på stilling
+            forespørsel.getArbeidssteder().forEachIndexed { arbeidsstedIndex, arbeidssted ->
+                assertThat(arbeidssted.getAdresse()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].adresse)
+                assertThat(arbeidssted.getPostkode()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].postkode)
+                assertThat(arbeidssted.getBy()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].by)
+                assertThat(arbeidssted.getKommune()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].kommune)
+                assertThat(arbeidssted.getFylke()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].fylke)
+                assertThat(arbeidssted.getLand()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].land)
+            }
         }
     }
 
@@ -138,7 +149,4 @@ class ForespørselOmDelingAvCvTest {
         sendtTilKafkaTidspunkt = null,
         callId = UUID.randomUUID()
     )
-
-    private fun enStilling() = Stilling("hoffnarr", "2021-04-08T08:12:51.243199","Kongelige hoff", listOf(
-        Arbeidssted("Slottsplassen 1","0001", "OSLO", "OSLO", "OSLO","Norge")))
 }

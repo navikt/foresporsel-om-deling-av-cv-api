@@ -26,9 +26,6 @@ class StillingClient(private val accessToken: () -> String) {
     }
 }
 
-
-
-
 private data class EsResponse(
     val _source: EsSource
 ) {
@@ -38,7 +35,6 @@ private data class EsResponse(
         arbeidsgiver = _source.stilling.employer.name,
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted)
     )
-
 
     private data class EsSource(
         val stilling: EsStilling

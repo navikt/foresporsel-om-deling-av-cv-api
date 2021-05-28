@@ -1,18 +1,21 @@
+import auth.azureConfig
+import auth.issuerProperties
 import io.javalin.Javalin
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.clients.producer.Producer
+import stilling.AccessTokenClient
+import stilling.StillingClient
 import utils.Cluster
 import utils.log
 import utils.settCallId
 import java.io.Closeable
-import java.net.URL
 
 class App(
     private val controller: Controller,
     private val issuerProperties: IssuerProperties,
-    private val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>
+    private val kafkaService: KafkaService,
 ) : Closeable {
 
     private val webServer = Javalin.create().apply {
@@ -23,6 +26,10 @@ class App(
             get("/internal/isAlive") { it.status(200) }
             get("/internal/isReady") { it.status(200) }
             post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
+            get("/send") {
+                kafkaService.sendUsendteForespørsler()
+                it.status(200)
+            }
         }
     }
 
@@ -50,23 +57,14 @@ fun main() {
         val repository = Repository(database.dataSource)
         val controller = Controller(repository)
 
-        val issuerProperties = when (Cluster.current) {
-            Cluster.DEV_FSS -> IssuerProperties(
-                URL("https://login.microsoftonline.com/NAVQ.onmicrosoft.com/.well-known/openid-configuration"),
-                listOf("38e07d31-659d-4595-939a-f18dce3446c5"),
-                "isso-idtoken"
-            )
-            Cluster.PROD_FSS -> IssuerProperties(
-                URL("https://login.microsoftonline.com/navno.onmicrosoft.com/.well-known/openid-configuration"),
-                listOf("9b4e07a3-4f4c-4bab-b866-87f62dff480d"),
-                "isso-idtoken"
-            )
-        }
-
         // TODO: Bytt til ekte producer
         val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = MockProducer(true, null, null)
 
-        App(controller, issuerProperties, producer).start()
+        val accessTokenClient = AccessTokenClient(azureConfig)
+        val stillingClient = StillingClient(accessTokenClient::getAccessToken)
+        val kafkaService = KafkaService(producer, repository, stillingClient::hentStilling)
+
+        App(controller, issuerProperties, kafkaService).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)

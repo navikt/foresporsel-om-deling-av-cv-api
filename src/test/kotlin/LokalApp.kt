@@ -11,7 +11,10 @@ fun main() {
 
 fun startLokalApp(
     repository: Repository = Repository(TestDatabase().dataSource),
-    producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = mockProducer()
+    producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = mockProducer(),
+    kafkaService: KafkaService = KafkaService(producer, repository) {
+        enStilling()
+    }
 ): App {
     val controller = Controller(repository)
 
@@ -21,7 +24,7 @@ fun startLokalApp(
         "isso-idtoken"
     )
 
-    val app = App(controller, issuerProperties, producer)
+    val app = App(controller, issuerProperties, kafkaService)
 
     app.start()
 

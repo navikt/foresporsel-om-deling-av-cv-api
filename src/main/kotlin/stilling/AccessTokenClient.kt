@@ -1,13 +1,14 @@
 package stilling
 
-import com.github.kittinunf.fuel.core.FuelManager
+import auth.AzureConfig
+import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.responseObject
 import java.time.LocalDateTime
 import com.github.kittinunf.result.Result
 import utils.Cluster
 
 
-class AccessTokenClient(private val httpClient: FuelManager, private val config: AzureConfig) {
+class AccessTokenClient(private val config: AzureConfig) {
     private lateinit var cachedAccessToken : CachedAccessToken
 
     fun getAccessToken(): String {
@@ -17,15 +18,20 @@ class AccessTokenClient(private val httpClient: FuelManager, private val config:
         return cachedAccessToken.accessToken
     }
 
-    private fun nyttToken():CachedAccessToken {
+    private fun nyttToken(): CachedAccessToken {
+        val scope = when(Cluster.current) {
+            Cluster.DEV_FSS -> "dev-gcp"
+            Cluster.PROD_FSS -> "prod-gcp"
+        }.let { cluster -> "api://${cluster}.arbeidsgiver.rekrutteringsbistand-stillingssok-proxy/.default" }
+
         val formData = listOf(
             "grant_type" to "client_credentials",
             "client_secret" to config.azureClientSecret,
             "client_id" to config.azureClientId,
-            "scope" to config.scope
+            "scope" to scope
         )
 
-        val result = httpClient
+        val result = Fuel
             .post(config.tokenEndpoint, formData)
             .responseObject<AccessToken>().third
 
@@ -53,13 +59,3 @@ class AccessTokenClient(private val httpClient: FuelManager, private val config:
     }
 }
 
-class AzureConfig (
-    val azureClientSecret: String,
-    val azureClientId: String,
-    val tokenEndpoint: String
-) {
-    val scope = when(Cluster.current) {
-        Cluster.DEV_FSS -> "dev-gcp"
-        Cluster.PROD_FSS -> "prod-gcp"
-    }.let { cluster -> "api://${cluster}.arbeidsgiver.rekrutteringsbistand-stillingssok-proxy/.default" }
-}
