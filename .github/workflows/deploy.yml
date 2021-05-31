@@ -57,7 +57,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-fss
           VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/nais.yaml,nais/foresporsel-topic.yaml
+          RESOURCE: nais/nais.yaml
           VARS: nais/nais-dev.json
 
   deploy-to-prod:
@@ -72,5 +72,31 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-fss
           VAR: image=${{ env.IMAGE }}
-          RESOURCE: nais/nais.yaml,nais/alerts.yaml,nais/foresporsel-topic.yaml
+          RESOURCE: nais/nais.yaml,nais/alerts.yaml
+          VARS: nais/nais-prod.json
+
+  deploy-topics-to-dev:
+    name: Deploy topics til dev
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: nais/foresporsel-topic.yaml
+          VARS: nais/nais-dev.json
+
+  deploy-topics-to-prod:
+    name: Deploy topics til prod
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-gcp
+          RESOURCE: nais/foresporsel-topic.yaml
           VARS: nais/nais-prod.json
