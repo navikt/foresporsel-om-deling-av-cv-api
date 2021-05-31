@@ -11,9 +11,9 @@ spec:
   vault:
     enabled: true
   ingresses:
-  {{ #each ingress as |url| }}
+  {{#each ingress as |url|}}
      - {{ url }}
-  {{ /each }}
+  {{/each}}
   liveness:
     path: /internal/isAlive
   readiness:
