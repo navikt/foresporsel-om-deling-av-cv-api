@@ -1,12 +1,20 @@
 import auth.azureConfig
 import auth.issuerProperties
+import com.bettercloud.vault.SslConfig
+import io.confluent.kafka.serializers.KafkaAvroSerializer
 import io.javalin.Javalin
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.MockProducer
 import org.apache.kafka.clients.producer.Producer
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.config.SslConfigs
+import org.apache.kafka.common.serialization.StringSerializer
 import sendforespørsel.KafkaService
 import sendforespørsel.UsendtScheduler
+import sendforespørsel.producerConfig
 import stilling.AccessTokenClient
 import stilling.StillingClient
 import utils.Cluster
@@ -57,9 +65,10 @@ fun main() {
         val database = Database()
         val repository = Repository(database.dataSource)
         val controller = Controller(repository)
-
-        // TODO: Bytt til ekte producer
-        val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = MockProducer(true, null, null)
+        val producer = when (Cluster.current) {
+            Cluster.DEV_FSS -> KafkaProducer<String, ForesporselOmDelingAvCvKafkamelding>(producerConfig)
+            Cluster.PROD_FSS -> MockProducer(true, null, null)
+        }
 
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingClient = StillingClient(accessTokenClient::getAccessToken)

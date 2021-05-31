@@ -22,3 +22,5 @@ spec:
   azure:
     application:
       enabled: true
+  kafka:
+    pool: {{ kafka-pool }}

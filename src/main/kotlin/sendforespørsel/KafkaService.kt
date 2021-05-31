@@ -8,8 +8,7 @@ import stilling.Stilling
 import utils.log
 import java.util.*
 
-// TODO
-const val topic = "blabla"
+const val topic = "foresporsel-om-deling-av-cv"
 
 class KafkaService(
     private val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>,
