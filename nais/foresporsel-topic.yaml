@@ -1,0 +1,19 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: foresporsel-om-deling-av-cv
+  namespace: arbeidsgiver-inkludering
+  labels:
+    team: arbeidsgiver-inkludering
+spec:
+  pool: {{ kafka-pool }}
+  config:
+    cleanupPolicy: delete # Ingen compaction
+    retentionHours: 2191  # 3 måneder
+  acl:
+    - team: arbeidsgiver-inkludering
+      application: foresporsel-om-deling-av-cv-api
+      access: readwrite
+    # - team: pto
+    #   application: pto-app
+    #   access: read

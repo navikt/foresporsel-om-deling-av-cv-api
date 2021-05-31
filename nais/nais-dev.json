@@ -1,5 +1,6 @@
 {
   "ingress": [
     "https://foresporsel-om-deling-av-cv-api.dev.intern.nav.no"
-  ]
+  ],
+  "kafka-pool": "nav-dev"
 }

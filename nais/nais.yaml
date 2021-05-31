@@ -6,14 +6,14 @@ metadata:
   labels:
     team: arbeidsgiver-inkludering
 spec:
-  image: {{image}}
+  image: {{ image }}
   port: 8333
   vault:
     enabled: true
   ingresses:
-  {{#each ingress as |url|}}
-     - {{url}}
-  {{/each}}
+  {{ #each ingress as |url| }}
+     - {{ url }}
+  {{ /each }}
   liveness:
     path: /internal/isAlive
   readiness:
