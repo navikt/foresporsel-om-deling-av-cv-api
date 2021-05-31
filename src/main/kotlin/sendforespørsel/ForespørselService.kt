@@ -10,13 +10,13 @@ import java.util.*
 
 const val topic = "foresporsel-om-deling-av-cv"
 
-class KafkaService(
+class ForespørselService(
     private val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>,
     private val repository: Repository,
     private val hentStilling: (UUID) -> Stilling
 ) {
 
-    fun sendUsendteForespørsler() {
+    fun sendUsendte() {
         val usendteForespørsler = repository.hentUsendteForespørsler()
         log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
         usendteForespørsler.associateBy { it.stillingsId }

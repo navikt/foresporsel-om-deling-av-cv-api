@@ -1,0 +1,4 @@
+package mottasvar
+
+class KafkaConsumer {
+}

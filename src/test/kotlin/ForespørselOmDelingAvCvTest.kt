@@ -3,16 +3,16 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
-import sendforespørsel.KafkaService
+import sendforespørsel.ForespørselService
 import setup.TestDatabase
 import setup.medVeilederCookie
+import setup.mockConsumer
 import setup.mockProducer
-import stilling.Arbeidssted
-import stilling.Stilling
 import utils.foretrukkenCallIdHeaderKey
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
+import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespørselOmDelingAvCvTest {
@@ -20,9 +20,9 @@ class ForespørselOmDelingAvCvTest {
     private val database = TestDatabase()
     private val repository = Repository(database.dataSource)
     private val mockProducer = mockProducer()
-    private val kafkaService = KafkaService(mockProducer, repository) { enStilling() }
+    private val forespørselService = ForespørselService(mockProducer, repository) { enStilling() }
 
-    private val lokalApp = startLokalApp(database, repository, mockProducer, kafkaService)
+    private val lokalApp = startLokalApp(database, repository, mockProducer, forespørselService)
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
@@ -85,7 +85,7 @@ class ForespørselOmDelingAvCvTest {
         )
 
         database.lagreBatch(forespørsler)
-        kafkaService.sendUsendteForespørsler()
+        forespørselService.sendUsendte()
 
         val meldingerSendtPåKafka = mockProducer.history()
         assertThat(meldingerSendtPåKafka.size).isEqualTo(2)
@@ -124,7 +124,7 @@ class ForespørselOmDelingAvCvTest {
         )
 
         database.lagreBatch(forespørsler)
-        kafkaService.sendUsendteForespørsler()
+        forespørselService.sendUsendte()
 
         val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
@@ -136,6 +136,36 @@ class ForespørselOmDelingAvCvTest {
 
         assertThat(lagredeForespørsler["345"]!!.deltTidspunkt).isEqualToIgnoringNanos(enHalvtimeSiden)
         assertThat(lagredeForespørsler["345"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+    }
+
+    @Test
+    fun `mottat svar skal oppdatere riktig forespørsel i databasen`() {
+        val nå = LocalDateTime.now()
+        val consumer = mockConsumer()
+
+        val forespørsler = listOf(
+            enForespørsel("123", DeltStatus.SENDT)
+        )
+
+        val etSvar:Any = TODO()
+
+        database.lagreBatch(forespørsler)
+        startLokalApp(database,repository).use {
+            it.mottaKafkamelding(consumer, etSvar)
+
+            val timeoutSekunder = 2
+
+            assertTrue((0..(timeoutSekunder*10)).any {
+                val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
+
+                val svarEndretTilJa = lagredeForespørsler["123"]!!.svar == Svar.JA
+
+                if (!svarEndretTilJa){
+                    Thread.sleep(100)
+                }
+                svarEndretTilJa
+            })
+        }
     }
 
     private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now()) = ForespørselOmDelingAvCv(

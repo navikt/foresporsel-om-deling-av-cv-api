@@ -1,18 +1,12 @@
 import auth.azureConfig
 import auth.issuerProperties
-import com.bettercloud.vault.SslConfig
-import io.confluent.kafka.serializers.KafkaAvroSerializer
 import io.javalin.Javalin
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
-import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.MockProducer
-import org.apache.kafka.clients.producer.Producer
-import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.config.SslConfigs
-import org.apache.kafka.common.serialization.StringSerializer
-import sendforespørsel.KafkaService
+import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import sendforespørsel.producerConfig
 import stilling.AccessTokenClient
@@ -25,7 +19,7 @@ import java.io.Closeable
 class App(
     private val controller: Controller,
     private val issuerProperties: IssuerProperties,
-    private val kafkaService: KafkaService,
+    private val forespørselService: ForespørselService,
     private val scheduler: UsendtScheduler
 ) : Closeable {
 
@@ -52,6 +46,8 @@ class App(
         }
     }
 
+    fun mottaKafkamelding(consumer: MockConsumer<String, Any>, etSvar: Any): Unit = TODO()
+
     override fun close() {
         webServer.stop()
     }
@@ -74,9 +70,9 @@ fun main() {
 
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingClient = StillingClient(accessTokenClient::getAccessToken)
-        val kafkaService = KafkaService(producer, repository, stillingClient::hentStilling)
+        val forespørselService = ForespørselService(producer, repository, stillingClient::hentStilling)
 
-        App(controller, issuerProperties, kafkaService, UsendtScheduler(database.dataSource,kafkaService::sendUsendteForespørsler)).start()
+        App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte)).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)

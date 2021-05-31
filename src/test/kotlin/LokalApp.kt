@@ -1,7 +1,7 @@
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.producer.Producer
-import sendforespørsel.KafkaService
+import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import setup.TestDatabase
 import setup.mockProducer
@@ -15,7 +15,7 @@ fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
     producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = mockProducer(),
-    kafkaService: KafkaService = KafkaService(producer, repository) {
+    forespørselService: ForespørselService = ForespørselService(producer, repository) {
         enStilling()
     }
 ): App {
@@ -27,7 +27,7 @@ fun startLokalApp(
         "isso-idtoken"
     )
 
-    val app = App(controller, issuerProperties, kafkaService, UsendtScheduler(database.dataSource,kafkaService::sendUsendteForespørsler))
+    val app = App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte))
 
     app.start()
 
