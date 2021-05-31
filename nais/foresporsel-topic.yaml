@@ -8,8 +8,8 @@ metadata:
 spec:
   pool: {{ kafka-pool }}
   config:
-    cleanupPolicy: delete # Ingen compaction
-    retentionHours: 2191  # 3 måneder
+    cleanupPolicy: delete # delete = Ingen compaction
+    retentionHours: 2191 # 2191 timer = 3 måneder
   acl:
     - team: arbeidsgiver-inkludering
       application: foresporsel-om-deling-av-cv-api

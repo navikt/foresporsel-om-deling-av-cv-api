@@ -65,7 +65,7 @@ fun main() {
         val database = Database()
         val repository = Repository(database.dataSource)
         val controller = Controller(repository)
-        
+
         // TODO: Skru på KafkaProducer for prod
         val producer = when (Cluster.current) {
             Cluster.DEV_FSS -> KafkaProducer<String, ForesporselOmDelingAvCvKafkamelding>(producerConfig)
