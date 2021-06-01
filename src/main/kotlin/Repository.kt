@@ -1,3 +1,6 @@
+import mottasvar.Svar
+import mottasvar.SvarPåForespørsel
+import utils.log
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.util.*
@@ -39,13 +42,28 @@ class Repository(private val dataSource: DataSource) {
 
     fun markerForespørselSendt(id: Long) {
         dataSource.connection.use { connection ->
-            val statement = connection.prepareStatement(OPPDATER_SQL)
+            val statement = connection.prepareStatement(OPPDATER_DELT_STATUS_SQL)
 
             statement.setString(1, DeltStatus.SENDT.toString())
             statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()))
             statement.setLong(3, id)
 
             statement.executeUpdate()
+        }
+    }
+    fun oppdaterMedSvar(svar: SvarPåForespørsel) {
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(OPPDATER_SVAR_SQL)
+
+            statement.setString(1, svar.svar.name)
+            statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()))
+            statement.setString(3, svar.aktørId)
+            statement.setObject(4, svar.stillingId)
+
+            val antallOppdaterteRader = statement.executeUpdate()
+            if(antallOppdaterteRader != 1) {
+                log.error("Oppdaterte et markelig antall rader ($antallOppdaterteRader) for svar: $svar")
+            }
         }
     }
 
@@ -56,8 +74,16 @@ class Repository(private val dataSource: DataSource) {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
-        val OPPDATER_SQL = """
+        val OPPDATER_DELT_STATUS_SQL = """
             UPDATE foresporsel_om_deling_av_cv SET delt_status = ?, sendt_til_kafka_tidspunkt = ? WHERE id = ?
+        """.trimIndent()
+
+        val OPPDATER_SVAR_SQL = """
+            UPDATE foresporsel_om_deling_av_cv SET svar = ?, svar_tidspunkt = ? WHERE id in 
+              (SELECT max(id)
+              FROM foresporsel_om_deling_av_cv 
+              WHERE aktør_id = ? AND stillings_id = ? 
+              GROUP BY aktør_id, stillings_id)
         """.trimIndent()
 
         val HENT_USENDTE_SQL = """

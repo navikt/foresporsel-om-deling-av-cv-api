@@ -32,7 +32,7 @@ class App(
         before(validerToken(issuerProperties))
         before(settCallId)
         routes {
-            get("/internal/isAlive") { it.status(if (Liveness.isOk) 200 else 500) }
+            get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
             post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
         }
@@ -55,17 +55,6 @@ class App(
         svarService.close()
         webServer.stop()
     }
-
-    object Liveness {
-        private var ok = true
-
-        fun kill() {
-            ok = false
-        }
-
-        val isOk
-            get() = ok
-    }
 }
 
 fun main() {
@@ -86,7 +75,7 @@ fun main() {
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingClient = StillingClient(accessTokenClient::getAccessToken)
         val forespørselService = ForespørselService(producer, repository, stillingClient::hentStilling)
-        val svarService = SvarService(MockConsumer(OffsetResetStrategy.EARLIEST)) // TODO: Implementer
+        val svarService = SvarService(MockConsumer(OffsetResetStrategy.EARLIEST),repository::oppdaterMedSvar) // TODO: Implementer consumer
 
         App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
 

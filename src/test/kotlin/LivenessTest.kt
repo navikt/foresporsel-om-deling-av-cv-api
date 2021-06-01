@@ -1,5 +1,6 @@
 import com.github.kittinunf.fuel.Fuel
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 
 class LivenessTest {

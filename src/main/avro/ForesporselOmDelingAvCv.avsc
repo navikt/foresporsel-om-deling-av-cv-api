@@ -1,7 +1,7 @@
 {
   "namespace": "no.nav.rekrutteringsbistand.avro",
   "type": "record",
-  "name": "ForesporselOmDelingAvCvKafkamelding",
+  "name": "ForesporselOmDelingAvCv",
   "fields": [
     { "name": "aktorId", "type": "string" },
     { "name": "stillingsId", "type": "string" },

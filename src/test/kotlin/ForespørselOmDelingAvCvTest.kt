@@ -1,5 +1,6 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
+import mottasvar.Svar
 import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat

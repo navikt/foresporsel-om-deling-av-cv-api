@@ -8,11 +8,13 @@ import org.apache.kafka.common.errors.WakeupException
 import utils.log
 import java.io.Closeable
 import java.time.Duration
+import java.util.*
 
 val svarTopic = TopicPartition("svar-pa-deling-av-cv", 0)
 
 class SvarService(
     private val consumer: Consumer<String, SvarPaDelingAvCvKafkamelding>,
+    private val lagreSvar: (SvarPåForespørsel) -> Unit
 ): Closeable {
     fun start() {
         try {
@@ -38,7 +40,8 @@ class SvarService(
         } catch (exception: WakeupException) {
             log.info("Fikk beskjed om å lukke consument med groupId ${consumer.groupMetadata().groupId()}")
         } catch (exception: Exception) {
-            App.Liveness.kill()
+            log.error("Feil ved konsumering av svar på forespørsel.",exception)
+            isOk = false
         } finally {
             consumer.close()
         }
@@ -46,10 +49,16 @@ class SvarService(
 
     private fun behandle(svar: SvarPaDelingAvCvKafkamelding) {
         log.info("Behandler svar: $svar")
+        lagreSvar(SvarPåForespørsel(svar.getAktorId(), UUID.fromString(svar.getStillingsId()), Svar.valueOf(svar.getSvar()))) // TODO: Validere svar
+        // TODO : feilhåndtering
     }
 
     override fun close() {
         // Vil kaste WakeupException i konsument slik at den stopper, thread-safe.
         consumer.wakeup()
     }
+
+    private var isOk = true
+
+    fun isOk() = isOk
 }

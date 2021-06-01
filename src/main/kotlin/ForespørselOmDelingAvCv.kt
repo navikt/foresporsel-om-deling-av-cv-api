@@ -1,3 +1,4 @@
+import mottasvar.Svar
 import no.nav.rekrutteringsbistand.avro.Arbeidssted
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import stilling.Stilling
@@ -61,10 +62,4 @@ data class ForespørselOmDelingAvCv(
 enum class DeltStatus {
     SENDT,
     IKKE_SENDT,
-}
-
-enum class Svar {
-    IKKE_SVART,
-    JA,
-    NEI,
 }
