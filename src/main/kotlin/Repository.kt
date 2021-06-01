@@ -82,8 +82,8 @@ class Repository(private val dataSource: DataSource) {
             UPDATE foresporsel_om_deling_av_cv SET svar = ?, svar_tidspunkt = ? WHERE id in 
               (SELECT max(id)
               FROM foresporsel_om_deling_av_cv 
-              WHERE aktør_id = ? AND stillings_id = ? 
-              GROUP BY aktør_id, stillings_id)
+              WHERE aktor_id = ? AND stilling_id = ? 
+              GROUP BY aktor_id, stilling_id)
         """.trimIndent()
 
         val HENT_USENDTE_SQL = """
