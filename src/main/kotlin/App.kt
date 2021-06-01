@@ -38,17 +38,6 @@ class App(
         }
     }
 
-    object Liveness {
-        private var ok = true
-
-        fun kill() {
-            ok = false
-        }
-
-        val isOk
-            get() = ok
-    }
-
     fun start() {
         try {
             webServer.start(8333)
@@ -65,6 +54,17 @@ class App(
     override fun close() {
         svarService.close()
         webServer.stop()
+    }
+
+    object Liveness {
+        private var ok = true
+
+        fun kill() {
+            ok = false
+        }
+
+        val isOk
+            get() = ok
     }
 }
 
