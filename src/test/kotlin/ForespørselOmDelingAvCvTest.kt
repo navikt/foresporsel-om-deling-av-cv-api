@@ -1,13 +1,11 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
+import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import sendforespørsel.ForespørselService
-import setup.TestDatabase
-import setup.medVeilederCookie
-import setup.mockConsumer
-import setup.mockProducer
+import setup.*
 import utils.foretrukkenCallIdHeaderKey
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -139,19 +137,20 @@ class ForespørselOmDelingAvCvTest {
     }
 
     @Test
-    fun `mottat svar skal oppdatere riktig forespørsel i databasen`() {
+    fun `Mottatt svar skal oppdatere riktig forespørsel i databasen`() {
         val nå = LocalDateTime.now()
         val consumer = mockConsumer()
 
-        val forespørsler = listOf(
-            enForespørsel("123", DeltStatus.SENDT)
+        val forespørsel = enForespørsel("123", DeltStatus.SENDT)
+        database.lagreBatch(listOf(forespørsel))
+
+        val svarKafkamelding = SvarPaDelingAvCvKafkamelding(
+            forespørsel.aktørId, forespørsel.stillingsId.toString(), forespørsel.deltAv, Svar.JA.toString(), null
         )
 
-        val etSvar:Any = TODO()
 
-        database.lagreBatch(forespørsler)
         startLokalApp(database,repository).use {
-            it.mottaKafkamelding(consumer, etSvar)
+            mottaSvarKafkamelding(consumer, svarKafkamelding)
 
             val timeoutSekunder = 2
 

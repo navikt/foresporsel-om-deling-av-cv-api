@@ -2,6 +2,7 @@ import auth.azureConfig
 import auth.issuerProperties
 import io.javalin.Javalin
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
+import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -45,8 +46,6 @@ class App(
             throw exception
         }
     }
-
-    fun mottaKafkamelding(consumer: MockConsumer<String, Any>, etSvar: Any): Unit = TODO()
 
     override fun close() {
         webServer.stop()
