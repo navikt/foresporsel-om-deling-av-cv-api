@@ -22,6 +22,7 @@ class TestDatabase {
             .dataSource(dataSource)
             .load()
             .migrate()
+        slettAlt()
     }
 
     fun lagreBatch(forespørselOmDelingAvCver: List<ForespørselOmDelingAvCv>) {
