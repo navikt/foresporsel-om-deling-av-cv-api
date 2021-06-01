@@ -1,5 +1,8 @@
+import mottasvar.SvarService
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import org.apache.kafka.clients.consumer.MockConsumer
+import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.clients.producer.Producer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
@@ -27,7 +30,15 @@ fun startLokalApp(
         "isso-idtoken"
     )
 
-    val app = App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte))
+    val svarService = SvarService(MockConsumer(OffsetResetStrategy.EARLIEST))
+
+    val app = App(
+        controller,
+        issuerProperties,
+        forespørselService,
+        UsendtScheduler(database.dataSource,forespørselService::sendUsendte),
+        svarService
+    )
 
     app.start()
 

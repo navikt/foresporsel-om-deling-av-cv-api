@@ -1,10 +1,12 @@
 import auth.azureConfig
 import auth.issuerProperties
 import io.javalin.Javalin
+import mottasvar.SvarService
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
 import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.consumer.MockConsumer
+import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.MockProducer
 import sendforespørsel.ForespørselService
@@ -21,7 +23,8 @@ class App(
     private val controller: Controller,
     private val issuerProperties: IssuerProperties,
     private val forespørselService: ForespørselService,
-    private val scheduler: UsendtScheduler
+    private val scheduler: UsendtScheduler,
+    private val svarService: SvarService,
 ) : Closeable {
 
     private val webServer = Javalin.create().apply {
@@ -40,6 +43,8 @@ class App(
             webServer.start(8333)
 
             scheduler.kjørPeriodisk()
+            svarService.start()
+
             log.info("App startet")
         } catch (exception: Exception) {
             close()
@@ -70,8 +75,9 @@ fun main() {
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingClient = StillingClient(accessTokenClient::getAccessToken)
         val forespørselService = ForespørselService(producer, repository, stillingClient::hentStilling)
+        val svarService = SvarService(MockConsumer(OffsetResetStrategy.EARLIEST)) // TODO: Implementer
 
-        App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte)).start()
+        App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)

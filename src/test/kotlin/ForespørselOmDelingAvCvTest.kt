@@ -138,7 +138,6 @@ class ForespørselOmDelingAvCvTest {
 
     @Test
     fun `Mottatt svar skal oppdatere riktig forespørsel i databasen`() {
-        val nå = LocalDateTime.now()
         val consumer = mockConsumer()
 
         val forespørsel = enForespørsel("123", DeltStatus.SENDT)

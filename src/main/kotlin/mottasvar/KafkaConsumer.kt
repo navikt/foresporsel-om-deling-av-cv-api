@@ -1,4 +1,0 @@
-package mottasvar
-
-class KafkaConsumer {
-}
