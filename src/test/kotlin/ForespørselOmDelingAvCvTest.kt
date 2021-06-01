@@ -149,11 +149,11 @@ class ForespørselOmDelingAvCvTest {
 
         mottaSvarKafkamelding(consumer, svarKafkamelding)
 
-        assertTrueMedTimeout(2) {
+        assertTrueInnen(2) {
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
+            val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]!!.svar
 
-            val svarEndretTilJa = lagredeForespørsler["123"]!!.svar == Svar.JA
-            svarEndretTilJa
+            svarIOppdatertForespørsel == Svar.JA
         }
     }
 
@@ -171,7 +171,8 @@ class ForespørselOmDelingAvCvTest {
     )
 }
 
-private fun assertTrueMedTimeout(timeoutSekunder: Int, conditional: (Any) -> Boolean) =
+private fun assertTrueInnen(timeoutSekunder: Int, conditional: (Any) -> Boolean) =
     assertTrue((0..(timeoutSekunder*10)).any(sleepIfFalse(conditional)))
+
 private fun sleepIfFalse(conditional: (Any) -> Boolean): (Any) -> Boolean =
     { conditional(it).also { answer -> if(!answer) Thread.sleep(100) } }
