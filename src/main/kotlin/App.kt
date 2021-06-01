@@ -3,7 +3,6 @@ import auth.issuerProperties
 import io.javalin.Javalin
 import mottasvar.SvarService
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
-import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
@@ -18,6 +17,7 @@ import utils.Cluster
 import utils.log
 import utils.settCallId
 import java.io.Closeable
+import kotlin.concurrent.thread
 
 class App(
     private val controller: Controller,
@@ -32,10 +32,20 @@ class App(
         before(validerToken(issuerProperties))
         before(settCallId)
         routes {
-            get("/internal/isAlive") { it.status(200) }
+            get("/internal/isAlive") { it.status(if(Liveness.isOk)200 else 500) }
             get("/internal/isReady") { it.status(200) }
             post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
         }
+    }
+
+    object Liveness {
+        private var ok=true
+        fun kill() {
+            ok = false
+        }
+
+        val isOk: Boolean
+            get() = ok
     }
 
     fun start() {
@@ -43,7 +53,7 @@ class App(
             webServer.start(8333)
 
             scheduler.kjørPeriodisk()
-            svarService.start()
+            thread { svarService.start() }
 
             log.info("App startet")
         } catch (exception: Exception) {
