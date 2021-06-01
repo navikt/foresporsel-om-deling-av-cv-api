@@ -40,11 +40,12 @@ class App(
 
     object Liveness {
         private var ok = true
+
         fun kill() {
             ok = false
         }
 
-        val isOk: Boolean
+        val isOk
             get() = ok
     }
 
