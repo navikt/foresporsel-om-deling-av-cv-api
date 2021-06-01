@@ -11,6 +11,7 @@ import utils.foretrukkenCallIdHeaderKey
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -147,7 +148,8 @@ class ForespørselOmDelingAvCvTest {
     @Test
     fun `Mottatt svar skal oppdatere riktig forespørsel i databasen`() {
         val forespørsel = enForespørsel("123", DeltStatus.SENDT)
-        database.lagreBatch(listOf(forespørsel))
+        val upåvirketForespørsel = enForespørsel("234", DeltStatus.SENDT)
+        database.lagreBatch(listOf(forespørsel, upåvirketForespørsel))
 
         val svarKafkamelding = SvarPaDelingAvCvKafkamelding(
             forespørsel.aktørId, forespørsel.stillingsId.toString(), Svar.JA.toString(), null
@@ -157,10 +159,12 @@ class ForespørselOmDelingAvCvTest {
 
         assertTrueInnen(2) {
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
-            val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]!!.svar
+            val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]?.svar
 
             svarIOppdatertForespørsel == Svar.JA
         }
+        val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
+        assertEquals(Svar.IKKE_SVART, lagredeForespørsler[upåvirketForespørsel.aktørId]?.svar)
     }
 
     private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now()) = ForespørselOmDelingAvCv(
