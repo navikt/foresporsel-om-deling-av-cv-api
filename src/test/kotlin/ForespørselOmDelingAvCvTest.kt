@@ -145,27 +145,26 @@ class ForespørselOmDelingAvCvTest {
         database.lagreBatch(listOf(forespørsel))
 
         val svarKafkamelding = SvarPaDelingAvCvKafkamelding(
-            forespørsel.aktørId, forespørsel.stillingsId.toString(), forespørsel.deltAv, Svar.JA.toString(), null
+            forespørsel.aktørId, forespørsel.stillingsId.toString(), Svar.JA.toString(), null
         )
 
+        mottaSvarKafkamelding(consumer, svarKafkamelding)
 
-        startLokalApp(database,repository).use {
-            mottaSvarKafkamelding(consumer, svarKafkamelding)
+        assertMedTimeout(2) {
+            val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
-            val timeoutSekunder = 2
+            val svarEndretTilJa = lagredeForespørsler["123"]!!.svar == Svar.JA
 
-            assertTrue((0..(timeoutSekunder*10)).any {
-                val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
+            if (!svarEndretTilJa) {
+                Thread.sleep(100)
+            }
 
-                val svarEndretTilJa = lagredeForespørsler["123"]!!.svar == Svar.JA
-
-                if (!svarEndretTilJa){
-                    Thread.sleep(100)
-                }
-                svarEndretTilJa
-            })
+            svarEndretTilJa
         }
     }
+
+    private fun assertMedTimeout(timeoutSekunder: Int, conditional: (Int) -> Boolean) =
+        assertTrue((0..(timeoutSekunder*10)).any(conditional))
 
     private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now()) = ForespørselOmDelingAvCv(
         id = 0,
