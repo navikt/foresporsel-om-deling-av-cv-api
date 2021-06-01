@@ -32,14 +32,14 @@ class App(
         before(validerToken(issuerProperties))
         before(settCallId)
         routes {
-            get("/internal/isAlive") { it.status(if(Liveness.isOk)200 else 500) }
+            get("/internal/isAlive") { it.status(if (Liveness.isOk) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
             post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
         }
     }
 
     object Liveness {
-        private var ok=true
+        private var ok = true
         fun kill() {
             ok = false
         }
@@ -51,7 +51,6 @@ class App(
     fun start() {
         try {
             webServer.start(8333)
-
             scheduler.kjørPeriodisk()
             thread { svarService.start() }
 
@@ -63,6 +62,7 @@ class App(
     }
 
     override fun close() {
+        svarService.close()
         webServer.stop()
     }
 }

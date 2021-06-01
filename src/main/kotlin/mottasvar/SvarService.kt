@@ -36,11 +36,10 @@ class SvarService(
         } catch (exception: WakeupException) {
             log.info("Fikk beskjed om å lukke consument med groupId ${consumer.groupMetadata().groupId()}")
         } catch (exception: Exception) {
-            // TODO: Implementer feilhåndtering
+            App.Liveness.kill()
         } finally {
             consumer.close()
         }
-        App.Liveness.kill()
     }
 
     private fun behandleSvar(svar: SvarPaDelingAvCvKafkamelding) {
