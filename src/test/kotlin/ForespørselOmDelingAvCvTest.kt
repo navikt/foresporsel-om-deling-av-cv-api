@@ -19,8 +19,15 @@ class ForespørselOmDelingAvCvTest {
     private val repository = Repository(database.dataSource)
     private val mockProducer = mockProducer()
     private val forespørselService = ForespørselService(mockProducer, repository) { enStilling() }
+    private val mockConsumer = mockConsumer()
 
-    private val lokalApp = startLokalApp(database, repository, mockProducer, forespørselService)
+    private val lokalApp = startLokalApp(database,
+        repository,
+        mockProducer,
+        forespørselService,
+        mockConsumer
+    )
+
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
@@ -138,8 +145,6 @@ class ForespørselOmDelingAvCvTest {
 
     @Test
     fun `Mottatt svar skal oppdatere riktig forespørsel i databasen`() {
-        val consumer = mockConsumer()
-
         val forespørsel = enForespørsel("123", DeltStatus.SENDT)
         database.lagreBatch(listOf(forespørsel))
 
@@ -147,7 +152,7 @@ class ForespørselOmDelingAvCvTest {
             forespørsel.aktørId, forespørsel.stillingsId.toString(), Svar.JA.toString(), null
         )
 
-        mottaSvarKafkamelding(consumer, svarKafkamelding)
+        mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
 
         assertTrueInnen(2) {
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }

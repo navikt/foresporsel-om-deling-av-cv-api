@@ -24,10 +24,12 @@ class SvarService(
             while (true) {
                 val records: ConsumerRecords<String, SvarPaDelingAvCvKafkamelding> =
                     consumer.poll(Duration.ofSeconds(5))
+
                 if (records.count() == 0) continue
+                log.info("Fikk en record ${records.count()}");
 
                 records.map { it.value() }
-                    .forEach { behandleSvar(it) }
+                    .forEach { behandle(it) }
 
                 consumer.commitSync()
 
@@ -42,7 +44,7 @@ class SvarService(
         }
     }
 
-    private fun behandleSvar(svar: SvarPaDelingAvCvKafkamelding) {
+    private fun behandle(svar: SvarPaDelingAvCvKafkamelding) {
         log.info("Behandler svar: $svar")
     }
 
