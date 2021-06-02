@@ -14,7 +14,7 @@ class StillingClient(private val accessToken: () -> String) {
         Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
     }
 
-    fun hentStilling(uuid: UUID): Stilling {
+    fun hentStilling(uuid: UUID): Stilling? {
         val result = Fuel
             .get("$stillingssokProxyDokumentUrl/$uuid")
             .authentication().bearer(accessToken())
@@ -22,7 +22,13 @@ class StillingClient(private val accessToken: () -> String) {
 
         return when (result) {
             is Result.Success -> result.value.toStilling()
-            is Result.Failure -> throw RuntimeException("Kunne ikke hente stilling med id $uuid", result.error)
+            is Result.Failure -> {
+                if (result.error.response.statusCode in 400 until 500) {
+                    log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
+                }
+
+                return null
+            }
         }.also { log.info("Hentet stilling $it") }
     }
 }
