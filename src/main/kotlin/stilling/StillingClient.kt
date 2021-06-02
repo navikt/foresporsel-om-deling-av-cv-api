@@ -65,6 +65,7 @@ private data class EsResponse(
     private data class EsArbeidssted(
         val address: String?,
         val postalCode: String?,
+        val city: String?,
         val county: String?,
         val municipal: String?,
         val country: String,
@@ -72,7 +73,7 @@ private data class EsResponse(
         fun toArbeidssted() = Arbeidssted(
             adresse = address,
             postkode = postalCode,
-            by = "",   // TODO
+            by = city,
             kommune = municipal,
             fylke = county,
             land = country
