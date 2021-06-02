@@ -29,9 +29,9 @@ class ForespørselService(
 
                 producer.send(melding) { _, exception ->
                     if (exception == null) {
-                        log.error("Det skjedde noe feil under sending til Kafka", exception)
-                    } else {
                         repository.markerForespørselSendt(usendtForespørsel.id)
+                    } else {
+                        log.error("Det skjedde noe feil under sending til Kafka", exception)
                     }
                 }
             }
