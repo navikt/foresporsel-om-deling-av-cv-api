@@ -9,7 +9,7 @@ import stilling.Stilling
 import utils.log
 import java.util.*
 
-const val topic = "foresporsel-om-deling-av-cv"
+const val topic = "arbeidsgiver-inkludering.foresporsel-om-deling-av-cv"
 
 class ForespørselService(
     private val producer: Producer<String, ForesporselOmDelingAvCv>,

@@ -10,7 +10,7 @@ import java.io.Closeable
 import java.time.Duration
 import java.util.*
 
-val svarTopic = TopicPartition("svar-pa-deling-av-cv", 0)
+val svarTopic = TopicPartition("arbeidsgiver-inkludering.svar-pa-deling-av-cv", 0) // TODO: Bruk topic PTO har opprettet
 
 class SvarService(
     private val consumer: Consumer<String, SvarPaForesporselOmDelingAvCv>,
