@@ -16,20 +16,6 @@ import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ForespørselOmDelingAvCvTest {
-
-    /*private val database = TestDatabase()
-    private val repository = Repository(database.dataSource)
-    private val mockProducer = mockProducer()
-    private val forespørselService = ForespørselService(mockProducer, repository) { enStilling() }
-    private val mockConsumer = mockConsumer()*/
-
-    /*private val lokalApp = startLokalApp(database,
-        repository,
-        mockProducer,
-        forespørselService,
-        mockConsumer
-    )*/
-
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
@@ -37,25 +23,21 @@ class ForespørselOmDelingAvCvTest {
         mockOAuth2Server.start(port = 18300)
     }
 
-    /*@BeforeEach
-    fun beforeEach() {
-        database.slettAlt()
-    }*/
-
     @AfterAll
     fun teardown() {
-        //lokalApp.close()
         mockOAuth2Server.shutdown()
     }
 
     @Test
     fun `Kall til endepunkt skal lagre informasjon om forespørselen i database`() {
         val database = TestDatabase()
+
         startLokalApp(database).use {
             val inboundDto = ForespørselOmDelingAvCvInboundDto(
                 stillingsId = UUID.randomUUID().toString(),
                 aktorIder = listOf("234", "345", "456")
             )
+
             val callId = UUID.randomUUID()
 
             val navIdent = "X12345"
@@ -89,6 +71,7 @@ class ForespørselOmDelingAvCvTest {
         val database = TestDatabase()
         val mockProducer = mockProducer()
         val forespørselService = ForespørselService(mockProducer,Repository(database.dataSource)) { enStilling() }
+
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
 
@@ -137,6 +120,7 @@ class ForespørselOmDelingAvCvTest {
         val database = TestDatabase()
         val mockProducer = mockProducer()
         val forespørselService = ForespørselService(mockProducer,Repository(database.dataSource)) { enStilling() }
+
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val nå = LocalDateTime.now()
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
@@ -167,9 +151,11 @@ class ForespørselOmDelingAvCvTest {
     fun `Mottatt svar skal oppdatere riktig forespørsel i databasen`() {
         val database = TestDatabase()
         val mockConsumer = mockConsumer()
+
         startLokalApp(database, consumer = mockConsumer).use {
             val forespørsel = enForespørsel("123", DeltStatus.SENDT)
             val upåvirketForespørsel = enForespørsel("234", DeltStatus.SENDT)
+
             database.lagreBatch(listOf(forespørsel, upåvirketForespørsel))
 
             val svarKafkamelding = SvarPaDelingAvCvKafkamelding(
@@ -192,9 +178,9 @@ class ForespørselOmDelingAvCvTest {
 
     @Test
     fun `Mottatt svar skal bare oppdatere den nyeste forespørselen om en gitt stillingsid og aktørid i databasen`() {
-
         val database = TestDatabase()
         val mockConsumer = mockConsumer()
+
         startLokalApp(database, consumer = mockConsumer).use {
             val aktørId = "123"
             val stillingsId = UUID.randomUUID()
@@ -202,6 +188,7 @@ class ForespørselOmDelingAvCvTest {
             val nyesteVeileder = "Nyeste veileder"
             val eldsteForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId,  deltAv = eldsteVeileder)
             val nyesteForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = nyesteVeileder)
+
             database.lagreBatch(listOf(eldsteForespørsel))
             database.lagreBatch(listOf(nyesteForespørsel))
 
@@ -217,6 +204,7 @@ class ForespørselOmDelingAvCvTest {
 
                 svarIOppdatertForespørsel == Svar.JA
             }
+
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
             assertEquals(Svar.IKKE_SVART, lagredeForespørsler[eldsteVeileder]?.svar)
         }

@@ -28,10 +28,9 @@ class SvarService(
                     consumer.poll(Duration.ofSeconds(5))
 
                 if (records.count() == 0) continue
-                log.info("Fikk en record ${records.count()}");
-
-                records.map { it.value() }
-                    .forEach { behandle(it) }
+                records.map { it.value() }.forEach {
+                    behandle(it)
+                }
 
                 consumer.commitSync()
 
@@ -47,10 +46,17 @@ class SvarService(
         }
     }
 
-    private fun behandle(svar: SvarPaDelingAvCvKafkamelding) {
-        log.info("Behandler svar: $svar")
-        lagreSvar(SvarPåForespørsel(svar.getAktorId(), UUID.fromString(svar.getStillingsId()), Svar.valueOf(svar.getSvar()))) // TODO: Validere svar
-        // TODO : feilhåndtering
+    private fun behandle(svarKafkamelding: SvarPaDelingAvCvKafkamelding) {
+        val svar = SvarPåForespørsel(
+            svarKafkamelding.getAktorId(),
+            UUID.fromString(svarKafkamelding.getStillingsId()),
+            Svar.valueOf(svarKafkamelding.getSvar())
+        )
+
+        lagreSvar(svar)
+
+        // TODO: Validere svar
+        // TODO: Håndtere feil i svar, hverken Ja eller Nei
     }
 
     override fun close() {

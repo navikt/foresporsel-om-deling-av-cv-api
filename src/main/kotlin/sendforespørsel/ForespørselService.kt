@@ -15,16 +15,16 @@ class ForespørselService(
     private val repository: Repository,
     private val hentStilling: (UUID) -> Stilling
 ) {
-
     fun sendUsendte() {
         val usendteForespørsler = repository.hentUsendteForespørsler()
         log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
+
         usendteForespørsler.associateBy { it.stillingsId }
             .map { hentStilling(it.key) to it.value }
             .forEach { (stilling, usendtForespørsel) ->
                 val melding = ProducerRecord(topic, usendtForespørsel.aktørId, usendtForespørsel.tilKafkamelding(stilling))
-                producer.send(melding)
 
+                producer.send(melding)
                 repository.markerForespørselSendt(usendtForespørsel.id)
             }
     }

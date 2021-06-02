@@ -58,4 +58,3 @@ class AccessTokenClient(private val config: AzureConfig) {
         fun somCachedToken() = CachedAccessToken(access_token, LocalDateTime.now().plusSeconds(expires_in.toLong()))
     }
 }
-
