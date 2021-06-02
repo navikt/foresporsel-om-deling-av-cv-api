@@ -25,11 +25,11 @@
           "type": "record",
           "name": "Arbeidssted",
           "fields": [
-            { "name": "adresse", "type": "string" },
-            { "name": "postkode", "type": "string" },
-            { "name": "by", "type": "string" },
-            { "name": "kommune", "type": "string" },
-            { "name": "fylke", "type": "string" },
+            { "name": "adresse", "type": ["string", "null"] },
+            { "name": "postkode", "type": ["string", "null"] },
+            { "name": "by", "type": ["string", "null"] },
+            { "name": "kommune", "type": ["string", "null"] },
+            { "name": "fylke", "type": ["string", "null"] },
             { "name": "land", "type": "string" }
           ]
         }
