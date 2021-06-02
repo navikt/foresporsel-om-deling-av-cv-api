@@ -1,7 +1,7 @@
 package sendforespørsel
 
 import Repository
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import stilling.Stilling
@@ -11,7 +11,7 @@ import java.util.*
 const val topic = "foresporsel-om-deling-av-cv"
 
 class ForespørselService(
-    private val producer: Producer<String, ForesporselOmDelingAvCvKafkamelding>,
+    private val producer: Producer<String, ForesporselOmDelingAvCv>,
     private val repository: Repository,
     private val hentStilling: (UUID) -> Stilling
 ) {

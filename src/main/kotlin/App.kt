@@ -2,7 +2,7 @@ import auth.azureConfig
 import auth.issuerProperties
 import io.javalin.Javalin
 import mottasvar.SvarService
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
@@ -68,7 +68,7 @@ fun main() {
 
         // TODO: Skru på KafkaProducer for prod
         val producer = when (Cluster.current) {
-            Cluster.DEV_FSS -> KafkaProducer<String, ForesporselOmDelingAvCvKafkamelding>(producerConfig)
+            Cluster.DEV_FSS -> KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
             Cluster.PROD_FSS -> MockProducer(true, null, null)
         }
 

@@ -1,7 +1,7 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import mottasvar.Svar
-import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
+import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
@@ -15,7 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class ForespørselOmDelingAvCvTest {
+class ForespørselTest {
     private val mockOAuth2Server = MockOAuth2Server()
 
     @BeforeAll
@@ -158,7 +158,7 @@ class ForespørselOmDelingAvCvTest {
 
             database.lagreBatch(listOf(forespørsel, upåvirketForespørsel))
 
-            val svarKafkamelding = SvarPaDelingAvCvKafkamelding(
+            val svarKafkamelding = SvarPaForesporselOmDelingAvCv(
                 forespørsel.aktørId, forespørsel.stillingsId.toString(), Svar.JA.toString(), null
             )
 
@@ -192,7 +192,7 @@ class ForespørselOmDelingAvCvTest {
             database.lagreBatch(listOf(eldsteForespørsel))
             database.lagreBatch(listOf(nyesteForespørsel))
 
-            val svarKafkamelding = SvarPaDelingAvCvKafkamelding(
+            val svarKafkamelding = SvarPaForesporselOmDelingAvCv(
                 eldsteForespørsel.aktørId, eldsteForespørsel.stillingsId.toString(), Svar.JA.toString(), null
             )
 
@@ -210,7 +210,7 @@ class ForespørselOmDelingAvCvTest {
         }
     }
 
-    private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now(), stillingsId: UUID = UUID.randomUUID(), deltAv: String = "veileder") = ForespørselOmDelingAvCv(
+    private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now(), stillingsId: UUID = UUID.randomUUID(), deltAv: String = "veileder") = Forespørsel(
         id = 0,
         aktørId = aktørId,
         stillingsId = stillingsId,

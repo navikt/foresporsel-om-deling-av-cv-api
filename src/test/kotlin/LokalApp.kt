@@ -1,10 +1,8 @@
 import mottasvar.SvarService
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
-import no.nav.rekrutteringsbistand.avro.SvarPaDelingAvCvKafkamelding
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
+import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.consumer.Consumer
-import org.apache.kafka.clients.consumer.MockConsumer
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.clients.producer.Producer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
@@ -20,11 +18,11 @@ fun main() {
 fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
-    producer: Producer<String, ForesporselOmDelingAvCvKafkamelding> = mockProducer(),
+    producer: Producer<String, ForesporselOmDelingAvCv> = mockProducer(),
     forespørselService: ForespørselService = ForespørselService(producer, repository) {
         enStilling()
     },
-    consumer: Consumer<String, SvarPaDelingAvCvKafkamelding> = mockConsumer(),
+    consumer: Consumer<String, SvarPaForesporselOmDelingAvCv> = mockConsumer(),
 ): App {
     val controller = Controller(repository)
 

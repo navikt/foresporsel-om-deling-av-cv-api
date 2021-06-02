@@ -21,7 +21,7 @@ class UsendtScheduler(dataSource: DataSource, sendUsendtForespørsler:()->Any) {
             LockConfiguration(Instant.now(),"retry-lock", Duration.ofMinutes(10), Duration.ofMillis(0L))
         )
     }
-    
+
     private val sendUsedtMedFeilhåndtering = {
         try {
             sendUsendtForespørsler()

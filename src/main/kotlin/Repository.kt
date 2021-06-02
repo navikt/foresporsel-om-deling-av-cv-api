@@ -29,12 +29,12 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun hentUsendteForespørsler(): List<ForespørselOmDelingAvCv> {
+    fun hentUsendteForespørsler(): List<Forespørsel> {
         dataSource.connection.use { connection ->
             val resultSet = connection.prepareStatement(HENT_USENDTE_SQL).executeQuery()
 
             return generateSequence {
-                if (resultSet.next()) ForespørselOmDelingAvCv.fromDb(resultSet)
+                if (resultSet.next()) Forespørsel.fromDb(resultSet)
                 else null
             }.toList()
         }

@@ -1,6 +1,6 @@
 package setup
 
-import ForespørselOmDelingAvCv
+import Forespørsel
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
@@ -25,7 +25,7 @@ class TestDatabase {
         slettAlt()
     }
 
-    fun lagreBatch(forespørselOmDelingAvCver: List<ForespørselOmDelingAvCv>) {
+    fun lagreBatch(forespørselOmDelingAvCver: List<Forespørsel>) {
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(
                 """
@@ -53,14 +53,14 @@ class TestDatabase {
         }
     }
 
-    fun hentAlleForespørsler(): List<ForespørselOmDelingAvCv> {
+    fun hentAlleForespørsler(): List<Forespørsel> {
         dataSource.connection.use { connection ->
             val resultSet = connection.prepareStatement(
                 "SELECT * from foresporsel_om_deling_av_cv"
             ).executeQuery()
 
             return generateSequence {
-                if (resultSet.next()) ForespørselOmDelingAvCv.fromDb(resultSet)
+                if (resultSet.next()) Forespørsel.fromDb(resultSet)
                 else null
             }.toList()
         }

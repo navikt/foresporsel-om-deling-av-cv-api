@@ -1,13 +1,13 @@
 import mottasvar.Svar
 import no.nav.rekrutteringsbistand.avro.Arbeidssted
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCvKafkamelding
+import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import stilling.Stilling
 import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
 
-data class ForespørselOmDelingAvCv(
+data class Forespørsel(
     val id: Long,
     val aktørId: String,
     val stillingsId: UUID,
@@ -23,7 +23,7 @@ data class ForespørselOmDelingAvCv(
     val callId: UUID,
 ) {
     companion object {
-        fun fromDb(rs: ResultSet) = ForespørselOmDelingAvCv(
+        fun fromDb(rs: ResultSet) = Forespørsel(
             id = rs.getLong("id"),
             aktørId = rs.getString("aktor_id"),
             stillingsId = UUID.fromString(rs.getString("stilling_id")),
@@ -37,7 +37,7 @@ data class ForespørselOmDelingAvCv(
         )
     }
 
-    fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCvKafkamelding(
+    fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
         aktørId,
         stillingsId.toString(),
         deltAv,
