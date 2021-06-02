@@ -5,6 +5,7 @@ import Repository
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import stilling.Stilling
 import utils.log
 import java.util.*
@@ -26,8 +27,13 @@ class ForespørselService(
             .forEach { (stilling, usendtForespørsel) ->
                 val melding = ProducerRecord(topic, usendtForespørsel.aktørId, usendtForespørsel.tilKafkamelding(stilling))
 
-                producer.send(melding)
-                repository.markerForespørselSendt(usendtForespørsel.id)
+                producer.send(melding) { _, exception ->
+                    if (exception == null) {
+                        log.error("Det skjedde noe feil under sending til Kafka", exception)
+                    } else {
+                        repository.markerForespørselSendt(usendtForespørsel.id)
+                    }
+                }
             }
     }
 
