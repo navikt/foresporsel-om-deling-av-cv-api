@@ -3,10 +3,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import sendforespørsel.ForespørselService
 import setup.*
+import java.lang.RuntimeException
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
-import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SendForespørselTest {
@@ -88,6 +88,29 @@ class SendForespørselTest {
 
             assertThat(lagredeForespørsler["345"]!!.deltTidspunkt).isEqualToIgnoringNanos(enHalvtimeSiden)
             assertThat(lagredeForespørsler["345"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+        }
+        @Test
+        fun `Usendte forespørsler skal ikke oppdateres status i databasen når sending på Kafka feiler`() {
+            val database = TestDatabase()
+            val mockProducer = mockProducerUtenAutocomplete()
+
+            val forespørselService = ForespørselService(mockProducer,Repository(database.dataSource)) { enStilling() }
+
+            startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
+                val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
+
+                val forespørsel = enForespørsel("123", DeltStatus.IKKE_SENDT, enHalvtimeSiden)
+
+                database.lagreBatch(listOf(forespørsel))
+                forespørselService.sendUsendte()
+
+                mockProducer.errorNext(RuntimeException())
+
+                val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
+
+                assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltTidspunkt).isEqualToIgnoringSeconds(enHalvtimeSiden)
+                assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
+            }
         }
     }
 
