@@ -5,12 +5,9 @@ import Repository
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import stilling.Stilling
 import utils.log
 import java.util.*
-
-const val topic = "arbeidsgiver-inkludering.foresporsel-om-deling-av-cv"
 
 class ForespørselService(
     private val producer: Producer<String, ForesporselOmDelingAvCv>,
@@ -25,7 +22,7 @@ class ForespørselService(
             .map(hentStillingMedUuid())
             .filterNotNull()
             .forEach { (stilling, usendtForespørsel) ->
-                val melding = ProducerRecord(topic, usendtForespørsel.aktørId, usendtForespørsel.tilKafkamelding(stilling))
+                val melding = ProducerRecord(forespørselTopic, usendtForespørsel.aktørId, usendtForespørsel.tilKafkamelding(stilling))
 
                 producer.send(melding) { _, exception ->
                     if (exception == null) {
