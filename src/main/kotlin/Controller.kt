@@ -16,10 +16,12 @@ class Controller(repository: Repository) {
             null
         }?.let { stillingsId ->
             val outboundDto = repository.hentForespørsler(stillingsId).map(Forespørsel::tilOutboundDto)
+
             ctx.json(outboundDto)
             ctx.status(200)
         }
     }
+
     val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
         repository.lagreUsendteForespørsler(

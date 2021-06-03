@@ -1,5 +1,6 @@
 import auth.azureConfig
 import auth.issuerProperties
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
@@ -20,6 +21,7 @@ import utils.Cluster
 import utils.log
 import utils.settCallId
 import java.io.Closeable
+import java.time.format.DateTimeFormatter
 import kotlin.concurrent.thread
 
 class App(
@@ -30,7 +32,11 @@ class App(
     private val svarService: SvarService,
 ) : Closeable {
     init {
-        JavalinJackson.configure(jacksonObjectMapper().registerModule(JavaTimeModule()))
+        JavalinJackson.configure(
+            jacksonObjectMapper()
+                .registerModule(JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        )
     }
 
     private val webServer = Javalin.create().apply {
