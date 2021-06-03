@@ -1,6 +1,7 @@
 import mottasvar.Svar
 import mottasvar.SvarPåForespørsel
 import utils.log
+import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.util.*
@@ -29,16 +30,10 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun hentUsendteForespørsler(): List<Forespørsel> {
+    fun hentUsendteForespørsler(): List<Forespørsel> =
         dataSource.connection.use { connection ->
-            val resultSet = connection.prepareStatement(HENT_USENDTE_SQL).executeQuery()
-
-            return generateSequence {
-                if (resultSet.next()) Forespørsel.fromDb(resultSet)
-                else null
-            }.toList()
+            connection.prepareStatement(HENT_USENDTE_SQL).executeQuery().tilForespørsler()
         }
-    }
 
     fun markerForespørselSendt(id: Long) {
         dataSource.connection.use { connection ->
@@ -67,6 +62,20 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
+    fun hentForespørsler(stillingsId: UUID) =
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(HENT_FORESPØRSLER)
+
+            statement.setObject(1, stillingsId)
+
+            statement.executeQuery().tilForespørsler()
+        }
+
+    private fun ResultSet.tilForespørsler() = generateSequence {
+        if (next()) Forespørsel.fromDb(this)
+        else null
+    }.toList()
+
     companion object {
         val LAGRE_BATCH_SQL = """
             INSERT INTO foresporsel_om_deling_av_cv (
@@ -88,6 +97,10 @@ class Repository(private val dataSource: DataSource) {
 
         val HENT_USENDTE_SQL = """
             SELECT * from foresporsel_om_deling_av_cv WHERE delt_status = '${DeltStatus.IKKE_SENDT}'
+        """.trimIndent()
+
+        val HENT_FORESPØRSLER = """
+            SELECT * from foresporsel_om_deling_av_cv WHERE stilling_id = ?
         """.trimIndent()
     }
 }

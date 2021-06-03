@@ -1,6 +1,9 @@
 import auth.azureConfig
 import auth.issuerProperties
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.javalin.Javalin
+import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
 import mottasvar.consumerConfig
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
@@ -29,6 +32,10 @@ class App(
     private val svarService: SvarService,
 ) : Closeable {
 
+    init {
+        JavalinJackson.configure(ObjectMapper().registerModule(JavaTimeModule()))
+    }
+
     private val webServer = Javalin.create().apply {
         config.defaultContentType = "application/json"
         before(validerToken(issuerProperties))
@@ -36,6 +43,7 @@ class App(
         routes {
             get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
+            get("/foresporsler/:$stillingsIdParamName", controller.hentForespørsler)
             post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
         }
     }

@@ -57,6 +57,7 @@ data class Forespørsel(
             )
         }
     )
+    fun tilOutboundDto() = ForespørselOutboundDto(aktørId, deltStatus, deltTidspunkt, deltAv, svar, svarTidspunkt)
 }
 
 enum class DeltStatus {

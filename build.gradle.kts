@@ -40,6 +40,7 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:2.8.0")
     implementation("io.confluent:kafka-avro-serializer:6.0.1")
     implementation("org.apache.avro:avro:1.10.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")
