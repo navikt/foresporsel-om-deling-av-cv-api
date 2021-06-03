@@ -1,15 +1,13 @@
 import auth.azureConfig
 import auth.issuerProperties
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
-import mottasvar.consumerConfig
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import no.nav.security.token.support.core.configuration.IssuerProperties
-import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -31,9 +29,8 @@ class App(
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
 ) : Closeable {
-
     init {
-        JavalinJackson.configure(ObjectMapper().registerModule(JavaTimeModule()))
+        JavalinJackson.configure(jacksonObjectMapper().registerModule(JavaTimeModule()))
     }
 
     private val webServer = Javalin.create().apply {

@@ -27,6 +27,8 @@ dependencies {
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.0")
 
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("net.logstash.logback:logstash-logback-encoder:6.3")
@@ -40,7 +42,6 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:2.8.0")
     implementation("io.confluent:kafka-avro-serializer:6.0.1")
     implementation("org.apache.avro:avro:1.10.2")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")

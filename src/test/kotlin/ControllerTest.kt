@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
@@ -69,7 +71,7 @@ class ControllerTest {
     }
 
     @Test
-    fun `kall til get-endpunkt skala hente lagrede forespørsler på stillingsId`() {
+    fun `Kall til GET-endpunkt skala hente lagrede forespørsler på stillingsId`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -83,18 +85,18 @@ class ControllerTest {
                 enForespørsel(UUID.randomUUID()),
                 enForespørsel(UUID.randomUUID()),
             )
+
             database.lagreBatch(forespørsler)
 
-            val actual = Fuel.get("http://localhost:8333/foresporsler/$stillingsId")
+            val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsId")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .responseObject<List<ForespørselOutboundDto>>().third.get()
+                .responseObject<List<ForespørselOutboundDto>>(mapper = jacksonObjectMapper().registerModule(JavaTimeModule())).third.get()
 
-            val expected = forespørsel.tilOutboundDto()
+            val forespørselOutboundDto = forespørsel.tilOutboundDto()
 
-            assertThat(actual.size).isEqualTo(1)
-
-            assertEquals(expected, actual[0])
+            assertThat(lagretForespørsel.size).isEqualTo(1)
+            assertEquals(forespørselOutboundDto, lagretForespørsel[0])
         }
     }
 
@@ -103,7 +105,7 @@ class ControllerTest {
         aktørId = "aktørId",
         stillingsId = stillingsId,
         deltStatus = deltStatus,
-        deltTidspunkt = LocalDateTime.now(),
+        deltTidspunkt = LocalDateTime.now().withNano(0),
         deltAv = "deltAv",
         svar = Svar.IKKE_SVART,
         svarTidspunkt = null,
