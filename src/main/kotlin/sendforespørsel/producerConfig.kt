@@ -7,8 +7,6 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 
-const val forespørselTopic = "arbeidsgiver-inkludering.foresporsel-om-deling-av-cv"
-
 val producerConfig = mapOf(
     ProducerConfig.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
     ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java.name,

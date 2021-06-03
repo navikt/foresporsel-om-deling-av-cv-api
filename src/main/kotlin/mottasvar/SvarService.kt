@@ -3,11 +3,14 @@ package mottasvar
 import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
 import utils.log
 import java.io.Closeable
 import java.time.Duration
 import java.util.*
+
+val svarTopic = TopicPartition("arbeidsgiver-inkludering.svar-pa-deling-av-cv", 0) // TODO: Bruk topic PTO har opprettet
 
 class SvarService(
     private val consumer: Consumer<String, SvarPaForesporselOmDelingAvCv>,

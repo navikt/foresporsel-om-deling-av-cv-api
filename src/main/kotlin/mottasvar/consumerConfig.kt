@@ -4,15 +4,11 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 
-val svarTopic = TopicPartition("arbeidsgiver-inkludering.svar-pa-deling-av-cv", 0) // TODO: Bruk topic PTO har opprettet
-
 val consumerConfig = mapOf(
-    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-
+    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
     ConsumerConfig.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
     ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java.name,
@@ -30,4 +26,4 @@ val consumerConfig = mapOf(
     SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "JKS",
     SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12",
     SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to System.getenv("KAFKA_TRUSTSTORE_PATH"),
-)
+).toProperties()

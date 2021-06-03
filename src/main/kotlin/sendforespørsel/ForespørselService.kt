@@ -9,6 +9,8 @@ import stilling.Stilling
 import utils.log
 import java.util.*
 
+const val forespørselTopic = "arbeidsgiver-inkludering.foresporsel-om-deling-av-cv"
+
 class ForespørselService(
     private val producer: Producer<String, ForesporselOmDelingAvCv>,
     private val repository: Repository,

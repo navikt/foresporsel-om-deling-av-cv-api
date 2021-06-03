@@ -2,12 +2,12 @@ import auth.azureConfig
 import auth.issuerProperties
 import io.javalin.Javalin
 import mottasvar.SvarService
+import mottasvar.consumerConfig
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
+import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import no.nav.security.token.support.core.configuration.IssuerProperties
-import org.apache.kafka.clients.consumer.MockConsumer
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.MockProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import sendforespørsel.producerConfig
@@ -66,16 +66,14 @@ fun main() {
         val repository = Repository(database.dataSource)
         val controller = Controller(repository)
 
-        // TODO: Skru på KafkaProducer for prod
-        val producer = when (Cluster.current) {
-            Cluster.DEV_FSS -> KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
-            Cluster.PROD_FSS -> MockProducer(true, null, null)
-        }
-
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingClient = StillingClient(accessTokenClient::getAccessToken)
-        val forespørselService = ForespørselService(producer, repository, stillingClient::hentStilling)
-        val svarService = SvarService(MockConsumer(OffsetResetStrategy.EARLIEST),repository::oppdaterMedSvar) // TODO: Implementer consumer
+
+        val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
+        val forespørselService = ForespørselService(forespørselProducer, repository, stillingClient::hentStilling)
+
+        val svarConsumer = KafkaConsumer<String, SvarPaForesporselOmDelingAvCv>(consumerConfig)
+        val svarService = SvarService(svarConsumer, repository::oppdaterMedSvar) // TODO: Implementer consumer
 
         App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
 
