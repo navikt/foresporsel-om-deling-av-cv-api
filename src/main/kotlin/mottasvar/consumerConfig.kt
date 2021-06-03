@@ -9,7 +9,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 
 val consumerConfig = mapOf(
     ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
-    ConsumerConfig.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
+    ConsumerConfig.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api", // TODO: Bruke GroupID i stedet?
     ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name,
     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java.name,
     ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to System.getenv("KAFKA_BROKERS"),

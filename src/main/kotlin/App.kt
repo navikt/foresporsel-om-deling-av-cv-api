@@ -7,6 +7,8 @@ import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.consumer.MockConsumer
+import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.clients.producer.KafkaProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
@@ -72,8 +74,8 @@ fun main() {
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
         val forespørselService = ForespørselService(forespørselProducer, repository, stillingClient::hentStilling)
 
-        val svarConsumer = KafkaConsumer<String, SvarPaForesporselOmDelingAvCv>(consumerConfig)
-        val svarService = SvarService(svarConsumer, repository::oppdaterMedSvar) // TODO: Implementer consumer
+        val svarConsumer = MockConsumer<String, SvarPaForesporselOmDelingAvCv>(OffsetResetStrategy.EARLIEST) // TODO: Bruk KafkaProducer m/ consumerConfig
+        val svarService = SvarService(svarConsumer, repository::oppdaterMedSvar)
 
         App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
 
