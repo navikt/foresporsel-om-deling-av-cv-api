@@ -1,7 +1,6 @@
 import io.javalin.http.Context
 import mottasvar.Svar
 import utils.hentCallId
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -39,7 +38,7 @@ class Controller(repository: Repository) {
 
 data class ForespørselInboundDto(
     val stillingsId: String,
-    val svarfrist: LocalDate,
+    val svarfrist: LocalDateTime,
     val aktorIder: List<String>,
 )
 
@@ -49,6 +48,7 @@ data class ForespørselOutboundDto(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
+    val svarfrist: LocalDateTime,
 
     val svar: Svar,
     val svarTidspunkt: LocalDateTime?,

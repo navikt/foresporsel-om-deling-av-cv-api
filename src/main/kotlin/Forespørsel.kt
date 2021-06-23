@@ -3,7 +3,6 @@ import no.nav.rekrutteringsbistand.avro.Arbeidssted
 import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
 import stilling.Stilling
 import java.sql.ResultSet
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
@@ -16,7 +15,7 @@ data class Forespørsel(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
-    val svarfrist: LocalDate,
+    val svarfrist: LocalDateTime,
 
     val svar: Svar,
     val svarTidspunkt: LocalDateTime?,
@@ -32,7 +31,7 @@ data class Forespørsel(
             deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
             deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
             deltAv = rs.getString("delt_av"),
-            svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime().toLocalDate(),
+            svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
             svar = Svar.valueOf(rs.getString("svar")),
             svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
             sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
@@ -45,6 +44,7 @@ data class Forespørsel(
         stillingsId.toString(),
         deltAv,
         deltTidspunkt.toInstant(ZoneOffset.UTC),
+        svarfrist.toInstant(ZoneOffset.UTC),
         callId.toString(),
         stilling.stillingtittel,
         stilling.søknadsfrist,
@@ -61,7 +61,7 @@ data class Forespørsel(
         }
     )
 
-    fun tilOutboundDto() = ForespørselOutboundDto(aktørId, deltStatus, deltTidspunkt, deltAv, svar, svarTidspunkt)
+    fun tilOutboundDto() = ForespørselOutboundDto(aktørId, deltStatus, deltTidspunkt, deltAv, svarfrist, svar, svarTidspunkt)
 }
 
 enum class DeltStatus {

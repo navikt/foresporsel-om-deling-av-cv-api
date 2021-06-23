@@ -13,7 +13,7 @@ class Repository(private val dataSource: DataSource) {
     fun lagreUsendteForespørsler(
         aktørIder: List<String>,
         stillingsId: UUID,
-        svarfrist: LocalDate,
+        svarfrist: LocalDateTime,
         deltAvNavIdent: String,
         callId: UUID
     ) {
@@ -26,7 +26,7 @@ class Repository(private val dataSource: DataSource) {
                 statement.setString(3, DeltStatus.IKKE_SENDT.toString())
                 statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()))
                 statement.setString(5, deltAvNavIdent)
-                statement.setDate(6, java.sql.Date.valueOf(svarfrist))
+                statement.setTimestamp(6, Timestamp.valueOf(svarfrist))
                 statement.setString(7, Svar.IKKE_SVART.toString())
                 statement.setTimestamp(8, null)
                 statement.setTimestamp(9, null)

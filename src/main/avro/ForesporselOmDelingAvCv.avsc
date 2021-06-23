@@ -13,6 +13,13 @@
         "logicalType": "timestamp-millis"
       }
     },
+    {
+      "name": "svarfrist",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
     { "name": "callId", "type": "string" },
     { "name": "stillingstittel", "type": "string" },
     { "name": "soknadsfrist", "type": "string" },

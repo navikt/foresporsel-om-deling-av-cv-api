@@ -36,7 +36,7 @@ class TestDatabase {
                 statement.setString(3, it.deltStatus.toString())
                 statement.setTimestamp(4, Timestamp.valueOf(it.deltTidspunkt))
                 statement.setString(5, it.deltAv)
-                statement.setDate(6, java.sql.Date.valueOf(it.svarfrist))
+                statement.setTimestamp(6, Timestamp.valueOf(it.svarfrist))
                 statement.setString(7, it.svar.toString())
                 statement.setTimestamp(8, null)
                 statement.setTimestamp(9, null)

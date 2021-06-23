@@ -38,7 +38,7 @@ class ControllerTest {
         startLokalApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = UUID.randomUUID().toString(),
-                svarfrist = LocalDate.now().plusDays(2),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
                 aktorIder = listOf("234", "345", "456"),
             )
 

@@ -27,7 +27,7 @@ fun enForespørsel(
         deltStatus = deltStatus,
         deltTidspunkt = deltTidspunkt,
         deltAv = deltAv,
-        svarfrist = LocalDate.now().plusDays(5),
+        svarfrist = LocalDate.now().plusDays(6).atStartOfDay(),
         svar = Svar.IKKE_SVART,
         svarTidspunkt = null,
         sendtTilKafkaTidspunkt = null,
