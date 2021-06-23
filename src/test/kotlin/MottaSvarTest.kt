@@ -5,7 +5,6 @@ import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
 import setup.mockConsumer
 import setup.mottaSvarKafkamelding
-import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -75,20 +74,6 @@ class MottaSvarTest {
             assertEquals(Svar.IKKE_SVART, lagredeForespørsler[eldsteVeileder]?.svar)
         }
     }
-
-    private fun enForespørsel(aktørId: String, deltStatus: DeltStatus, deltTidspunkt: LocalDateTime = LocalDateTime.now(), stillingsId: UUID = UUID.randomUUID(), deltAv: String = "veileder") =
-        Forespørsel(
-            id = 0,
-            aktørId = aktørId,
-            stillingsId = stillingsId,
-            deltStatus = deltStatus,
-            deltTidspunkt = deltTidspunkt,
-            deltAv = deltAv,
-            svar = Svar.IKKE_SVART,
-            svarTidspunkt = null,
-            sendtTilKafkaTidspunkt = null,
-            callId = UUID.randomUUID()
-        )
 }
 
 private fun assertTrueInnen(timeoutSekunder: Int, conditional: (Any) -> Boolean) =

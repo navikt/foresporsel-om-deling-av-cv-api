@@ -1,5 +1,9 @@
+import mottasvar.Svar
 import stilling.Arbeidssted
 import stilling.Stilling
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 fun enStilling() = Stilling(
     "hoffnarr",
@@ -9,3 +13,23 @@ fun enStilling() = Stilling(
         Arbeidssted("Slottsplassen 1", "0001", "OSLO", "OSLO", "OSLO", "Norge")
     )
 )
+
+fun enForespørsel(
+    aktørId: String = "aktørId",
+    deltStatus: DeltStatus = DeltStatus.SENDT,
+    deltTidspunkt: LocalDateTime = LocalDateTime.now().withNano(0),
+    stillingsId: UUID = UUID.randomUUID(),
+    deltAv: String = "veileder"
+) = Forespørsel(
+        id = 0,
+        aktørId = aktørId,
+        stillingsId = stillingsId,
+        deltStatus = deltStatus,
+        deltTidspunkt = deltTidspunkt,
+        deltAv = deltAv,
+//        svarfrist = LocalDate.now().plusDays(5),
+        svar = Svar.IKKE_SVART,
+        svarTidspunkt = null,
+        sendtTilKafkaTidspunkt = null,
+        callId = UUID.randomUUID()
+    )

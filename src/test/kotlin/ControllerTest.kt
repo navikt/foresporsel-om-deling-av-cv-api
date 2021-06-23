@@ -5,7 +5,6 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
 import mottasvar.Svar
 import no.nav.security.mock.oauth2.MockOAuth2Server
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -39,7 +38,8 @@ class ControllerTest {
         startLokalApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = UUID.randomUUID().toString(),
-                aktorIder = listOf("234", "345", "456")
+//                svarfrist = LocalDate.now().plusDays(2),
+                aktorIder = listOf("234", "345", "456"),
             )
 
             val callId = UUID.randomUUID()
@@ -63,6 +63,7 @@ class ControllerTest {
                 assertThat(lagretForespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
                 assertThat(lagretForespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
+//                assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
                 assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
                 assertThat(lagretForespørsel.svarTidspunkt).isNull()
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
@@ -78,12 +79,12 @@ class ControllerTest {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
             val stillingsId = UUID.randomUUID()
-            val forespørsel = enForespørsel(stillingsId)
+            val forespørsel = enForespørsel(stillingsId = stillingsId)
             val forespørsler = listOf(
-                enForespørsel(UUID.randomUUID()),
+                enForespørsel(),
                 forespørsel,
-                enForespørsel(UUID.randomUUID()),
-                enForespørsel(UUID.randomUUID()),
+                enForespørsel(),
+                enForespørsel(),
             )
 
             database.lagreBatch(forespørsler)
@@ -99,17 +100,4 @@ class ControllerTest {
             assertEquals(forespørselOutboundDto, lagretForespørsel[0])
         }
     }
-
-    private fun enForespørsel(stillingsId: UUID, deltStatus: DeltStatus = DeltStatus.SENDT) = Forespørsel(
-        id = 0,
-        aktørId = "aktørId",
-        stillingsId = stillingsId,
-        deltStatus = deltStatus,
-        deltTidspunkt = LocalDateTime.now().withNano(0),
-        deltAv = "deltAv",
-        svar = Svar.IKKE_SVART,
-        svarTidspunkt = null,
-        sendtTilKafkaTidspunkt = null,
-        callId = UUID.randomUUID()
-    )
 }

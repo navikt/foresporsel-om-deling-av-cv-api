@@ -1,6 +1,7 @@
 import io.javalin.http.Context
 import mottasvar.Svar
 import utils.hentCallId
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -37,6 +38,7 @@ class Controller(repository: Repository) {
 
 data class ForespørselInboundDto(
     val stillingsId: String,
+//    val svarfrist: LocalDate,
     val aktorIder: List<String>,
 )
 
