@@ -1,5 +1,3 @@
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
 import setup.medVeilederCookie
 import utils.foretrukkenCallIdHeaderKey
+import utils.objectMapper
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
@@ -38,7 +38,7 @@ class ControllerTest {
         startLokalApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = UUID.randomUUID().toString(),
-//                svarfrist = LocalDate.now().plusDays(2),
+                svarfrist = LocalDate.now().plusDays(2),
                 aktorIder = listOf("234", "345", "456"),
             )
 
@@ -49,7 +49,7 @@ class ControllerTest {
             Fuel.post("http://localhost:8333/foresporsler")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .objectBody(inboundDto)
+                .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
             val lagredeForespørsler = database.hentAlleForespørsler()
@@ -63,7 +63,7 @@ class ControllerTest {
                 assertThat(lagretForespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
                 assertThat(lagretForespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
-//                assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
+                assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
                 assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
                 assertThat(lagretForespørsel.svarTidspunkt).isNull()
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
@@ -92,7 +92,7 @@ class ControllerTest {
             val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsId")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .responseObject<List<ForespørselOutboundDto>>(mapper = jacksonObjectMapper().registerModule(JavaTimeModule())).third.get()
+                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
 
             val forespørselOutboundDto = forespørsel.tilOutboundDto()
 

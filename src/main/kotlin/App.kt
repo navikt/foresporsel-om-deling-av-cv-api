@@ -19,24 +19,20 @@ import stilling.AccessTokenClient
 import stilling.StillingClient
 import utils.Cluster
 import utils.log
+import utils.objectMapper
 import utils.settCallId
 import java.io.Closeable
-import java.time.format.DateTimeFormatter
 import kotlin.concurrent.thread
 
 class App(
     private val controller: Controller,
     private val issuerProperties: IssuerProperties,
-    private val forespørselService: ForespørselService,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
 ) : Closeable {
+
     init {
-        JavalinJackson.configure(
-            jacksonObjectMapper()
-                .registerModule(JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        )
+        JavalinJackson.configure(objectMapper)
     }
 
     private val webServer = Javalin.create().apply {
@@ -88,7 +84,7 @@ fun main() {
         val svarConsumer = MockConsumer<String, SvarPaForesporselOmDelingAvCv>(OffsetResetStrategy.EARLIEST) // TODO: Bruk KafkaProducer m/ consumerConfig
         val svarService = SvarService(svarConsumer, repository::oppdaterMedSvar)
 
-        App(controller, issuerProperties, forespørselService, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
+        App(controller, issuerProperties, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)

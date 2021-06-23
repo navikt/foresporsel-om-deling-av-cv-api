@@ -37,8 +37,7 @@ fun startLokalApp(
     val app = App(
         controller,
         issuerProperties,
-        forespørselService,
-        UsendtScheduler(database.dataSource,forespørselService::sendUsendte),
+        UsendtScheduler(database.dataSource, forespørselService::sendUsendte),
         svarService
     )
 

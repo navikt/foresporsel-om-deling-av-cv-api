@@ -10,7 +10,7 @@ import java.util.*
 import javax.sql.DataSource
 import kotlin.concurrent.fixedRateTimer
 
-class UsendtScheduler(dataSource: DataSource, sendUsendtForespørsler:()->Any) {
+class UsendtScheduler(dataSource: DataSource, sendUsendtForespørsler: () -> Any) {
 
     private val lockProvider = JdbcLockProvider(dataSource)
     private val lockingExecutor = DefaultLockingTaskExecutor(lockProvider)

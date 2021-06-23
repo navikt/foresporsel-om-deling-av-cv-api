@@ -3,13 +3,20 @@ import mottasvar.SvarPåForespørsel
 import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
 class Repository(private val dataSource: DataSource) {
 
-    fun lagreUsendteForespørsler(aktørIder: List<String>, stillingsId: UUID, deltAvNavIdent: String, callId: UUID) {
+    fun lagreUsendteForespørsler(
+        aktørIder: List<String>,
+        stillingsId: UUID,
+        svarfrist: LocalDate,
+        deltAvNavIdent: String,
+        callId: UUID
+    ) {
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(LAGRE_BATCH_SQL)
 
@@ -19,10 +26,11 @@ class Repository(private val dataSource: DataSource) {
                 statement.setString(3, DeltStatus.IKKE_SENDT.toString())
                 statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()))
                 statement.setString(5, deltAvNavIdent)
-                statement.setString(6, Svar.IKKE_SVART.toString())
-                statement.setTimestamp(7, null)
+                statement.setDate(6, java.sql.Date.valueOf(svarfrist))
+                statement.setString(7, Svar.IKKE_SVART.toString())
                 statement.setTimestamp(8, null)
-                statement.setObject(9, callId)
+                statement.setTimestamp(9, null)
+                statement.setObject(10, callId)
                 statement.addBatch()
             }
 
@@ -79,8 +87,8 @@ class Repository(private val dataSource: DataSource) {
     companion object {
         val LAGRE_BATCH_SQL = """
             INSERT INTO foresporsel_om_deling_av_cv (
-                aktor_id, stilling_id, delt_status, delt_tidspunkt, delt_av, svar, svar_tidspunkt, sendt_til_kafka_tidspunkt, call_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                aktor_id, stilling_id, delt_status, delt_tidspunkt, delt_av, svarfrist, svar, svar_tidspunkt, sendt_til_kafka_tidspunkt, call_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val OPPDATER_DELT_STATUS_SQL = """

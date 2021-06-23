@@ -28,6 +28,7 @@ class Controller(repository: Repository) {
         repository.lagreUsendteForespørsler(
             forespørselOmDelingAvCvDto.aktorIder,
             UUID.fromString(forespørselOmDelingAvCvDto.stillingsId),
+            forespørselOmDelingAvCvDto.svarfrist,
             ctx.hentNavIdent(),
             ctx.hentCallId()
         )
@@ -38,7 +39,7 @@ class Controller(repository: Repository) {
 
 data class ForespørselInboundDto(
     val stillingsId: String,
-//    val svarfrist: LocalDate,
+    val svarfrist: LocalDate,
     val aktorIder: List<String>,
 )
 

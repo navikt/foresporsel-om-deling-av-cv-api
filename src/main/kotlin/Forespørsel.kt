@@ -16,7 +16,7 @@ data class Forespørsel(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
-//    val svarfrist: LocalDate,
+    val svarfrist: LocalDate,
 
     val svar: Svar,
     val svarTidspunkt: LocalDateTime?,
@@ -32,8 +32,7 @@ data class Forespørsel(
             deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
             deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
             deltAv = rs.getString("delt_av"),
-//            svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime().toLocalDate(),
-//            svarfrist = LocalDate.now(), // TODO
+            svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime().toLocalDate(),
             svar = Svar.valueOf(rs.getString("svar")),
             svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
             sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
