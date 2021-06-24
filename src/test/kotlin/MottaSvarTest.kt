@@ -24,7 +24,7 @@ class MottaSvarTest {
             database.lagreBatch(listOf(forespørsel, upåvirketForespørsel))
 
             val svarKafkamelding = SvarPaForesporselOmDelingAvCv(
-                forespørsel.aktørId, forespørsel.stillingsId.toString(), Svar.JA.toString(), null
+                forespørsel.forespørselId.toString(), Svar.JA.toString(), null
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -42,36 +42,36 @@ class MottaSvarTest {
 
 
     @Test
-    fun `Mottatt svar skal bare oppdatere den nyeste forespørselen om en gitt stillingsid og aktørid i databasen`() {
+    fun `Mottatt svar skal ikke oppdatere andre forespørsler i databasen`() {
         val database = TestDatabase()
         val mockConsumer = mockConsumer()
 
         startLokalApp(database, consumer = mockConsumer).use {
             val aktørId = "123"
             val stillingsId = UUID.randomUUID()
-            val eldsteVeileder = "Eldste veileder"
-            val nyesteVeileder = "Nyeste veileder"
-            val eldsteForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId,  deltAv = eldsteVeileder)
-            val nyesteForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = nyesteVeileder)
+            val enVeileder = "Eldste veileder"
+            val enAnnenVeileder = "Nyeste veileder"
 
-            database.lagreBatch(listOf(eldsteForespørsel))
-            database.lagreBatch(listOf(nyesteForespørsel))
+            val enForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId,  deltAv = enVeileder)
+            val enAnnenForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = enAnnenVeileder)
+
+            database.lagreBatch(listOf(enForespørsel, enAnnenForespørsel))
 
             val svarKafkamelding = SvarPaForesporselOmDelingAvCv(
-                eldsteForespørsel.aktørId, eldsteForespørsel.stillingsId.toString(), Svar.JA.toString(), null
+                enForespørsel.forespørselId.toString(), Svar.JA.toString(), null
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
 
             assertTrueInnen(2) {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
-                val svarIOppdatertForespørsel = lagredeForespørsler[nyesteVeileder]?.svar
+                val svarIOppdatertForespørsel = lagredeForespørsler[enVeileder]?.svar
 
                 svarIOppdatertForespørsel == Svar.JA
             }
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
-            assertEquals(Svar.IKKE_SVART, lagredeForespørsler[eldsteVeileder]?.svar)
+            assertEquals(Svar.IKKE_SVART, lagredeForespørsler[enAnnenVeileder]?.svar)
         }
     }
 }

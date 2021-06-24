@@ -18,7 +18,7 @@ fun mottaSvarKafkamelding(consumer: MockConsumer<String, SvarPaForesporselOmDeli
         svarTopic.topic(),
         svarTopic.partition(),
         offset,
-        melding.getAktorId(),
+        melding.getForesporselId(),
         melding,
     )
 

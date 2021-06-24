@@ -5,6 +5,7 @@
   "fields": [
     { "name": "aktorId", "type": "string" },
     { "name": "stillingsId", "type": "string" },
+    { "name": "foresporselId", "type": "string" },
     { "name": "opprettetAv", "type": "string" },
     {
       "name": "opprettet",

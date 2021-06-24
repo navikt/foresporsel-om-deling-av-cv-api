@@ -11,6 +11,7 @@ data class Forespørsel(
     val id: Long,
     val aktørId: String,
     val stillingsId: UUID,
+    val forespørselId: UUID,
 
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
@@ -28,6 +29,7 @@ data class Forespørsel(
             id = rs.getLong("id"),
             aktørId = rs.getString("aktor_id"),
             stillingsId = UUID.fromString(rs.getString("stilling_id")),
+            forespørselId = UUID.fromString(rs.getString("foresporsel_id")),
             deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
             deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
             deltAv = rs.getString("delt_av"),
@@ -42,6 +44,7 @@ data class Forespørsel(
     fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
         aktørId,
         stillingsId.toString(),
+        forespørselId.toString(),
         deltAv,
         deltTidspunkt.toInstant(ZoneOffset.UTC),
         svarfrist.toInstant(ZoneOffset.UTC),

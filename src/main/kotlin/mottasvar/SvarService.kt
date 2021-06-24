@@ -48,8 +48,7 @@ class SvarService(
 
     private fun behandle(svarKafkamelding: SvarPaForesporselOmDelingAvCv) {
         val svar = SvarPåForespørsel(
-            svarKafkamelding.getAktorId(),
-            UUID.fromString(svarKafkamelding.getStillingsId()),
+            UUID.fromString(svarKafkamelding.getForesporselId()),
             Svar.valueOf(svarKafkamelding.getSvar())
         )
 

@@ -67,6 +67,7 @@ class ControllerTest {
                 assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
                 assertThat(lagretForespørsel.svarTidspunkt).isNull()
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
+                assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
         }
     }
