@@ -10,21 +10,21 @@ import java.util.*
 import javax.sql.DataSource
 import kotlin.concurrent.fixedRateTimer
 
-class UsendtScheduler(dataSource: DataSource, sendUsendtForespørsler: () -> Any) {
+class UsendtScheduler(dataSource: DataSource, sendUsendteForespørsler: () -> Any) {
 
     private val lockProvider = JdbcLockProvider(dataSource)
     private val lockingExecutor = DefaultLockingTaskExecutor(lockProvider)
 
     private val runnableMedLås: TimerTask.() -> Unit = {
         lockingExecutor.executeWithLock(
-            sendUsedtMedFeilhåndtering,
+            sendUsendteMedFeilhåndtering,
             LockConfiguration(Instant.now(),"retry-lock", Duration.ofMinutes(10), Duration.ofMillis(0L))
         )
     }
 
-    private val sendUsedtMedFeilhåndtering = {
+    private val sendUsendteMedFeilhåndtering = {
         try {
-            sendUsendtForespørsler()
+            sendUsendteForespørsler()
         } catch (error: Exception) {
             log.error("Det skjedde en feil i UsendtScheduler:", error)
         }
