@@ -24,12 +24,15 @@ class Controller(repository: Repository) {
 
     val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
+        val forespørselId = UUID.randomUUID()
+
         repository.lagreUsendteForespørsler(
-            forespørselOmDelingAvCvDto.aktorIder,
-            UUID.fromString(forespørselOmDelingAvCvDto.stillingsId),
-            forespørselOmDelingAvCvDto.svarfrist,
-            ctx.hentNavIdent(),
-            ctx.hentCallId()
+            aktørIder = forespørselOmDelingAvCvDto.aktorIder,
+            stillingsId = UUID.fromString(forespørselOmDelingAvCvDto.stillingsId),
+            forespørselId = forespørselId,
+            svarfrist = forespørselOmDelingAvCvDto.svarfrist,
+            deltAvNavIdent = ctx.hentNavIdent(),
+            callId = ctx.hentCallId()
         )
 
         ctx.status(201)

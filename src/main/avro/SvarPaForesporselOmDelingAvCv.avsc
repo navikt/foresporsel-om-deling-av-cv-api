@@ -3,8 +3,7 @@
   "type": "record",
   "name": "SvarPaForesporselOmDelingAvCv",
   "fields": [
-    { "name": "aktorId", "type": "string" },
-    { "name": "stillingsId", "type": "string" },
+    { "name": "foresporselId", "type": "string" },
     { "name": "svar", "type": "string" },
     { "name": "feilmelding", "type": ["string", "null"] }
   ]

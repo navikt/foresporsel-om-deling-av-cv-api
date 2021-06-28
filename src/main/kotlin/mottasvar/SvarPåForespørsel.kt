@@ -3,8 +3,7 @@ package mottasvar
 import java.util.*
 
 data class SvarPåForespørsel(
-    val aktørId:String,
-    val stillingId: UUID,
+    val forespørselId: UUID,
     val svar: Svar
 )
 

@@ -19,11 +19,13 @@ fun enForespørsel(
     deltStatus: DeltStatus = DeltStatus.SENDT,
     deltTidspunkt: LocalDateTime = LocalDateTime.now().withNano(0),
     stillingsId: UUID = UUID.randomUUID(),
+    forespørselId: UUID = UUID.randomUUID(),
     deltAv: String = "veileder"
 ) = Forespørsel(
         id = 0,
         aktørId = aktørId,
         stillingsId = stillingsId,
+        forespørselId = forespørselId,
         deltStatus = deltStatus,
         deltTidspunkt = deltTidspunkt,
         deltAv = deltAv,

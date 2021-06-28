@@ -13,6 +13,7 @@ class Repository(private val dataSource: DataSource) {
     fun lagreUsendteForespørsler(
         aktørIder: List<String>,
         stillingsId: UUID,
+        forespørselId: UUID,
         svarfrist: LocalDateTime,
         deltAvNavIdent: String,
         callId: UUID
@@ -23,14 +24,15 @@ class Repository(private val dataSource: DataSource) {
             aktørIder.forEach { aktørId ->
                 statement.setString(1, aktørId)
                 statement.setObject(2, stillingsId)
-                statement.setString(3, DeltStatus.IKKE_SENDT.toString())
-                statement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()))
-                statement.setString(5, deltAvNavIdent)
-                statement.setTimestamp(6, Timestamp.valueOf(svarfrist))
-                statement.setString(7, Svar.IKKE_SVART.toString())
-                statement.setTimestamp(8, null)
+                statement.setObject(3, forespørselId)
+                statement.setString(4, DeltStatus.IKKE_SENDT.toString())
+                statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()))
+                statement.setString(6, deltAvNavIdent)
+                statement.setTimestamp(7, Timestamp.valueOf(svarfrist))
+                statement.setString(8, Svar.IKKE_SVART.toString())
                 statement.setTimestamp(9, null)
-                statement.setObject(10, callId)
+                statement.setTimestamp(10, null)
+                statement.setObject(11, callId)
                 statement.addBatch()
             }
 
@@ -54,14 +56,14 @@ class Repository(private val dataSource: DataSource) {
             statement.executeUpdate()
         }
     }
+
     fun oppdaterMedSvar(svar: SvarPåForespørsel) {
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(OPPDATER_SVAR_SQL)
 
             statement.setString(1, svar.svar.name)
             statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()))
-            statement.setString(3, svar.aktørId)
-            statement.setObject(4, svar.stillingId)
+            statement.setObject(3, svar.forespørselId)
 
             val antallOppdaterteRader = statement.executeUpdate()
             if(antallOppdaterteRader != 1) {
@@ -87,8 +89,8 @@ class Repository(private val dataSource: DataSource) {
     companion object {
         val LAGRE_BATCH_SQL = """
             INSERT INTO foresporsel_om_deling_av_cv (
-                aktor_id, stilling_id, delt_status, delt_tidspunkt, delt_av, svarfrist, svar, svar_tidspunkt, sendt_til_kafka_tidspunkt, call_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, svar, svar_tidspunkt, sendt_til_kafka_tidspunkt, call_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
         val OPPDATER_DELT_STATUS_SQL = """
@@ -96,11 +98,7 @@ class Repository(private val dataSource: DataSource) {
         """.trimIndent()
 
         val OPPDATER_SVAR_SQL = """
-            UPDATE foresporsel_om_deling_av_cv SET svar = ?, svar_tidspunkt = ? WHERE id in 
-              (SELECT max(id)
-              FROM foresporsel_om_deling_av_cv 
-              WHERE aktor_id = ? AND stilling_id = ? 
-              GROUP BY aktor_id, stilling_id)
+            UPDATE foresporsel_om_deling_av_cv SET svar = ?, svar_tidspunkt = ? WHERE foresporsel_id = ?
         """.trimIndent()
 
         val HENT_USENDTE_SQL = """
