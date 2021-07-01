@@ -22,7 +22,7 @@ data class Forespørsel(
     val svarTidspunkt: LocalDateTime?,
 
     val sendtTilKafkaTidspunkt: LocalDateTime?,
-    val callId: UUID,
+    val callId: String,
 ) {
     companion object {
         fun fromDb(rs: ResultSet) = Forespørsel(
@@ -37,7 +37,7 @@ data class Forespørsel(
             svar = Svar.valueOf(rs.getString("svar")),
             svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
             sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
-            callId = UUID.fromString(rs.getString("call_id"))
+            callId = rs.getString("call_id")
         )
     }
 
@@ -48,7 +48,7 @@ data class Forespørsel(
         deltAv,
         deltTidspunkt.toInstant(ZoneOffset.UTC),
         svarfrist.toInstant(ZoneOffset.UTC),
-        callId.toString(),
+        callId,
         stilling.stillingtittel,
         stilling.søknadsfrist,
         stilling.arbeidsgiver,

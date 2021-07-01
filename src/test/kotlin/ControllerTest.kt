@@ -42,13 +42,13 @@ class ControllerTest {
                 aktorIder = listOf("234", "345", "456"),
             )
 
-            val callId = UUID.randomUUID()
+            val callId = UUID.randomUUID().toString()
 
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
-                .header(foretrukkenCallIdHeaderKey, callId.toString())
+                .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 

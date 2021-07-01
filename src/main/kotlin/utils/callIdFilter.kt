@@ -16,9 +16,9 @@ val settCallId: (Context) -> Unit = {
     it.attribute(foretrukkenCallIdHeaderKey, callId)
 }
 
-fun Context.hentCallId(): UUID {
+fun Context.hentCallId(): String {
     val callId: String? = attribute(foretrukkenCallIdHeaderKey)
     log("hentCallId").info("Hentet callId: $callId")
 
-    return UUID.fromString(callId!!)
+    return callId!!
 }

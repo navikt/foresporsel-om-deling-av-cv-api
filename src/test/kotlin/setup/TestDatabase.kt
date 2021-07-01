@@ -41,7 +41,7 @@ class TestDatabase {
                 statement.setString(8, it.svar.toString())
                 statement.setTimestamp(9, null)
                 statement.setTimestamp(10, null)
-                statement.setObject(11, it.callId)
+                statement.setString(11, it.callId)
 
                 statement.addBatch()
             }

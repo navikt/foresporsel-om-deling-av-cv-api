@@ -33,5 +33,5 @@ fun enForespørsel(
         svar = Svar.IKKE_SVART,
         svarTidspunkt = null,
         sendtTilKafkaTidspunkt = null,
-        callId = UUID.randomUUID()
+        callId = UUID.randomUUID().toString()
     )

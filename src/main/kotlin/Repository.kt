@@ -16,7 +16,7 @@ class Repository(private val dataSource: DataSource) {
         forespørselId: UUID,
         svarfrist: LocalDateTime,
         deltAvNavIdent: String,
-        callId: UUID
+        callId: String
     ) {
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(LAGRE_BATCH_SQL)
@@ -32,7 +32,7 @@ class Repository(private val dataSource: DataSource) {
                 statement.setString(8, Svar.IKKE_SVART.toString())
                 statement.setTimestamp(9, null)
                 statement.setTimestamp(10, null)
-                statement.setObject(11, callId)
+                statement.setString(11, callId)
                 statement.addBatch()
             }
 
