@@ -10,15 +10,10 @@ val settCallId: (Context) -> Unit = {
     val alternativCallId = it.header("Nav-CallId")
     val sisteCallId = it.header("X-Nav-CallId")
 
-    log("settCallId").info("foretrukkenCallId: $foretrukkenCallId, alternativ: $alternativCallId, siste: $sisteCallId")
-
     val callId = foretrukkenCallId ?: alternativCallId ?: sisteCallId ?: UUID.randomUUID().toString()
     it.attribute(foretrukkenCallIdHeaderKey, callId)
 }
 
 fun Context.hentCallId(): String {
-    val callId: String? = attribute(foretrukkenCallIdHeaderKey)
-    log("hentCallId").info("Hentet callId: $callId")
-
-    return callId!!
+    return attribute(foretrukkenCallIdHeaderKey)!!
 }
