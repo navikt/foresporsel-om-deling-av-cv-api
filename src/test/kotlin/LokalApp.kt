@@ -1,7 +1,7 @@
 import mottasvar.SvarService
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
-import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
+import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import sendforespørsel.ForespørselService
@@ -22,7 +22,7 @@ fun startLokalApp(
     forespørselService: ForespørselService = ForespørselService(producer, repository) {
         enStilling()
     },
-    consumer: Consumer<String, SvarPaForesporselOmDelingAvCv> = mockConsumer(),
+    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
 ): App {
     val controller = Controller(repository)
 

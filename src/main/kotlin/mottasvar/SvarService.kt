@@ -1,6 +1,6 @@
 package mottasvar
 
-import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.common.TopicPartition
@@ -13,7 +13,7 @@ import java.util.*
 val svarTopic = TopicPartition("pto.stilling-fra-nav-oppdatert-v1", 0)
 
 class SvarService(
-    private val consumer: Consumer<String, SvarPaForesporselOmDelingAvCv>,
+    private val consumer: Consumer<String, DelingAvCvRespons>,
     private val lagreSvar: (SvarPåForespørsel) -> Unit
 ): Closeable {
     fun start() {
@@ -24,7 +24,7 @@ class SvarService(
             )
 
             while (true) {
-                val records: ConsumerRecords<String, SvarPaForesporselOmDelingAvCv> =
+                val records: ConsumerRecords<String, DelingAvCvRespons> =
                     consumer.poll(Duration.ofSeconds(5))
 
                 if (records.count() == 0) continue
@@ -46,10 +46,10 @@ class SvarService(
         }
     }
 
-    private fun behandle(svarKafkamelding: SvarPaForesporselOmDelingAvCv) {
+    private fun behandle(svarKafkamelding: DelingAvCvRespons) {
         val svar = SvarPåForespørsel(
-            UUID.fromString(svarKafkamelding.getForesporselId()),
-            Svar.valueOf(svarKafkamelding.getSvar())
+            UUID.fromString(svarKafkamelding.getBestillingsId()),
+            Svar.valueOf(svarKafkamelding.getBrukerSvar().name)
         )
 
         lagreSvar(svar)

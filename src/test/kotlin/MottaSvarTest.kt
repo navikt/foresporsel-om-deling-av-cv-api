@@ -1,5 +1,6 @@
 import mottasvar.Svar
-import no.nav.rekrutteringsbistand.avro.SvarPaForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
+import no.nav.veilarbaktivitet.avro.SvarEnum
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
@@ -20,11 +21,17 @@ class MottaSvarTest {
         startLokalApp(database, consumer = mockConsumer).use {
             val forespørsel = enForespørsel("123", DeltStatus.SENDT)
             val upåvirketForespørsel = enForespørsel("234", DeltStatus.SENDT)
+            val aktivitetId = UUID.randomUUID()
 
             database.lagreBatch(listOf(forespørsel, upåvirketForespørsel))
 
-            val svarKafkamelding = SvarPaForesporselOmDelingAvCv(
-                forespørsel.forespørselId.toString(), Svar.JA.toString(), null
+            val svarKafkamelding = DelingAvCvRespons(
+                forespørsel.forespørselId.toString(),
+                forespørsel.aktørId,
+                aktivitetId.toString(),
+                true,
+                true,
+                SvarEnum.JA
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -51,14 +58,20 @@ class MottaSvarTest {
             val stillingsId = UUID.randomUUID()
             val enVeileder = "Eldste veileder"
             val enAnnenVeileder = "Nyeste veileder"
+            val aktivitetId = UUID.randomUUID()
 
             val enForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId,  deltAv = enVeileder)
             val enAnnenForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = enAnnenVeileder)
 
             database.lagreBatch(listOf(enForespørsel, enAnnenForespørsel))
 
-            val svarKafkamelding = SvarPaForesporselOmDelingAvCv(
-                enForespørsel.forespørselId.toString(), Svar.JA.toString(), null
+            val svarKafkamelding = DelingAvCvRespons(
+                enForespørsel.forespørselId.toString(),
+                enForespørsel.aktørId,
+                aktivitetId.toString(),
+                true,
+                true,
+                SvarEnum.JA
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)

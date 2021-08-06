@@ -2,7 +2,7 @@ package sendforespørsel
 
 import Forespørsel
 import Repository
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import stilling.Stilling

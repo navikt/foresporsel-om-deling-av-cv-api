@@ -1,6 +1,6 @@
 import mottasvar.Svar
-import no.nav.rekrutteringsbistand.avro.Arbeidssted
-import no.nav.rekrutteringsbistand.avro.ForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.avro.Arbeidssted
+import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
 import stilling.Stilling
 import java.sql.ResultSet
 import java.time.LocalDateTime
@@ -42,9 +42,9 @@ data class Forespørsel(
     }
 
     fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
+        forespørselId.toString(),
         aktørId,
         stillingsId.toString(),
-        forespørselId.toString(),
         deltAv,
         deltTidspunkt.toInstant(ZoneOffset.UTC),
         svarfrist.toInstant(ZoneOffset.UTC),

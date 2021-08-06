@@ -11,5 +11,5 @@ enum class Cluster {
         }
     }
 
-    fun asString(): String = name.toLowerCase().replace("_", "-")
+    fun asString(): String = name.lowercase().replace("_", "-")
 }
