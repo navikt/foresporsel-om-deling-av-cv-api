@@ -39,7 +39,7 @@ class ForespørselService(
     private fun hentStillingMedUuid(): (Map.Entry<UUID, Forespørsel>) -> Pair<Stilling, Forespørsel>? = {
         val stilling = hentStilling(it.key)
         if (stilling == null) {
-            log.warn("Ignorerer usendt forespørsel med id ${it.value.forespørselId} fordi stillingen ikke kunne hentes")
+            log.error("Ignorerer usendt forespørsel med id ${it.value.forespørselId} fordi stillingen ikke kunne hentes")
         }
 
         stilling?.to(it.value)

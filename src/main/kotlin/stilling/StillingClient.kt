@@ -23,9 +23,7 @@ class StillingClient(private val accessToken: () -> String) {
         return when (result) {
             is Result.Success -> result.value.toStilling()
             is Result.Failure -> {
-                if (result.error.response.statusCode in 400 until 500) {
-                    log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
-                }
+                log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
 
                 return null
             }
