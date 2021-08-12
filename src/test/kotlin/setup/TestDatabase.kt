@@ -12,7 +12,7 @@ class TestDatabase {
 
     val dataSource: DataSource = HikariDataSource(
         HikariConfig().apply {
-            jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+            jdbcUrl = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL"
             username = "sa"
             password = ""
             validate()

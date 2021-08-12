@@ -92,7 +92,7 @@ class Repository(private val dataSource: DataSource) {
             val statement = connection.prepareStatement(FORESPØRSEL_FINNES_SQL)
             statement.setObject(1, stillingsId)
 
-            val somArray = connection.createArrayOf("TEXT", aktorIder.toTypedArray())
+            val somArray = connection.createArrayOf("VARCHAR", aktorIder.toTypedArray())
             statement.setArray(2, somArray)
 
             return statement.executeQuery().tilForespørsler().isNotEmpty()
