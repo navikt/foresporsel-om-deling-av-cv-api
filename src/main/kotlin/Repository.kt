@@ -66,7 +66,7 @@ class Repository(private val dataSource: DataSource) {
             statement.setObject(3, svar.forespørselId)
 
             val antallOppdaterteRader = statement.executeUpdate()
-            if(antallOppdaterteRader != 1) {
+            if (antallOppdaterteRader != 1) {
                 log.error("Oppdaterte et markelig antall rader ($antallOppdaterteRader) for svar: $svar")
             }
         }

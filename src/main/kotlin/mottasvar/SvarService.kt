@@ -53,9 +53,7 @@ class SvarService(
         )
 
         lagreSvar(svar)
-
-        // TODO: Validere svar
-        // TODO: Håndtere feil i svar, hverken Ja eller Nei
+        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, svar: ${svarKafkamelding.getBrukerSvar()}")
     }
 
     override fun close() {
