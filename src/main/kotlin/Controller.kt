@@ -35,6 +35,7 @@ class Controller(repository: Repository) {
             callId = ctx.hentCallId()
         )
 
+        ctx.json("")
         ctx.status(201)
     }
 }
