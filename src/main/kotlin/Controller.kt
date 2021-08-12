@@ -27,20 +27,30 @@ class Controller(repository: Repository) {
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
         val forespørselId = UUID.randomUUID()
 
-        repository.lagreUsendteForespørsler(
-            aktørIder = forespørselOmDelingAvCvDto.aktorIder,
-            stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
-            forespørselId = forespørselId,
-            svarfrist = forespørselOmDelingAvCvDto.svarfrist,
-            deltAvNavIdent = ctx.hentNavIdent(),
-            callId = ctx.hentCallId()
+        val minstEnKandidatHarFåttForespørsel = repository.minstEnKandidatHarFåttForespørsel(
+            forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+            forespørselOmDelingAvCvDto.aktorIder
         )
 
-        val alleForespørslerPåStilling = repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+        if (minstEnKandidatHarFåttForespørsel) {
+            ctx.status(409)
+            ctx.json("Minst én kandidat har fått forespørselen fra før")
+        } else {
+            repository.lagreUsendteForespørsler(
+                aktørIder = forespørselOmDelingAvCvDto.aktorIder,
+                stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+                forespørselId = forespørselId,
+                svarfrist = forespørselOmDelingAvCvDto.svarfrist,
+                deltAvNavIdent = ctx.hentNavIdent(),
+                callId = ctx.hentCallId()
+            )
+
+            val alleForespørslerPåStilling = repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
                 .map { it.tilOutboundDto() }
 
-        ctx.json(alleForespørslerPåStilling)
-        ctx.status(201)
+            ctx.json(alleForespørslerPåStilling)
+            ctx.status(201)
+        }
     }
 }
 

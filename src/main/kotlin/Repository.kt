@@ -1,6 +1,7 @@
 import mottasvar.Svar
 import mottasvar.SvarPåForespørsel
 import utils.log
+import java.sql.Array
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDate
@@ -80,6 +81,23 @@ class Repository(private val dataSource: DataSource) {
 
             statement.executeQuery().tilForespørsler()
         }
+
+    fun minstEnKandidatHarFåttForespørsel(stillingsId: UUID, aktorIder: List<String>): Boolean {
+        val FORESPØRSEL_FINNES_SQL = """
+            SELECT * FROM foresporsel_om_deling_av_cv
+            WHERE stilling_id = ? AND aktor_id IN (?);
+        """.trimIndent()
+
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(FORESPØRSEL_FINNES_SQL)
+            statement.setObject(1, stillingsId)
+
+            val somArray = connection.createArrayOf("TEXT", aktorIder.toTypedArray())
+            statement.setArray(2, somArray)
+
+            return statement.executeQuery().tilForespørsler().isNotEmpty()
+        }
+    }
 
     private fun ResultSet.tilForespørsler() = generateSequence {
         if (next()) Forespørsel.fromDb(this)

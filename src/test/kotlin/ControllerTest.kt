@@ -4,6 +4,7 @@ import com.github.kittinunf.fuel.jackson.responseObject
 import mottasvar.Svar
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.http.HttpStatus
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -32,7 +33,7 @@ class ControllerTest {
     }
 
     @Test
-    fun `Kall til endepunkt skal lagre informasjon om forespørselen i database`() {
+    fun `Kall til POST-endepunkt skal lagre informasjon om forespørselen i database`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -69,6 +70,32 @@ class ControllerTest {
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt skal returnere conflict hvis én av kandidatene har mottatt forespørsel på samme stilling fra før`() {
+        val database = TestDatabase()
+
+        startLokalApp(database).use {
+            val navIdent = "X12345"
+            val stillingsId = UUID.randomUUID()
+            val forespørsel = enForespørsel(stillingsId = stillingsId)
+
+            database.lagreBatch(listOf(forespørsel))
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf(forespørsel.aktørId),
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(409)
         }
     }
 
