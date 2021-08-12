@@ -3,9 +3,11 @@ import auth.issuerProperties
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
+import mottasvar.consumerConfig
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -78,10 +80,15 @@ fun main() {
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
         val forespørselService = ForespørselService(forespørselProducer, repository, stillingClient::hentStilling)
 
-        val svarConsumer = MockConsumer<String, DelingAvCvRespons>(OffsetResetStrategy.EARLIEST) // TODO: Bruk KafkaProducer m/ consumerConfig
+        val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository::oppdaterMedSvar)
 
-        App(controller, issuerProperties, UsendtScheduler(database.dataSource,forespørselService::sendUsendte), svarService).start()
+        App(
+            controller,
+            issuerProperties,
+            UsendtScheduler(database.dataSource, forespørselService::sendUsendte),
+            svarService
+        ).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)
