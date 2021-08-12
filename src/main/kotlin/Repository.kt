@@ -82,18 +82,24 @@ class Repository(private val dataSource: DataSource) {
             statement.executeQuery().tilForespørsler()
         }
 
+    fun insertParameters(count: Int): String =
+        Array(count) { "?" }.joinToString(",")
+
     fun minstEnKandidatHarFåttForespørsel(stillingsId: UUID, aktorIder: List<String>): Boolean {
-        val FORESPØRSEL_FINNES_SQL = """
+        val forespørselFinnesSql = """
             SELECT * FROM foresporsel_om_deling_av_cv
-            WHERE stilling_id = ? AND aktor_id IN (?);
+                WHERE stilling_id = ?
+                AND aktor_id IN (${insertParameters(aktorIder.size)})
         """.trimIndent()
 
         dataSource.connection.use { connection ->
-            val statement = connection.prepareStatement(FORESPØRSEL_FINNES_SQL)
-            statement.setObject(1, stillingsId)
+            val statement = connection.prepareStatement(forespørselFinnesSql)
+            var parameterIndex = 1
+            statement.setObject(parameterIndex++, stillingsId)
 
-            val somArray = connection.createArrayOf("VARCHAR", aktorIder.toTypedArray())
-            statement.setArray(2, somArray)
+            aktorIder.forEach {
+                statement.setString(parameterIndex++, it)
+            }
 
             return statement.executeQuery().tilForespørsler().isNotEmpty()
         }
