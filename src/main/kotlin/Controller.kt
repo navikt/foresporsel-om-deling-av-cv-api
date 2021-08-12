@@ -1,6 +1,7 @@
 import io.javalin.http.Context
 import mottasvar.Svar
 import utils.hentCallId
+import utils.toUUID
 import java.time.LocalDateTime
 import java.util.*
 
@@ -10,7 +11,7 @@ class Controller(repository: Repository) {
 
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
-            UUID.fromString(ctx.pathParam(stillingsIdParamName))
+            ctx.pathParam(stillingsIdParamName).toUUID()
         } catch (exception: IllegalArgumentException) {
             ctx.status(400)
             null
@@ -28,14 +29,17 @@ class Controller(repository: Repository) {
 
         repository.lagreUsendteForespørsler(
             aktørIder = forespørselOmDelingAvCvDto.aktorIder,
-            stillingsId = UUID.fromString(forespørselOmDelingAvCvDto.stillingsId),
+            stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
             forespørselId = forespørselId,
             svarfrist = forespørselOmDelingAvCvDto.svarfrist,
             deltAvNavIdent = ctx.hentNavIdent(),
             callId = ctx.hentCallId()
         )
 
-        ctx.json("")
+        val alleForespørslerPåStilling = repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+                .map { it.tilOutboundDto() }
+
+        ctx.json(alleForespørslerPåStilling)
         ctx.status(201)
     }
 }

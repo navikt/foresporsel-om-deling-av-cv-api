@@ -73,7 +73,7 @@ class ControllerTest {
     }
 
     @Test
-    fun `Kall til GET-endpunkt skala hente lagrede forespørsler på stillingsId`() {
+    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -99,6 +99,39 @@ class ControllerTest {
 
             assertThat(lagretForespørsel.size).isEqualTo(1)
             assertEquals(forespørselOutboundDto, lagretForespørsel[0])
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt skal returnere lagrede forespørsler på stillingsId`() {
+        val database = TestDatabase()
+
+        startLokalApp(database).use {
+            val navIdent = "X12345"
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = UUID.randomUUID().toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf("234", "345"),
+            )
+
+            val returverdi = Fuel.post("http://localhost:8333/foresporsler/")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+
+            assertThat(returverdi.size).isEqualTo(2)
+
+            val nå = LocalDateTime.now()
+            returverdi.forEachIndexed { index, forespørsel ->
+                assertThat(forespørsel.aktørId).isEqualTo(inboundDto.aktorIder[index])
+                assertThat(forespørsel.deltAv).isEqualTo(navIdent)
+                assertThat(forespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
+                assertThat(forespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
+                assertThat(forespørsel.svar).isEqualTo(Svar.IKKE_SVART)
+                assertThat(forespørsel.svarTidspunkt).isNull()
+                assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
+            }
         }
     }
 }

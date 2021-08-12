@@ -2,6 +2,7 @@ import mottasvar.Svar
 import no.nav.veilarbaktivitet.avro.Arbeidssted
 import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
 import stilling.Stilling
+import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -28,8 +29,8 @@ data class Forespørsel(
         fun fromDb(rs: ResultSet) = Forespørsel(
             id = rs.getLong("id"),
             aktørId = rs.getString("aktor_id"),
-            stillingsId = UUID.fromString(rs.getString("stilling_id")),
-            forespørselId = UUID.fromString(rs.getString("foresporsel_id")),
+            stillingsId = rs.getString("stilling_id").toUUID(),
+            forespørselId = rs.getString("foresporsel_id").toUUID(),
             deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
             deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
             deltAv = rs.getString("delt_av"),
