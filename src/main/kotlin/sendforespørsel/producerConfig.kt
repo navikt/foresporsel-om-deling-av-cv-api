@@ -8,10 +8,11 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 
 val producerConfig = mapOf(
-    ProducerConfig.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
+    CommonClientConfigs.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
+    CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to System.getenv("KAFKA_BROKERS"),
+
     ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java.name,
     ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
-    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to System.getenv("KAFKA_BROKERS"),
 
     KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to System.getenv("KAFKA_SCHEMA_REGISTRY"),
     KafkaAvroSerializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",

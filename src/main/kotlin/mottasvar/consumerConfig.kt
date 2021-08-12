@@ -8,11 +8,13 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 
 val consumerConfig = mapOf(
+    CommonClientConfigs.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
+    CommonClientConfigs.GROUP_ID_CONFIG to "foresporsel-om-deling-av-cv-api-1",
+    CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to System.getenv("KAFKA_BROKERS"),
+
     ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
-    ConsumerConfig.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api", // TODO: Bruke GroupID i stedet?
     ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name,
     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java.name,
-    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to System.getenv("KAFKA_BROKERS"),
 
     KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to System.getenv("KAFKA_SCHEMA_REGISTRY"),
     KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
