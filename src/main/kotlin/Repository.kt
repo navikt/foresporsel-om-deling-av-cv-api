@@ -64,7 +64,9 @@ class Repository(private val dataSource: DataSource) {
 
             statement.setString(1, svar.svar.name)
             statement.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()))
-            statement.setObject(3, svar.forespørselId)
+            statement.setBoolean(3, svar.brukerVarslet)
+            statement.setBoolean(4, svar.aktivitetOpprettet)
+            statement.setObject(5, svar.forespørselId)
 
             val antallOppdaterteRader = statement.executeUpdate()
             if (antallOppdaterteRader != 1) {
@@ -122,7 +124,7 @@ class Repository(private val dataSource: DataSource) {
         """.trimIndent()
 
         val OPPDATER_SVAR_SQL = """
-            UPDATE foresporsel_om_deling_av_cv SET svar = ?, svar_tidspunkt = ? WHERE foresporsel_id = ?
+            UPDATE foresporsel_om_deling_av_cv SET svar = ?, svar_tidspunkt = ?, bruker_varslet = ?, aktivitet_opprettet = ? WHERE foresporsel_id = ?
         """.trimIndent()
 
         val HENT_USENDTE_SQL = """

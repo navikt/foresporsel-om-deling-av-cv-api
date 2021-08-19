@@ -21,6 +21,8 @@ data class Forespørsel(
 
     val svar: Svar,
     val svarTidspunkt: LocalDateTime?,
+    val brukerVarslet: Boolean?,
+    val aktivitetOpprettet: Boolean?,
 
     val sendtTilKafkaTidspunkt: LocalDateTime?,
     val callId: String,
@@ -37,6 +39,8 @@ data class Forespørsel(
             svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
             svar = Svar.valueOf(rs.getString("svar")),
             svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
+            brukerVarslet = rs.getBoolean("bruker_varslet"),
+            aktivitetOpprettet = rs.getBoolean("aktivitet_opprettet"),
             sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
             callId = rs.getString("call_id")
         )

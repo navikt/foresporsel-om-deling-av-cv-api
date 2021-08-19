@@ -50,7 +50,9 @@ class SvarService(
     private fun behandle(svarKafkamelding: DelingAvCvRespons) {
         val svar = SvarPåForespørsel(
             svarKafkamelding.getBestillingsId().toUUID(),
-            Svar.valueOf(svarKafkamelding.getBrukerSvar().name)
+            Svar.valueOf(svarKafkamelding.getBrukerSvar().name),
+            svarKafkamelding.getBrukerVarslet(),
+            svarKafkamelding.getAktivitetOpprettet()
         )
 
         lagreSvar(svar)

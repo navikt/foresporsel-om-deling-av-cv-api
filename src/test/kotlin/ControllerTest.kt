@@ -4,7 +4,6 @@ import com.github.kittinunf.fuel.jackson.responseObject
 import mottasvar.Svar
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.http.HttpStatus
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

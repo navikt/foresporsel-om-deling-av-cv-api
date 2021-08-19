@@ -22,16 +22,18 @@ fun enForespørsel(
     forespørselId: UUID = UUID.randomUUID(),
     deltAv: String = "veileder"
 ) = Forespørsel(
-        id = 0,
-        aktørId = aktørId,
-        stillingsId = stillingsId,
-        forespørselId = forespørselId,
-        deltStatus = deltStatus,
-        deltTidspunkt = deltTidspunkt,
-        deltAv = deltAv,
-        svarfrist = LocalDate.now().plusDays(6).atStartOfDay(),
-        svar = Svar.IKKE_SVART,
-        svarTidspunkt = null,
-        sendtTilKafkaTidspunkt = null,
-        callId = UUID.randomUUID().toString()
-    )
+    id = 0,
+    aktørId = aktørId,
+    stillingsId = stillingsId,
+    forespørselId = forespørselId,
+    deltStatus = deltStatus,
+    deltTidspunkt = deltTidspunkt,
+    deltAv = deltAv,
+    svarfrist = LocalDate.now().plusDays(6).atStartOfDay(),
+    svar = Svar.IKKE_SVART,
+    svarTidspunkt = null,
+    brukerVarslet = null,
+    aktivitetOpprettet = null,
+    sendtTilKafkaTidspunkt = null,
+    callId = UUID.randomUUID().toString()
+)
