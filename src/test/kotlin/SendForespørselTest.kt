@@ -42,7 +42,7 @@ class SendForespørselTest {
                     )
                 ).isEqualToIgnoringNanos(forespørsler[index].deltTidspunkt)
                 assertThat(forespørsel.getOpprettetAv()).isEqualTo(forespørsler[index].deltAv)
-                assertThat(forespørsel.getCallId()).isEqualTo(forespørsler[index].callId.toString())
+                assertThat(forespørsel.getCallId()).isEqualTo(forespørsler[index].callId)
                 assertThat(forespørsel.getStillingstittel()).isEqualTo(stilling.stillingtittel)
                 assertThat(forespørsel.getSoknadsfrist()).isEqualTo(stilling.søknadsfrist)
 

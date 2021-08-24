@@ -66,6 +66,8 @@ class ControllerTest {
                 assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
                 assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
                 assertThat(lagretForespørsel.svarTidspunkt).isNull()
+                assertThat(lagretForespørsel.brukerVarslet).isNull()
+                assertThat(lagretForespørsel.aktivitetOpprettet).isNull()
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
@@ -157,6 +159,8 @@ class ControllerTest {
                 assertThat(forespørsel.svar).isEqualTo(Svar.IKKE_SVART)
                 assertThat(forespørsel.svarTidspunkt).isNull()
                 assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
+                assertThat(forespørsel.brukerVarslet).isNull()
+                assertThat(forespørsel.aktivitetOpprettet).isNull()
             }
         }
     }

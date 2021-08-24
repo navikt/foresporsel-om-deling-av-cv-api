@@ -2,6 +2,7 @@ import mottasvar.Svar
 import no.nav.veilarbaktivitet.avro.Arbeidssted
 import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
 import stilling.Stilling
+import utils.getNullableBoolean
 import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
@@ -39,8 +40,8 @@ data class Forespørsel(
             svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
             svar = Svar.valueOf(rs.getString("svar")),
             svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
-            brukerVarslet = rs.getBoolean("bruker_varslet"),
-            aktivitetOpprettet = rs.getBoolean("aktivitet_opprettet"),
+            brukerVarslet = rs.getNullableBoolean("bruker_varslet"),
+            aktivitetOpprettet = rs.getNullableBoolean("aktivitet_opprettet"),
             sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
             callId = rs.getString("call_id")
         )
@@ -69,7 +70,17 @@ data class Forespørsel(
         }
     )
 
-    fun tilOutboundDto() = ForespørselOutboundDto(aktørId, deltStatus, deltTidspunkt, deltAv, svarfrist, svar, svarTidspunkt)
+    fun tilOutboundDto() = ForespørselOutboundDto(
+        aktørId,
+        deltStatus,
+        deltTidspunkt,
+        deltAv,
+        svarfrist,
+        svar,
+        svarTidspunkt,
+        brukerVarslet,
+        aktivitetOpprettet
+    )
 }
 
 enum class DeltStatus {

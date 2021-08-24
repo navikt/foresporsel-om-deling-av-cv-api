@@ -70,4 +70,6 @@ data class ForespørselOutboundDto(
 
     val svar: Svar,
     val svarTidspunkt: LocalDateTime?,
+    val brukerVarslet: Boolean?,
+    val aktivitetOpprettet: Boolean?,
 )
