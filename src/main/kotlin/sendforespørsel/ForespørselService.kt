@@ -18,7 +18,9 @@ class ForespørselService(
 ) {
     fun sendUsendte() {
         val usendteForespørsler = repository.hentUsendteForespørsler()
-        log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
+        if (usendteForespørsler.isNotEmpty()) {
+            log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
+        }
 
         usendteForespørsler.associateBy { it.stillingsId }
             .map(hentStillingMedUuid())
