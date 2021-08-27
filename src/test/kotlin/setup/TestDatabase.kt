@@ -1,11 +1,11 @@
 package setup
 
 import Forespørsel
-import Repository.Companion.LAGRE_BATCH_SQL
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import java.sql.Timestamp
+import java.sql.Types
 import javax.sql.DataSource
 
 class TestDatabase {
@@ -27,8 +27,14 @@ class TestDatabase {
     }
 
     fun lagreBatch(forespørselOmDelingAvCver: List<Forespørsel>) {
+        val lagreBatchSql = """
+                INSERT INTO foresporsel_om_deling_av_cv (
+                    aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, tilstand, call_id, svar, svar_tidspunkt, svart_av_ident, svart_av_ident_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
         dataSource.connection.use { connection ->
-            val statement = connection.prepareStatement(LAGRE_BATCH_SQL.trimIndent())
+            val statement = connection.prepareStatement(lagreBatchSql.trimIndent())
 
             forespørselOmDelingAvCver.forEach {
                 statement.setString(1, it.aktørId)
@@ -38,10 +44,19 @@ class TestDatabase {
                 statement.setTimestamp(5, Timestamp.valueOf(it.deltTidspunkt))
                 statement.setString(6, it.deltAv)
                 statement.setTimestamp(7, Timestamp.valueOf(it.svarfrist))
-                statement.setString(8, it.svar.toString())
-                statement.setTimestamp(9, null)
-                statement.setTimestamp(10, null)
-                statement.setString(11, it.callId)
+                statement.setString(8, it.tilstand.toString())
+                statement.setString(9, it.callId)
+
+                if (it.svar != null) {
+                    statement.setBoolean(10, it.svar!!.svar)
+                    statement.setTimestamp(11, Timestamp.valueOf(it.svar?.svarTidspunkt))
+                } else {
+                    statement.setNull(10, Types.BOOLEAN)
+                    statement.setNull(11, Types.TIMESTAMP)
+                }
+
+                statement.setString(12, it.svar?.svartAv?.ident)
+                statement.setString(13, it.svar?.svartAv?.identType.toString())
 
                 statement.addBatch()
             }

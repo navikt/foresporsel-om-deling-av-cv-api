@@ -1,4 +1,3 @@
-import mottasvar.Svar
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import stilling.Stilling
@@ -8,6 +7,28 @@ import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
+
+data class Ident(
+    val ident: String,
+    val identType: IdentType,
+)
+
+data class Svar(
+    val svar: Boolean,
+    val svarTidspunkt: LocalDateTime,
+    val svartAv: Ident
+) {
+    companion object {
+        fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.Svar) = Svar(
+            svar = melding.getSvar(),
+            svarTidspunkt = LocalDateTime.from(melding.getSvarTidspunkt()),
+            svartAv = Ident(
+                ident = melding.getSvartAv().getIdent(),
+                identType = IdentType.valueOf(melding.getSvartAv().getIdentType().toString())
+            )
+        )
+    }
+}
 
 data class Forespørsel(
     val id: Long,
@@ -20,31 +41,40 @@ data class Forespørsel(
     val deltAv: String,
     val svarfrist: LocalDateTime,
 
-    val svar: Svar,
-    val svarTidspunkt: LocalDateTime?,
-    val brukerVarslet: Boolean?,
-    val aktivitetOpprettet: Boolean?,
+    val tilstand: Tilstand?,
+    val svar: Svar?,
 
     val sendtTilKafkaTidspunkt: LocalDateTime?,
     val callId: String,
 ) {
     companion object {
-        fun fromDb(rs: ResultSet) = Forespørsel(
-            id = rs.getLong("id"),
-            aktørId = rs.getString("aktor_id"),
-            stillingsId = rs.getString("stilling_id").toUUID(),
-            forespørselId = rs.getString("foresporsel_id").toUUID(),
-            deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
-            deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
-            deltAv = rs.getString("delt_av"),
-            svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
-            svar = Svar.valueOf(rs.getString("svar")),
-            svarTidspunkt = rs.getTimestamp("svar_tidspunkt")?.toLocalDateTime(),
-            brukerVarslet = rs.getNullableBoolean("bruker_varslet"),
-            aktivitetOpprettet = rs.getNullableBoolean("aktivitet_opprettet"),
-            sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
-            callId = rs.getString("call_id")
-        )
+        fun fromDb(rs: ResultSet): Forespørsel {
+            val svar = if (rs.getNullableBoolean("svar") == null) null else Svar(
+                svar = rs.getBoolean("svar"),
+                svarTidspunkt = rs.getTimestamp("svar_tidspunkt").toLocalDateTime(),
+                svartAv = Ident(
+                    ident = rs.getString("svart_av_ident"),
+                    identType = IdentType.valueOf(rs.getString("svart_av_identtype")),
+                ),
+            )
+
+            val tilstand = rs.getString("tilstand")
+
+            return Forespørsel(
+                id = rs.getLong("id"),
+                aktørId = rs.getString("aktor_id"),
+                stillingsId = rs.getString("stilling_id").toUUID(),
+                forespørselId = rs.getString("foresporsel_id").toUUID(),
+                deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
+                deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
+                deltAv = rs.getString("delt_av"),
+                svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
+                tilstand = if (tilstand == null) null else Tilstand.valueOf(tilstand),
+                svar = svar,
+                sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
+                callId = rs.getString("call_id")
+            )
+        }
     }
 
     fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
@@ -76,11 +106,23 @@ data class Forespørsel(
         deltTidspunkt,
         deltAv,
         svarfrist,
-        svar,
-        svarTidspunkt,
-        brukerVarslet,
-        aktivitetOpprettet
+        tilstand,
+        svar
     )
+}
+
+enum class Tilstand {
+    KAN_IKKE_OPPRETTE,
+    PROVER_VARSLING,
+    HAR_VARSLET,
+    KAN_IKKE_VARSLE,
+    HAR_SVART,
+    SVARFRIST_UTLOPT
+}
+
+enum class IdentType {
+    AKTOR_ID,
+    NAV_IDENT,
 }
 
 enum class DeltStatus {

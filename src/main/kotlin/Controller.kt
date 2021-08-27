@@ -1,5 +1,4 @@
 import io.javalin.http.Context
-import mottasvar.Svar
 import utils.hentCallId
 import utils.toUUID
 import java.time.LocalDateTime
@@ -68,8 +67,6 @@ data class ForespørselOutboundDto(
     val deltAv: String,
     val svarfrist: LocalDateTime,
 
-    val svar: Svar,
-    val svarTidspunkt: LocalDateTime?,
-    val brukerVarslet: Boolean?,
-    val aktivitetOpprettet: Boolean?,
+    val tilstand: Tilstand?,
+    val svar: Svar?,
 )

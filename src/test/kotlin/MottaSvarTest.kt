@@ -1,4 +1,3 @@
-import mottasvar.Svar
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.avro.Ident
 import no.nav.veilarbaktivitet.avro.IdentTypeEnum
@@ -12,6 +11,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -29,15 +29,16 @@ class MottaSvarTest {
 
             database.lagreBatch(listOf(forespørsel, upåvirketForespørsel))
 
-            // TODO
+            val svartAv = Ident(forespørsel.aktørId, IdentTypeEnum.AKTOR_ID)
+            val svarTidspunkt = LocalDateTime.now()
             val svarKafkamelding = DelingAvCvRespons(
                 forespørsel.forespørselId.toString(),
                 forespørsel.aktørId,
                 aktivitetId.toString(),
-                TilstandEnum.SVART,
+                TilstandEnum.HAR_SVART,
                 no.nav.veilarbaktivitet.avro.Svar(
-                    LocalDateTime.now().toInstant(ZoneOffset.UTC),
-                    Ident("hei", IdentTypeEnum.AKTOR_ID),
+                    svarTidspunkt.toInstant(ZoneOffset.UTC),
+                    svartAv,
                     true
                 )
             )
@@ -48,13 +49,14 @@ class MottaSvarTest {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
                 val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]
 
-                // TODO
-                svarIOppdatertForespørsel?.svar == Svar.JA
-//                svarIOppdatertForespørsel.brukerVarslet == svarKafkamelding.getBrukerVarslet() &&
-//                svarIOppdatertForespørsel.aktivitetOpprettet == svarKafkamelding.getAktivitetOpprettet()
+                svarIOppdatertForespørsel?.tilstand == Tilstand.HAR_SVART &&
+                        svarIOppdatertForespørsel.svar?.svar == true &&
+                        svarIOppdatertForespørsel.svar?.svarTidspunkt == svarTidspunkt &&
+                        svarIOppdatertForespørsel.svar?.svartAv?.ident == svartAv.getIdent()
             }
+
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
-            assertEquals(Svar.IKKE_SVART, lagredeForespørsler[upåvirketForespørsel.aktørId]?.svar)
+            assertNull(lagredeForespørsler[upåvirketForespørsel.aktørId]?.svar)
         }
     }
 
@@ -76,27 +78,29 @@ class MottaSvarTest {
 
             database.lagreBatch(listOf(enForespørsel, enAnnenForespørsel))
 
-            // TODO
-//            val svarKafkamelding = DelingAvCvRespons(
-//                enForespørsel.forespørselId.toString(),
-//                enForespørsel.aktørId,
-//                aktivitetId.toString(),
-//                true,
-//                true,
-//                SvarEnum.JA
-//            )
+            val svarKafkamelding = DelingAvCvRespons(
+                enForespørsel.forespørselId.toString(),
+                enForespørsel.aktørId,
+                aktivitetId.toString(),
+                TilstandEnum.HAR_SVART,
+                no.nav.veilarbaktivitet.avro.Svar(
+                    LocalDateTime.now().toInstant(ZoneOffset.UTC),
+                    Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
+                    true
+                )
+            )
 
-//            mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
+            mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
 
             assertTrueInnen(2) {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
-                val svarIOppdatertForespørsel = lagredeForespørsler[enVeileder]?.svar
+                val svarIOppdatertForespørsel = lagredeForespørsler[enVeileder]?.svar?.svar
 
-                svarIOppdatertForespørsel == Svar.JA
+                svarIOppdatertForespørsel == true
             }
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
-            assertEquals(Svar.IKKE_SVART, lagredeForespørsler[enAnnenVeileder]?.svar)
+            assertNull(lagredeForespørsler[enAnnenVeileder]?.svar?.svar)
         }
     }
 }
