@@ -1,7 +1,7 @@
 import mottasvar.SvarService
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
-import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import sendforespørsel.ForespørselService

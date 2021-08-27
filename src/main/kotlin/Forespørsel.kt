@@ -1,6 +1,6 @@
 import mottasvar.Svar
-import no.nav.veilarbaktivitet.avro.Arbeidssted
-import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import stilling.Stilling
 import utils.getNullableBoolean
 import utils.toUUID

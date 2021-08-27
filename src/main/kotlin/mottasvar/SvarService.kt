@@ -48,15 +48,16 @@ class SvarService(
     }
 
     private fun behandle(svarKafkamelding: DelingAvCvRespons) {
-        val svar = SvarPåForespørsel(
-            svarKafkamelding.getBestillingsId().toUUID(),
-            Svar.valueOf(svarKafkamelding.getBrukerSvar().name),
-            svarKafkamelding.getBrukerVarslet(),
-            svarKafkamelding.getAktivitetOpprettet()
-        )
-
-        lagreSvar(svar)
-        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, svar: ${svarKafkamelding.getBrukerSvar()}")
+        // TODO
+//        val svar = SvarPåForespørsel(
+//            svarKafkamelding.getBestillingsId().toUUID(),
+//            Svar.valueOf(svarKafkamelding.getBrukerSvar().name),
+//            svarKafkamelding.getBrukerVarslet(),
+//            svarKafkamelding.getAktivitetOpprettet()
+//        )
+//
+//        lagreSvar(svar)
+//        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, svar: ${svarKafkamelding.getBrukerSvar()}")
     }
 
     override fun close() {
