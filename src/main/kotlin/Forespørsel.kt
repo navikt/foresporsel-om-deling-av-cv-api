@@ -2,7 +2,6 @@ import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import stilling.Stilling
 import utils.getNullableBoolean
-import utils.getNullableString
 import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
