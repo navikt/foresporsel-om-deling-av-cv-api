@@ -47,12 +47,11 @@ class MottaSvarTest {
 
             assertTrueInnen(2) {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
-                val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]
+                val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]?.svar
 
-                svarIOppdatertForespørsel?.tilstand == Tilstand.HAR_SVART &&
-                        svarIOppdatertForespørsel.svar?.svar == true &&
-                        svarIOppdatertForespørsel.svar?.svarTidspunkt == svarTidspunkt &&
-                        svarIOppdatertForespørsel.svar?.svartAv?.ident == svartAv.getIdent()
+                svarIOppdatertForespørsel != null &&
+                        svarIOppdatertForespørsel.svar &&
+                        svarIOppdatertForespørsel.svartAv.ident == svartAv.getIdent()
             }
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }

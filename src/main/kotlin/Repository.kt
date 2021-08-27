@@ -19,7 +19,7 @@ class Repository(private val dataSource: DataSource) {
         val lagreBatchSql = """
                 INSERT INTO foresporsel_om_deling_av_cv (
                     aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, call_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
         dataSource.connection.use { connection ->
@@ -84,6 +84,7 @@ class Repository(private val dataSource: DataSource) {
             statement.setTimestamp(3, Timestamp.valueOf(svar.svar.svarTidspunkt))
             statement.setString(4, svar.svar.svartAv.ident)
             statement.setString(5, svar.svar.svartAv.identType.toString())
+            statement.setString(6, svar.forespørselId.toString())
 
             val antallOppdaterteRader = statement.executeUpdate()
             if (antallOppdaterteRader != 1) {

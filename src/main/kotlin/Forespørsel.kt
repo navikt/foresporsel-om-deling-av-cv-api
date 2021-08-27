@@ -2,6 +2,7 @@ import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import stilling.Stilling
 import utils.getNullableBoolean
+import utils.getNullableString
 import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
@@ -21,7 +22,7 @@ data class Svar(
     companion object {
         fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.Svar) = Svar(
             svar = melding.getSvar(),
-            svarTidspunkt = LocalDateTime.from(melding.getSvarTidspunkt()),
+            svarTidspunkt = LocalDateTime.ofInstant(melding.getSvarTidspunkt(), ZoneOffset.UTC),
             svartAv = Ident(
                 ident = melding.getSvartAv().getIdent(),
                 identType = IdentType.valueOf(melding.getSvartAv().getIdentType().toString())
@@ -48,17 +49,19 @@ data class Forespørsel(
     val callId: String,
 ) {
     companion object {
+        private fun tilstandEllerNull(verdi: String?): Tilstand? {
+            return Tilstand.values().firstOrNull { it.name == verdi }
+        }
+
         fun fromDb(rs: ResultSet): Forespørsel {
             val svar = if (rs.getNullableBoolean("svar") == null) null else Svar(
                 svar = rs.getBoolean("svar"),
                 svarTidspunkt = rs.getTimestamp("svar_tidspunkt").toLocalDateTime(),
                 svartAv = Ident(
                     ident = rs.getString("svart_av_ident"),
-                    identType = IdentType.valueOf(rs.getString("svart_av_identtype")),
+                    identType = IdentType.valueOf(rs.getString("svart_av_ident_type")),
                 ),
             )
-
-            val tilstand = rs.getString("tilstand")
 
             return Forespørsel(
                 id = rs.getLong("id"),
@@ -69,7 +72,7 @@ data class Forespørsel(
                 deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
                 deltAv = rs.getString("delt_av"),
                 svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
-                tilstand = if (tilstand == null) null else Tilstand.valueOf(tilstand),
+                tilstand = tilstandEllerNull(rs.getString("tilstand")),
                 svar = svar,
                 sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
                 callId = rs.getString("call_id")
