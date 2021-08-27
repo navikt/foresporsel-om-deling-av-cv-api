@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/frontend-krever-response-body'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/nytt-avroskjema'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
