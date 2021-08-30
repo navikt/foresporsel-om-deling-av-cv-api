@@ -1,104 +1,108 @@
-{
-    "fields": [
-        {
-            "name": "bestillingsId",
-            "type": "string"
-        },
-        {
-            "name": "aktorId",
-            "type": "string"
-        },
-        {
-            "name": "stillingsId",
-            "type": "string"
-        },
-        {
-            "name": "opprettetAv",
-            "type": "string"
-        },
-        {
-            "name": "opprettet",
-            "type": {
-                "logicalType": "timestamp-millis",
-                "type": "long"
+[
+    {
+        "type": "record",
+        "name": "Arbeidssted",
+        "namespace": "no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv",
+        "fields": [
+            {
+                "name": "adresse",
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            {
+                "name": "postkode",
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            {
+                "name": "by",
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            {
+                "name": "kommune",
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            {
+                "name": "fylke",
+                "type": [
+                    "string",
+                    "null"
+                ]
+            },
+            {
+                "name": "land",
+                "type": "string"
             }
-        },
-        {
-            "name": "svarfrist",
-            "type": {
-                "logicalType": "timestamp-millis",
-                "type": "long"
+        ]
+    },
+    {
+        "namespace": "no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv",
+        "type": "record",
+        "name": "ForesporselOmDelingAvCv",
+        "fields": [
+            {
+                "name": "bestillingsId",
+                "type": "string"
+            },
+            {
+                "name": "aktorId",
+                "type": "string"
+            },
+            {
+                "name": "stillingsId",
+                "type": "string"
+            },
+            {
+                "name": "opprettetAv",
+                "type": "string"
+            },
+            {
+                "name": "opprettet",
+                "type": {
+                    "type": "long",
+                    "logicalType": "timestamp-millis"
+                }
+            },
+            {
+                "name": "svarfrist",
+                "type": {
+                    "type": "long",
+                    "logicalType": "timestamp-millis"
+                }
+            },
+            {
+                "name": "callId",
+                "type": "string"
+            },
+            {
+                "name": "stillingstittel",
+                "type": "string"
+            },
+            {
+                "name": "soknadsfrist",
+                "type": "string"
+            },
+            {
+                "name": "arbeidsgiver",
+                "type": "string"
+            },
+            {
+                "name": "arbeidssteder",
+                "type": {
+                    "type": "array",
+                    "items": "Arbeidssted"
+                }
             }
-        },
-        {
-            "name": "callId",
-            "type": "string"
-        },
-        {
-            "name": "stillingstittel",
-            "type": "string"
-        },
-        {
-            "name": "soknadsfrist",
-            "type": "string"
-        },
-        {
-            "name": "arbeidsgiver",
-            "type": "string"
-        },
-        {
-            "name": "arbeidssteder",
-            "type": {
-                "items": {
-                    "fields": [
-                        {
-                            "name": "adresse",
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        },
-                        {
-                            "name": "postkode",
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        },
-                        {
-                            "name": "by",
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        },
-                        {
-                            "name": "kommune",
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        },
-                        {
-                            "name": "fylke",
-                            "type": [
-                                "string",
-                                "null"
-                            ]
-                        },
-                        {
-                            "name": "land",
-                            "type": "string"
-                        }
-                    ],
-                    "name": "Arbeidssted",
-                    "type": "record"
-                },
-                "type": "array"
-            }
-        }
-    ],
-    "name": "ForesporselOmDelingAvCv",
-    "namespace": "no.nav.veilarbaktivitet.avro",
-    "type": "record"
-}
+        ]
+    }
+]

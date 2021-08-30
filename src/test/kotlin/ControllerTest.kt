@@ -1,7 +1,6 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
-import mottasvar.Svar
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -64,10 +63,8 @@ class ControllerTest {
                 assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
                 assertThat(lagretForespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
                 assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
-                assertThat(lagretForespørsel.svar).isEqualTo(Svar.IKKE_SVART)
-                assertThat(lagretForespørsel.svarTidspunkt).isNull()
-                assertThat(lagretForespørsel.brukerVarslet).isNull()
-                assertThat(lagretForespørsel.aktivitetOpprettet).isNull()
+                assertThat(lagretForespørsel.tilstand).isNull()
+                assertThat(lagretForespørsel.svar).isNull()
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
@@ -156,11 +153,9 @@ class ControllerTest {
                 assertThat(forespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(forespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
                 assertThat(forespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
-                assertThat(forespørsel.svar).isEqualTo(Svar.IKKE_SVART)
-                assertThat(forespørsel.svarTidspunkt).isNull()
+                assertThat(forespørsel.tilstand).isNull()
+                assertThat(forespørsel.svar).isNull()
                 assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
-                assertThat(forespørsel.brukerVarslet).isNull()
-                assertThat(forespørsel.aktivitetOpprettet).isNull()
             }
         }
     }

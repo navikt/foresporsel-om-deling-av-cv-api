@@ -1,4 +1,3 @@
-import mottasvar.Svar
 import stilling.Arbeidssted
 import stilling.Stilling
 import java.time.LocalDate
@@ -30,10 +29,8 @@ fun enForespørsel(
     deltTidspunkt = deltTidspunkt,
     deltAv = deltAv,
     svarfrist = LocalDate.now().plusDays(6).atStartOfDay(),
-    svar = Svar.IKKE_SVART,
-    svarTidspunkt = null,
-    brukerVarslet = null,
-    aktivitetOpprettet = null,
+    tilstand = null,
+    svar = null,
     sendtTilKafkaTidspunkt = null,
     callId = UUID.randomUUID().toString()
 )

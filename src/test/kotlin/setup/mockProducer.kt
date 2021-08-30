@@ -1,6 +1,6 @@
 package setup
 
-import no.nav.veilarbaktivitet.avro.ForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.producer.MockProducer
 
 fun mockProducer(): MockProducer<String, ForesporselOmDelingAvCv> {

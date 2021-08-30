@@ -1,10 +1,12 @@
 package mottasvar
 
+import Svar
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
+import sendforespørsel.forespørselTopic
 import utils.log
 import utils.toUUID
 import java.io.Closeable
@@ -49,14 +51,15 @@ class SvarService(
 
     private fun behandle(svarKafkamelding: DelingAvCvRespons) {
         val svar = SvarPåForespørsel(
-            svarKafkamelding.getBestillingsId().toUUID(),
-            Svar.valueOf(svarKafkamelding.getBrukerSvar().name),
-            svarKafkamelding.getBrukerVarslet(),
-            svarKafkamelding.getAktivitetOpprettet()
+            forespørselId = svarKafkamelding.getBestillingsId().toUUID(),
+            tilstand = Tilstand.valueOf(svarKafkamelding.getTilstand().toString()),
+            svar = Svar.fraKafkamelding(svarKafkamelding.getSvar()),
         )
 
         lagreSvar(svar)
-        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, svar: ${svarKafkamelding.getBrukerSvar()}")
+
+        val svartAv = if (svar.svar.svartAv.identType == IdentType.NAV_IDENT) "veileder (${svar.svar.svartAv.ident})" else "brukeren selv"
+        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, tilstand: ${svar.tilstand}, svar: ${svar.svar.svar}, svart av $svartAv")
     }
 
     override fun close() {
