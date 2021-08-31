@@ -32,7 +32,7 @@ fun startLokalApp(
         "isso-idtoken"
     )
 
-    val svarService = SvarService(consumer, repository::oppdaterMedSvar)
+    val svarService = SvarService(consumer, repository)
 
     val app = App(
         controller,

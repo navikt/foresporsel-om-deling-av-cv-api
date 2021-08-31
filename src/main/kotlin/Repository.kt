@@ -1,4 +1,3 @@
-import mottasvar.SvarPåForespørsel
 import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -69,7 +68,7 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun oppdaterMedSvar(svar: SvarPåForespørsel) {
+    fun oppdaterMedRespons(forespørselId: String, tilstand: Tilstand, svar: Svar?) {
         val oppdaterSvarSql = """
             UPDATE foresporsel_om_deling_av_cv
                 SET tilstand = ?, svar = ?, svar_tidspunkt = ?, svart_av_ident = ?, svart_av_ident_type = ?
@@ -79,13 +78,13 @@ class Repository(private val dataSource: DataSource) {
         dataSource.connection.use { connection ->
 
             val antallOppdaterteRader = connection.prepareStatement(oppdaterSvarSql).apply {
-                setString(1, svar.tilstand.toString())
+                setString(1, tilstand.toString())
 
-                if (svar.svar != null) {
-                    setBoolean(2, svar.svar.svar)
-                    setTimestamp(3, Timestamp.valueOf(svar.svar.svarTidspunkt))
-                    setString(4, svar.svar.svartAv.ident)
-                    setString(5, svar.svar.svartAv.identType.toString())
+                if (svar != null) {
+                    setBoolean(2, svar.svar)
+                    setTimestamp(3, Timestamp.valueOf(svar.svarTidspunkt))
+                    setString(4, svar.svartAv.ident)
+                    setString(5, svar.svartAv.identType.toString())
                 } else {
                     setObject(2, null)
                     setObject(3, null)
@@ -93,7 +92,7 @@ class Repository(private val dataSource: DataSource) {
                     setObject(5, null)
                 }
 
-                setString(6, svar.forespørselId.toString())
+                setString(6, forespørselId)
 
             }.executeUpdate()
 

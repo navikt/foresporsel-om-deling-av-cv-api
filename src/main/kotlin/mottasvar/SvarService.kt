@@ -1,23 +1,22 @@
 package mottasvar
 
+import Repository
 import Svar
+import Tilstand
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
-import sendforespørsel.forespørselTopic
 import utils.log
-import utils.toUUID
 import java.io.Closeable
 import java.time.Duration
-import java.util.*
 
 val svarTopic = TopicPartition("pto.stilling-fra-nav-oppdatert-v2", 0)
 
 class SvarService(
     private val consumer: Consumer<String, DelingAvCvRespons>,
-    private val lagreSvar: (SvarPåForespørsel) -> Unit
+    private val repository: Repository
 ): Closeable {
     fun start() {
         try {
@@ -50,16 +49,14 @@ class SvarService(
     }
 
     private fun behandle(svarKafkamelding: DelingAvCvRespons) {
-        val svar = SvarPåForespørsel(
-            forespørselId = svarKafkamelding.getBestillingsId().toUUID(),
-            tilstand = Tilstand.valueOf(svarKafkamelding.getTilstand().toString()),
-            svar = Svar.fraKafkamelding(svarKafkamelding.getSvar()),
-        )
+        val forespørselId = svarKafkamelding.getBestillingsId()
+        val tilstand = Tilstand.valueOf(svarKafkamelding.getTilstand().toString())
+        val svar = Svar.fraKafkamelding(svarKafkamelding.getSvar())
 
-        lagreSvar(svar)
+        repository.oppdaterMedRespons(forespørselId, tilstand, svar)
 
-        val svartAv = if (svar.svar?.svartAv?.identType == IdentType.NAV_IDENT) "veileder (${svar.svar.svartAv.ident})" else "brukeren selv"
-        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, tilstand: ${svar.tilstand}, svar: ${svar.svar?.svar}, svart av $svartAv")
+        val svartAv = if (svar?.svartAv?.identType == IdentType.NAV_IDENT) "veileder (${svar.svartAv.ident})" else "brukeren selv"
+        log.info("Behandlet svar for forespørsel-ID: ${forespørselId}, tilstand: ${tilstand}, svar: ${svar?.svar}, svart av $svartAv")
     }
 
     override fun close() {

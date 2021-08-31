@@ -79,7 +79,7 @@ fun main() {
         val forespørselService = ForespørselService(forespørselProducer, repository, stillingClient::hentStilling)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
-        val svarService = SvarService(svarConsumer, repository::oppdaterMedSvar)
+        val svarService = SvarService(svarConsumer, repository)
 
         App(
             controller,
