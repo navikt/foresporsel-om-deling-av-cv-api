@@ -13,7 +13,7 @@ import java.io.Closeable
 import java.time.Duration
 import java.util.*
 
-val svarTopic = TopicPartition("pto.stilling-fra-nav-oppdatert-v1", 0)
+val svarTopic = TopicPartition("pto.stilling-fra-nav-oppdatert-v2", 0)
 
 class SvarService(
     private val consumer: Consumer<String, DelingAvCvRespons>,
