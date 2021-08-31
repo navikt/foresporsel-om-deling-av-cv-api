@@ -102,6 +102,34 @@ class MottaSvarTest {
             assertNull(lagredeForespørsler[enAnnenVeileder]?.svar?.svar)
         }
     }
+
+    @Test
+    fun `Motta response skal håndtere nullable svar`() {
+        val database = TestDatabase()
+        val mockConsumer = mockConsumer()
+
+        startLokalApp(database, consumer = mockConsumer).use {
+            val forespørsel = enForespørsel("123", DeltStatus.SENDT)
+            database.lagreBatch(listOf(forespørsel))
+
+            val svarKafkamelding = DelingAvCvRespons(
+                forespørsel.forespørselId.toString(),
+                forespørsel.aktørId,
+                UUID.randomUUID().toString(),
+                TilstandEnum.PROVER_VARSLING,
+                null
+            )
+
+            mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
+
+            assertTrueInnen(2) {
+                val lagretForespørsel = database.hentAlleForespørsler().first()
+
+                lagretForespørsel.tilstand == Tilstand.PROVER_VARSLING &&
+                lagretForespørsel.svar == null
+            }
+        }
+    }
 }
 
 private fun assertTrueInnen(timeoutSekunder: Int, conditional: (Any) -> Boolean) =

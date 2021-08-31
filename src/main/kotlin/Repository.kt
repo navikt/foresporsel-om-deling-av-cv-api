@@ -77,16 +77,26 @@ class Repository(private val dataSource: DataSource) {
         """.trimIndent()
 
         dataSource.connection.use { connection ->
-            val statement = connection.prepareStatement(oppdaterSvarSql)
 
-            statement.setString(1, svar.tilstand.toString())
-            statement.setObject(2, svar.svar?.svar)
-            statement.setTimestamp(3, Timestamp.valueOf(svar.svar?.svarTidspunkt))
-            statement.setString(4, svar.svar?.svartAv?.ident)
-            statement.setString(5, svar.svar?.svartAv?.identType?.toString())
-            statement.setString(6, svar.forespørselId.toString())
+            val antallOppdaterteRader = connection.prepareStatement(oppdaterSvarSql).apply {
+                setString(1, svar.tilstand.toString())
 
-            val antallOppdaterteRader = statement.executeUpdate()
+                if (svar.svar != null) {
+                    setBoolean(2, svar.svar.svar)
+                    setTimestamp(3, Timestamp.valueOf(svar.svar.svarTidspunkt))
+                    setString(4, svar.svar.svartAv.ident)
+                    setString(5, svar.svar.svartAv.identType.toString())
+                } else {
+                    setObject(2, null)
+                    setObject(3, null)
+                    setObject(4, null)
+                    setObject(5, null)
+                }
+
+                setString(6, svar.forespørselId.toString())
+
+            }.executeUpdate()
+
             if (antallOppdaterteRader != 1) {
                 log.error("Oppdaterte et markelig antall rader ($antallOppdaterteRader) for svar: $svar")
             }
