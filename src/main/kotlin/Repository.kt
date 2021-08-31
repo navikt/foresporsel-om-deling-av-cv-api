@@ -10,7 +10,6 @@ class Repository(private val dataSource: DataSource) {
     fun lagreUsendteForespørsler(
         aktørIder: List<String>,
         stillingsId: UUID,
-        forespørselId: UUID,
         svarfrist: LocalDateTime,
         deltAvNavIdent: String,
         callId: String
@@ -27,7 +26,7 @@ class Repository(private val dataSource: DataSource) {
             aktørIder.forEach { aktørId ->
                 statement.setString(1, aktørId)
                 statement.setObject(2, stillingsId)
-                statement.setObject(3, forespørselId)
+                statement.setObject(3, UUID.randomUUID())
                 statement.setString(4, DeltStatus.IKKE_SENDT.toString())
                 statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()))
                 statement.setString(6, deltAvNavIdent)
