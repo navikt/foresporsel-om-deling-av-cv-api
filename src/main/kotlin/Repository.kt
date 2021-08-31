@@ -68,7 +68,7 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun oppdaterMedRespons(forespørselId: String, tilstand: Tilstand, svar: Svar?) {
+    fun oppdaterMedRespons(forespørselId: UUID, tilstand: Tilstand, svar: Svar?) {
         val oppdaterSvarSql = """
             UPDATE foresporsel_om_deling_av_cv
                 SET tilstand = ?, svar = ?, svar_tidspunkt = ?, svart_av_ident = ?, svart_av_ident_type = ?
@@ -87,12 +87,12 @@ class Repository(private val dataSource: DataSource) {
                     setString(5, svar.svartAv.identType.toString())
                 } else {
                     setObject(2, null)
-                    setObject(3, null)
-                    setObject(4, null)
-                    setObject(5, null)
+                    setTimestamp(3, null)
+                    setString(4, null)
+                    setString(5, null)
                 }
 
-                setString(6, forespørselId)
+                setObject(6, forespørselId)
 
             }.executeUpdate()
 

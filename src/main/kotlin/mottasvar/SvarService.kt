@@ -9,6 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
 import utils.log
+import utils.toUUID
 import java.io.Closeable
 import java.time.Duration
 
@@ -49,7 +50,7 @@ class SvarService(
     }
 
     private fun behandle(svarKafkamelding: DelingAvCvRespons) {
-        val forespørselId = svarKafkamelding.getBestillingsId()
+        val forespørselId = svarKafkamelding.getBestillingsId().toUUID()
         val tilstand = Tilstand.valueOf(svarKafkamelding.getTilstand().toString())
         val svar = Svar.fraKafkamelding(svarKafkamelding.getSvar())
 
