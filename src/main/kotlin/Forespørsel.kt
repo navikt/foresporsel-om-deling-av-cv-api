@@ -19,14 +19,20 @@ data class Svar(
     val svartAv: Ident
 ) {
     companion object {
-        fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.Svar) = Svar(
-            svar = melding.getSvar(),
-            svarTidspunkt = LocalDateTime.ofInstant(melding.getSvarTidspunkt(), ZoneOffset.UTC),
-            svartAv = Ident(
-                ident = melding.getSvartAv().getIdent(),
-                identType = IdentType.valueOf(melding.getSvartAv().getIdentType().toString())
-            )
-        )
+        fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.Svar?): Svar? {
+            return if (melding != null) {
+                Svar(
+                    svar = melding.getSvar(),
+                    svarTidspunkt = LocalDateTime.ofInstant(melding.getSvarTidspunkt(), ZoneOffset.UTC),
+                    svartAv = Ident(
+                        ident = melding.getSvartAv().getIdent(),
+                        identType = IdentType.valueOf(melding.getSvartAv().getIdentType().toString())
+                    )
+                )
+            } else {
+                null
+            }
+        }
     }
 }
 

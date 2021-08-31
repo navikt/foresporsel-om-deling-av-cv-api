@@ -80,10 +80,10 @@ class Repository(private val dataSource: DataSource) {
             val statement = connection.prepareStatement(oppdaterSvarSql)
 
             statement.setString(1, svar.tilstand.toString())
-            statement.setBoolean(2, svar.svar.svar)
-            statement.setTimestamp(3, Timestamp.valueOf(svar.svar.svarTidspunkt))
-            statement.setString(4, svar.svar.svartAv.ident)
-            statement.setString(5, svar.svar.svartAv.identType.toString())
+            statement.setObject(2, svar.svar?.svar)
+            statement.setTimestamp(3, Timestamp.valueOf(svar.svar?.svarTidspunkt))
+            statement.setString(4, svar.svar?.svartAv?.ident)
+            statement.setString(5, svar.svar?.svartAv?.identType?.toString())
             statement.setString(6, svar.forespørselId.toString())
 
             val antallOppdaterteRader = statement.executeUpdate()

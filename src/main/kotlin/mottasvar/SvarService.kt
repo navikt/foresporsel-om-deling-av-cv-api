@@ -58,8 +58,8 @@ class SvarService(
 
         lagreSvar(svar)
 
-        val svartAv = if (svar.svar.svartAv.identType == IdentType.NAV_IDENT) "veileder (${svar.svar.svartAv.ident})" else "brukeren selv"
-        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, tilstand: ${svar.tilstand}, svar: ${svar.svar.svar}, svart av $svartAv")
+        val svartAv = if (svar.svar?.svartAv?.identType == IdentType.NAV_IDENT) "veileder (${svar.svar.svartAv.ident})" else "brukeren selv"
+        log.info("Behandlet svar for forespørsel-ID: ${svar.forespørselId}, tilstand: ${svar.tilstand}, svar: ${svar.svar?.svar}, svart av $svartAv")
     }
 
     override fun close() {
