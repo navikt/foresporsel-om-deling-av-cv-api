@@ -9,10 +9,11 @@ import org.apache.kafka.common.serialization.StringDeserializer
 
 val consumerConfig = mapOf(
     CommonClientConfigs.CLIENT_ID_CONFIG to "foresporsel-om-deling-av-cv-api",
-    CommonClientConfigs.GROUP_ID_CONFIG to "foresporsel-om-deling-av-cv-api-1",
+    CommonClientConfigs.GROUP_ID_CONFIG to "foresporsel-om-deling-av-cv-api-2",
     CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to System.getenv("KAFKA_BROKERS"),
 
     ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
+    ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
     ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name,
     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java.name,
 
