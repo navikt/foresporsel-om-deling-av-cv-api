@@ -6,29 +6,19 @@
         "fields": [
             {
                 "name": "navn",
-                "type": [
-                    "string"
-                ]
+                "type": "string"
             },
             {
                 "name": "tittel",
-                "type": [
-                    "string"
-                ]
+                "type": "string"
             },
             {
                 "name": "mobil",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "epost",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             }
         ]
     },
@@ -39,38 +29,23 @@
         "fields": [
             {
                 "name": "adresse",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "postkode",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "by",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "kommune",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "fylke",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "land",
