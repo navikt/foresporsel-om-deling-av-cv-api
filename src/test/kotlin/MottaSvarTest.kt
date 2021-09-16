@@ -1,6 +1,7 @@
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.avro.Ident
 import no.nav.veilarbaktivitet.avro.IdentTypeEnum
+import no.nav.veilarbaktivitet.avro.Svar
 import no.nav.veilarbaktivitet.avro.TilstandEnum
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -40,7 +41,8 @@ class MottaSvarTest {
                     svarTidspunkt.toInstant(ZoneOffset.UTC),
                     svartAv,
                     true
-                )
+                ),
+                "Feilmelding" //TODO
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -86,7 +88,8 @@ class MottaSvarTest {
                     LocalDateTime.now().toInstant(ZoneOffset.UTC),
                     Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
                     true
-                )
+                ),
+                "Feilmelding" // TODO
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -117,7 +120,8 @@ class MottaSvarTest {
                 forespørsel.aktørId,
                 UUID.randomUUID().toString(),
                 TilstandEnum.PROVER_VARSLING,
-                null
+                Svar(), //TODO
+                "" //TODO
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
