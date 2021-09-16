@@ -21,18 +21,17 @@ class StillingClient(private val accessToken: () -> String) {
             .responseObject<EsResponse>().third
 
         return when (result) {
-            is Result.Success -> result.value.toStilling()
+            is Result.Success -> result.value.toStilling().also { log.info("Hentet stilling $it") }
             is Result.Failure -> {
                 log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
-
-                return null
+                null
             }
-        }.also { log.info("Hentet stilling $it") }
+        }
     }
 }
 
 private data class EsResponse(
-    val _source: EsSource
+    private val _source: EsSource
 ) {
     fun toStilling() = Stilling(
         stillingtittel = _source.stilling.title,
@@ -41,26 +40,26 @@ private data class EsResponse(
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted)
     )
 
-    private data class EsSource(
+    data class EsSource(
         val stilling: EsStilling
     )
 
-    private data class EsStilling(
+    data class EsStilling(
         val title: String,
         val properties: Properties,
         val employer: Employer,
         val locations: List<EsArbeidssted>
     )
 
-    private data class Employer(
+    data class Employer(
         val name: String
     )
 
-    private data class Properties(
+    data class Properties(
         val applicationdue: String
     )
 
-    private data class EsArbeidssted(
+    data class EsArbeidssted(
         val address: String?,
         val postalCode: String?,
         val city: String?,
