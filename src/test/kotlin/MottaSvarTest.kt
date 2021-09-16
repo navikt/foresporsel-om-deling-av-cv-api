@@ -1,8 +1,6 @@
-import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
+import no.nav.veilarbaktivitet.avro.*
 import no.nav.veilarbaktivitet.avro.Ident
-import no.nav.veilarbaktivitet.avro.IdentTypeEnum
 import no.nav.veilarbaktivitet.avro.Svar
-import no.nav.veilarbaktivitet.avro.TilstandEnum
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
@@ -11,7 +9,6 @@ import setup.mottaSvarKafkamelding
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
-import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -37,7 +34,7 @@ class MottaSvarTest {
                 forespørsel.aktørId,
                 aktivitetId.toString(),
                 TilstandEnum.HAR_SVART,
-                no.nav.veilarbaktivitet.avro.Svar(
+                Svar(
                     svarTidspunkt.toInstant(ZoneOffset.UTC),
                     svartAv,
                     true
@@ -74,8 +71,9 @@ class MottaSvarTest {
             val enAnnenVeileder = "Nyeste veileder"
             val aktivitetId = UUID.randomUUID()
 
-            val enForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId,  deltAv = enVeileder)
-            val enAnnenForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = enAnnenVeileder)
+            val enForespørsel = enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = enVeileder)
+            val enAnnenForespørsel =
+                enForespørsel(aktørId, DeltStatus.SENDT, stillingsId = stillingsId, deltAv = enAnnenVeileder)
 
             database.lagreBatch(listOf(enForespørsel, enAnnenForespørsel))
 
@@ -84,7 +82,7 @@ class MottaSvarTest {
                 enForespørsel.aktørId,
                 aktivitetId.toString(),
                 TilstandEnum.HAR_SVART,
-                no.nav.veilarbaktivitet.avro.Svar(
+                Svar(
                     LocalDateTime.now().toInstant(ZoneOffset.UTC),
                     Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
                     true
@@ -108,6 +106,7 @@ class MottaSvarTest {
 
     @Test
     fun `Motta response skal håndtere nullable svar`() {
+        val nullSvar: Svar? = null
         val database = TestDatabase()
         val mockConsumer = mockConsumer()
 
@@ -120,7 +119,7 @@ class MottaSvarTest {
                 forespørsel.aktørId,
                 UUID.randomUUID().toString(),
                 TilstandEnum.PROVER_VARSLING,
-                Svar(), //TODO
+                nullSvar,
                 "" //TODO
             )
 
@@ -129,15 +128,14 @@ class MottaSvarTest {
             assertTrueInnen(2) {
                 val lagretForespørsel = database.hentAlleForespørsler().first()
 
-                lagretForespørsel.tilstand == Tilstand.PROVER_VARSLING &&
-                lagretForespørsel.svar == null
+                lagretForespørsel.tilstand == Tilstand.PROVER_VARSLING && lagretForespørsel.svar == null
             }
         }
     }
 }
 
 private fun assertTrueInnen(timeoutSekunder: Int, conditional: (Any) -> Boolean) =
-    assertTrue((0..(timeoutSekunder*10)).any(sleepIfFalse(conditional)))
+    assertTrue((0..(timeoutSekunder * 10)).any(sleepIfFalse(conditional)))
 
 private fun sleepIfFalse(conditional: (Any) -> Boolean): (Any) -> Boolean =
-    { conditional(it).also { answer -> if(!answer) Thread.sleep(100) } }
+    { conditional(it).also { answer -> if (!answer) Thread.sleep(100) } }
