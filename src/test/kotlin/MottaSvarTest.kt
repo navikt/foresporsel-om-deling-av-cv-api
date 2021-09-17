@@ -39,7 +39,7 @@ class MottaSvarTest {
                     svartAv,
                     true
                 ),
-                "Feilmelding" //TODO
+                ""
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -87,7 +87,7 @@ class MottaSvarTest {
                     Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
                     true
                 ),
-                "Feilmelding" // TODO
+                ""
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -120,7 +120,7 @@ class MottaSvarTest {
                 UUID.randomUUID().toString(),
                 TilstandEnum.PROVER_VARSLING,
                 nullSvar,
-                "" //TODO
+                ""
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
