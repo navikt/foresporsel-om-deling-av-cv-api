@@ -5,6 +5,7 @@ import setup.*
 import java.lang.RuntimeException
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SendForespørselTest {
@@ -17,11 +18,12 @@ class SendForespørselTest {
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
+            val stillingsId = UUID.randomUUID()
 
             val forespørsler = listOf(
-                enForespørsel("123", DeltStatus.IKKE_SENDT),
-                enForespørsel("234", DeltStatus.IKKE_SENDT),
-                enForespørsel("345", DeltStatus.SENDT, enHalvtimeSiden)
+                enForespørsel("123", deltStatus = DeltStatus.IKKE_SENDT, stillingsId = stillingsId),
+                enForespørsel("234", deltStatus = DeltStatus.IKKE_SENDT, stillingsId = stillingsId),
+                enForespørsel("345", deltStatus = DeltStatus.SENDT, enHalvtimeSiden)
             )
 
             database.lagreBatch(forespørsler)
