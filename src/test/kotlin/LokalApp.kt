@@ -19,9 +19,12 @@ fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
     producer: Producer<String, ForesporselOmDelingAvCv> = mockProducer(),
-    forespørselService: ForespørselService = ForespørselService(producer, repository) {
-        enStilling()
-    },
+    forespørselService: ForespørselService = ForespørselService(
+        producer,
+        repository,
+        hentStillingMock,
+        hentRekbisStillingMock
+    ),
     consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
 ): App {
     val controller = Controller(repository)

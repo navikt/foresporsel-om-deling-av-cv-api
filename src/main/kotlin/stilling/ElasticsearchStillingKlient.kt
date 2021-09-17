@@ -8,7 +8,7 @@ import utils.Cluster
 import utils.log
 import java.util.*
 
-class StillingClient(private val accessToken: () -> String) {
+class ElasticsearchStillingKlient(private val accessToken: () -> String) {
     private val stillingssokProxyDokumentUrl = when (Cluster.current) {
         Cluster.DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
         Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"

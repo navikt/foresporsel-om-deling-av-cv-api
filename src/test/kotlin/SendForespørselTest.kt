@@ -1,10 +1,21 @@
+import DeltStatus.IKKE_SENDT
+import DeltStatus.SENDT
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.KontaktInfo
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import sendforespørsel.ForespørselService
-import setup.*
-import java.lang.RuntimeException
+import setup.TestDatabase
+import setup.mockProducer
+import setup.mockProducerUtenAutocomplete
+import stilling.RekbisKontaktinfo
+import stilling.RekbisStilling
+import stilling.Stilling
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.*
+import kotlin.test.assertNotNull
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SendForespørselTest {
@@ -13,65 +24,99 @@ class SendForespørselTest {
     fun `Usendte forespørsler skal sendes på Kafka`() {
         val database = TestDatabase()
         val mockProducer = mockProducer()
-        val forespørselService = ForespørselService(mockProducer,Repository(database.dataSource)) { enStilling() }
+        val stillingFraElasticsearch = enStilling()
+        val hentStillingMock: (UUID) -> Stilling? = { stillingFraElasticsearch }
+
+        val stillingFraRekbisKandidatApi =
+            RekbisStilling("anyId", RekbisKontaktinfo("anyNavn", "anyTittel", "anyTlfnr", "anyEpostadr")) // TODO Are
+        val hentRekbisStillingMock: (UUID) -> RekbisStilling? = { stillingFraRekbisKandidatApi }
+
+        val forespørselService =
+            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock, hentRekbisStillingMock)
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
-
             val forespørsler = listOf(
-                enForespørsel("123", DeltStatus.IKKE_SENDT),
-                enForespørsel("234", DeltStatus.IKKE_SENDT),
-                enForespørsel("345", DeltStatus.SENDT, enHalvtimeSiden)
+                enForespørsel(
+                    aktørId = "123",
+                    deltStatus = IKKE_SENDT
+                ),
+                enForespørsel(
+                    aktørId = "234",
+                    deltStatus = IKKE_SENDT
+                ),
+                enForespørsel(
+                    aktørId = "345",
+                    deltStatus = SENDT,
+                    deltTidspunkt = enHalvtimeSiden
+                )
             )
-
             database.lagreBatch(forespørsler)
+
+            // When
             forespørselService.sendUsendte()
 
+            // Then
             val meldingerSendtPåKafka = mockProducer.history()
             assertThat(meldingerSendtPåKafka.size).isEqualTo(2)
 
-            val stilling = enStilling()
+            meldingerSendtPåKafka.map { it.value() }.forEachIndexed { index, actual ->
+                val expected = forespørsler[index]
 
-            meldingerSendtPåKafka.map { it.value() }.forEachIndexed { index, forespørsel ->
-                assertThat(forespørsel.getAktorId()).isEqualTo(forespørsler[index].aktørId)
-                assertThat(forespørsel.getStillingsId()).isEqualTo(forespørsler[index].stillingsId.toString())
+                assertThat(actual.getAktorId()).isEqualTo(expected.aktørId)
+                assertThat(actual.getStillingsId()).isEqualTo(expected.stillingsId.toString())
                 assertThat(
-                    LocalDateTime.ofInstant(
-                        forespørsel.getOpprettet(),
-                        ZoneId.of("UTC")
-                    )
-                ).isEqualToIgnoringNanos(forespørsler[index].deltTidspunkt)
-                assertThat(forespørsel.getOpprettetAv()).isEqualTo(forespørsler[index].deltAv)
-                assertThat(forespørsel.getCallId()).isEqualTo(forespørsler[index].callId)
-                assertThat(forespørsel.getStillingstittel()).isEqualTo(stilling.stillingtittel)
-                assertThat(forespørsel.getSoknadsfrist()).isEqualTo(stilling.søknadsfrist)
+                    LocalDateTime.ofInstant(actual.getOpprettet(), ZoneId.of("UTC"))
+                ).isEqualToIgnoringNanos(
+                    expected.deltTidspunkt
+                )
+                assertThat(actual.getOpprettetAv()).isEqualTo(expected.deltAv)
+                assertThat(actual.getCallId()).isEqualTo(expected.callId)
+                assertThat(actual.getStillingstittel()).isEqualTo(stillingFraElasticsearch.stillingtittel)
+                assertThat(actual.getSoknadsfrist()).isEqualTo(stillingFraElasticsearch.søknadsfrist)
 
-                forespørsel.getArbeidssteder().forEachIndexed { arbeidsstedIndex, arbeidssted ->
-                    assertThat(arbeidssted.getAdresse()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].adresse)
-                    assertThat(arbeidssted.getPostkode()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].postkode)
-                    assertThat(arbeidssted.getBy()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].by)
-                    assertThat(arbeidssted.getKommune()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].kommune)
-                    assertThat(arbeidssted.getFylke()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].fylke)
-                    assertThat(arbeidssted.getLand()).isEqualTo(stilling.arbeidssteder[arbeidsstedIndex].land)
+                assertKontaktinfo(actual.getKontaktInfo(), stillingFraRekbisKandidatApi.kontaktinfo)
+
+                actual.getArbeidssteder().forEachIndexed { arbeidsstedIndex, actualArbeidssted ->
+                    val expectedArbeidssted = stillingFraElasticsearch.arbeidssteder[arbeidsstedIndex]
+                    assertArbeidssteder(actualArbeidssted, expectedArbeidssted)
                 }
             }
         }
+    }
+
+    private fun assertArbeidssteder(actual: Arbeidssted, expected: stilling.Arbeidssted) {
+        assertThat(actual.getAdresse()).isEqualTo(expected.adresse)
+        assertThat(actual.getPostkode()).isEqualTo(expected.postkode)
+        assertThat(actual.getBy()).isEqualTo(expected.by)
+        assertThat(actual.getKommune()).isEqualTo(expected.kommune)
+        assertThat(actual.getFylke()).isEqualTo(expected.fylke)
+        assertThat(actual.getLand()).isEqualTo(expected.land)
+    }
+
+    private fun assertKontaktinfo(actual: KontaktInfo, expected: RekbisKontaktinfo) {
+        assertNotNull(actual)
+        assertThat(actual.getNavn()).isEqualTo(expected.navn)
+        assertThat(actual.getTittel()).isEqualTo(expected.tittel)
+        assertThat(actual.getMobil()).isEqualTo(expected.tlfnr)
+        assertThat(actual.getEpost()).isEqualTo(expected.epostadr)
     }
 
     @Test
     fun `Usendte forespørsler skal oppdateres med rett status i databasen når de sendes på Kafka`() {
         val database = TestDatabase()
         val mockProducer = mockProducer()
-        val forespørselService = ForespørselService(mockProducer, Repository(database.dataSource)) { enStilling() }
+        val forespørselService =
+            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock, hentRekbisStillingMock)
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val nå = LocalDateTime.now()
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
 
             val forespørsler = listOf(
-                enForespørsel("123", DeltStatus.IKKE_SENDT),
-                enForespørsel("234", DeltStatus.IKKE_SENDT),
-                enForespørsel("345", DeltStatus.SENDT, enHalvtimeSiden)
+                enForespørsel("123", IKKE_SENDT),
+                enForespørsel("234", IKKE_SENDT),
+                enForespørsel("345", SENDT, enHalvtimeSiden)
             )
 
             database.lagreBatch(forespørsler)
@@ -80,13 +125,13 @@ class SendForespørselTest {
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
             assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isEqualToIgnoringSeconds(nå)
-            assertThat(lagredeForespørsler["123"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+            assertThat(lagredeForespørsler["123"]!!.deltStatus).isEqualTo(SENDT)
 
             assertThat(lagredeForespørsler["234"]!!.deltTidspunkt).isEqualToIgnoringSeconds(nå)
-            assertThat(lagredeForespørsler["234"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+            assertThat(lagredeForespørsler["234"]!!.deltStatus).isEqualTo(SENDT)
 
             assertThat(lagredeForespørsler["345"]!!.deltTidspunkt).isEqualToIgnoringNanos(enHalvtimeSiden)
-            assertThat(lagredeForespørsler["345"]!!.deltStatus).isEqualTo(DeltStatus.SENDT)
+            assertThat(lagredeForespørsler["345"]!!.deltStatus).isEqualTo(SENDT)
         }
     }
 
@@ -95,12 +140,13 @@ class SendForespørselTest {
         val database = TestDatabase()
         val mockProducer = mockProducerUtenAutocomplete()
 
-        val forespørselService = ForespørselService(mockProducer,Repository(database.dataSource)) { enStilling() }
+        val forespørselService =
+            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock, hentRekbisStillingMock)
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
 
-            val forespørsel = enForespørsel("123", DeltStatus.IKKE_SENDT, enHalvtimeSiden)
+            val forespørsel = enForespørsel("123", IKKE_SENDT, enHalvtimeSiden)
 
             database.lagreBatch(listOf(forespørsel))
             forespørselService.sendUsendte()
@@ -109,8 +155,10 @@ class SendForespørselTest {
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
-            assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltTidspunkt).isEqualToIgnoringSeconds(enHalvtimeSiden)
-            assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
+            assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltTidspunkt).isEqualToIgnoringSeconds(
+                enHalvtimeSiden
+            )
+            assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltStatus).isEqualTo(IKKE_SENDT)
         }
     }
 }
