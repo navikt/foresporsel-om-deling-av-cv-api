@@ -41,7 +41,7 @@ class ForespørselService(
             }
     }
 
-    private fun hentStillingMedUuid(): (Map.Entry<UUID, List<Forespørsel>>) -> Pair<Stilling, List<Forespørsel>>? = { it ->
+    private fun hentStillingMedUuid(): (Map.Entry<UUID, List<Forespørsel>>) -> Pair<Stilling, List<Forespørsel>>? = {
         val stilling = hentStilling(it.key)
         if (stilling == null) {
             val ider = it.value.map { forespørsel -> forespørsel.forespørselId }
