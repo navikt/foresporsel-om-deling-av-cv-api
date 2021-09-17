@@ -39,12 +39,12 @@ class MottaSvarTest {
                     svartAv,
                     true
                 ),
-                ""
+                nullFeilmelding
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
 
-            assertTrueInnen(2) {
+            assertTrueWithTimeout {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
                 val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]?.svar
 
@@ -87,12 +87,12 @@ class MottaSvarTest {
                     Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
                     true
                 ),
-                ""
+                nullFeilmelding
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
 
-            assertTrueInnen(2) {
+            assertTrueWithTimeout {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
                 val svarIOppdatertForespørsel = lagredeForespørsler[enVeileder]?.svar?.svar
 
@@ -120,12 +120,12 @@ class MottaSvarTest {
                 UUID.randomUUID().toString(),
                 TilstandEnum.PROVER_VARSLING,
                 nullSvar,
-                ""
+                nullFeilmelding
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
 
-            assertTrueInnen(2) {
+            assertTrueWithTimeout {
                 val lagretForespørsel = database.hentAlleForespørsler().first()
 
                 lagretForespørsel.tilstand == Tilstand.PROVER_VARSLING && lagretForespørsel.svar == null
@@ -134,8 +134,10 @@ class MottaSvarTest {
     }
 }
 
-private fun assertTrueInnen(timeoutSekunder: Int, conditional: (Any) -> Boolean) =
-    assertTrue((0..(timeoutSekunder * 10)).any(sleepIfFalse(conditional)))
+private fun assertTrueWithTimeout(timeoutSeconds: Int = 2, conditional: (Any) -> Boolean) =
+    assertTrue((0..(timeoutSeconds * 10)).any(sleepIfFalse(conditional)))
 
 private fun sleepIfFalse(conditional: (Any) -> Boolean): (Any) -> Boolean =
     { conditional(it).also { answer -> if (!answer) Thread.sleep(100) } }
+
+private val nullFeilmelding: String? = null
