@@ -38,7 +38,7 @@ private data class EsResponse(
         søknadsfrist = _source.stilling.properties.applicationdue,
         arbeidsgiver = _source.stilling.employer.name,
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
-        contacts = _source.stilling.contacts
+        kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt)
     )
 
     data class EsSource(
@@ -60,12 +60,12 @@ private data class EsResponse(
         val phone: String,
         val role: String
     ){
-        fun toContact = Contact(
-            name = this.name,
-            title = this.title,
-            email = this.email,
-            phone = this.phone,
-            role = this.role
+        fun toKontakt() = Kontakt(
+            navn = name,
+            tittel = title,
+            epost = email,
+            mobil = phone,
+            rolle = role
         )
     }
 

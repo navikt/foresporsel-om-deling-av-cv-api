@@ -1,4 +1,5 @@
 import stilling.Arbeidssted
+import stilling.Kontakt
 import stilling.Stilling
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -10,6 +11,9 @@ fun enStilling() = Stilling(
     "Kongelige hoff",
     listOf(
         Arbeidssted("Slottsplassen 1", "0001", "OSLO", "OSLO", "OSLO", "Norge")
+    ),
+    listOf(
+        Kontakt("Ola", "Veileder", "ola@nav.no", "", "")
     )
 )
 

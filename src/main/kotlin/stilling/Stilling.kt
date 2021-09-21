@@ -5,15 +5,15 @@ data class Stilling(
     val søknadsfrist: String,
     val arbeidsgiver: String,
     val arbeidssteder: List<Arbeidssted>,
-    val contacts: List<Contact>?
+    val kontaktinfo: List<Kontakt>?
 )
 
-data class Contact(
-    val name: String,
-    val title: String,
-    val email: String,
-    val phone: String,
-    val role: String
+data class Kontakt(
+    val navn: String,
+    val tittel: String,
+    val epost: String,
+    val mobil: String,
+    val rolle: String
 )
 
 data class Arbeidssted(

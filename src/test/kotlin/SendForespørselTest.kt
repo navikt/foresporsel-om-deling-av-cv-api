@@ -69,7 +69,7 @@ class SendForespørselTest {
                 assertThat(actual.getStillingstittel()).isEqualTo(stillingFraElasticsearch.stillingtittel)
                 assertThat(actual.getSoknadsfrist()).isEqualTo(stillingFraElasticsearch.søknadsfrist)
 
-                assertKontaktinfo(actual.getKontaktInfo(), expected.kontaktinfo)
+                assertKontaktinfo(actual.getKontaktInfo(), stillingFraElasticsearch.kontaktinfo?.first())
 
                 actual.getArbeidssteder().forEachIndexed { arbeidsstedIndex, actualArbeidssted ->
                     val expectedArbeidssted = stillingFraElasticsearch.arbeidssteder[arbeidsstedIndex]
@@ -88,12 +88,14 @@ class SendForespørselTest {
         assertThat(actual.getLand()).isEqualTo(expected.land)
     }
 
-    private fun assertKontaktinfo(actual: KontaktInfo, expected: RekbisKontaktinfo) {
+    private fun assertKontaktinfo(actual: KontaktInfo, expected: stilling.Kontakt?) {
         assertNotNull(actual)
+        assertNotNull(expected)
+
         assertThat(actual.getNavn()).isEqualTo(expected.navn)
         assertThat(actual.getTittel()).isEqualTo(expected.tittel)
-        assertThat(actual.getMobil()).isEqualTo(expected.tlfnr)
-        assertThat(actual.getEpost()).isEqualTo(expected.epostadr)
+        assertThat(actual.getMobil()).isEqualTo(expected.mobil)
+        assertThat(actual.getEpost()).isEqualTo(expected.epost)
     }
 
     @Test
@@ -101,7 +103,7 @@ class SendForespørselTest {
         val database = TestDatabase()
         val mockProducer = mockProducer()
         val forespørselService =
-            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock, hentRekbisStillingMock)
+            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val nå = LocalDateTime.now()
@@ -135,7 +137,7 @@ class SendForespørselTest {
         val mockProducer = mockProducerUtenAutocomplete()
 
         val forespørselService =
-            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock, hentRekbisStillingMock)
+            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
