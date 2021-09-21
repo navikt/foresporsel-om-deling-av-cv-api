@@ -26,8 +26,8 @@ class StillingKlient(private val accessToken: () -> String) {
                 val result2 = Fuel
                     .get("$stillingssokProxyDokumentUrl/$uuid")
                     .authentication().bearer(accessToken())
-                    .responseString()
-                
+                    .responseString().third
+
                 log.error("Klarte ikke å deserialisere string: $result2")
                 log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
                 null
@@ -37,7 +37,7 @@ class StillingKlient(private val accessToken: () -> String) {
 }
 
 private data class EsResponse(
-    private val _source: EsSource
+    val _source: EsSource
 ) {
     fun toStilling() = Stilling(
         stillingtittel = _source.stilling.title,
@@ -47,11 +47,11 @@ private data class EsResponse(
         kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt)
     )
 
-    data class EsSource(
+    private data class EsSource(
         val stilling: EsStilling
     )
 
-    data class EsStilling(
+    private data class EsStilling(
         val title: String,
         val properties: Properties,
         val employer: Employer,
@@ -59,7 +59,7 @@ private data class EsResponse(
         val contacts: List<EsContact>
     )
 
-    data class EsContact(
+    private data class EsContact(
         val name: String,
         val title: String,
         val email: String,
@@ -75,15 +75,15 @@ private data class EsResponse(
         )
     }
 
-    data class Employer(
+    private data class Employer(
         val name: String
     )
 
-    data class Properties(
+    private data class Properties(
         val applicationdue: String
     )
 
-    data class EsArbeidssted(
+    private data class EsArbeidssted(
         val address: String?,
         val postalCode: String?,
         val city: String?,
