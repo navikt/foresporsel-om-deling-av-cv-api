@@ -111,7 +111,7 @@ data class Forespørsel(
     )
 
     private fun hentKontaktinfoFraStilling(stilling: Stilling): KontaktInfo {
-        val kontaktinformasjon = stilling.kontaktinfo?.first()
+        val kontaktinformasjon = stilling.kontaktinfo?.firstOrNull()
 
         return if (kontaktinformasjon == null)
             KontaktInfo("", "", "", "")
