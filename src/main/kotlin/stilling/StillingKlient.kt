@@ -23,6 +23,12 @@ class StillingKlient(private val accessToken: () -> String) {
         return when (result) {
             is Result.Success -> result.value.toStilling().also { log.info("Hentet stilling $it") }
             is Result.Failure -> {
+                val result2 = Fuel
+                    .get("$stillingssokProxyDokumentUrl/$uuid")
+                    .authentication().bearer(accessToken())
+                    .responseString()
+                
+                log.error("Klarte ikke å deserialisere string: $result2")
                 log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
                 null
             }
