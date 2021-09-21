@@ -30,21 +30,14 @@ class SendForespørselTest {
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
+            val stillingsId = UUID.randomUUID()
+
             val forespørsler = listOf(
-                enForespørsel(
-                    aktørId = "123",
-                    deltStatus = IKKE_SENDT
-                ),
-                enForespørsel(
-                    aktørId = "234",
-                    deltStatus = IKKE_SENDT
-                ),
-                enForespørsel(
-                    aktørId = "345",
-                    deltStatus = SENDT,
-                    deltTidspunkt = enHalvtimeSiden
-                )
+                enForespørsel("123", deltStatus = DeltStatus.IKKE_SENDT, stillingsId = stillingsId),
+                enForespørsel("234", deltStatus = DeltStatus.IKKE_SENDT, stillingsId = stillingsId),
+                enForespørsel("345", deltStatus = DeltStatus.SENDT, enHalvtimeSiden)
             )
+            
             database.lagreBatch(forespørsler)
 
             // When

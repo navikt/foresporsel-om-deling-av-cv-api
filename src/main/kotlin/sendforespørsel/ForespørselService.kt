@@ -22,31 +22,30 @@ class ForespørselService(
             log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
         }
 
-        usendteForespørsler.associateBy { it.stillingsId }
+        usendteForespørsler.groupBy { it.stillingsId }
             .map(hentStillingMedUuid())
             .filterNotNull()
-            .forEach { (stilling, usendtForespørsel) ->
-                val melding = ProducerRecord(
-                    forespørselTopic,
-                    usendtForespørsel.aktørId,
-                    usendtForespørsel.tilKafkamelding(stilling)
-                )
+            .forEach { (stilling, usendteForespørsler ) ->
+                usendteForespørsler.forEach { usendtForespørsel ->
+                    val melding = ProducerRecord(forespørselTopic, usendtForespørsel.aktørId, usendtForespørsel.tilKafkamelding(stilling))
 
-                producer.send(melding) { _, exception ->
-                    if (exception == null) {
-                        repository.markerForespørselSendt(usendtForespørsel.id)
-                        log.info("Sendte forespørsel om deling av CV, forespørsel-ID: ${usendtForespørsel.id}, stillings-ID: ${usendtForespørsel.stillingsId}")
-                    } else {
-                        log.error("Det skjedde noe feil under sending til Kafka", exception)
+                    producer.send(melding) { _, exception ->
+                        if (exception == null) {
+                            repository.markerForespørselSendt(usendtForespørsel.id)
+                            log.info("Sendte forespørsel om deling av CV, forespørsel-ID: ${usendtForespørsel.id}, stillings-ID: ${usendtForespørsel.stillingsId}")
+                        } else {
+                            log.error("Det skjedde noe feil under sending til Kafka", exception)
+                        }
                     }
                 }
             }
     }
 
-    private fun hentStillingMedUuid(): (Map.Entry<UUID, Forespørsel>) -> Pair<Stilling, Forespørsel>? = {
+    private fun hentStillingMedUuid(): (Map.Entry<UUID, List<Forespørsel>>) -> Pair<Stilling, List<Forespørsel>>? = {
         val stilling = hentStilling(it.key)
         if (stilling == null) {
-            log.error("Ignorerer usendt forespørsel med id ${it.value.forespørselId} fordi stillingen ikke kunne hentes")
+            val ider = it.value.map { forespørsel -> forespørsel.forespørselId }
+            log.error("Ignorerer usendte forespørsler med id-er $ider fordi stillingen ${it.key} ikke kunne hentes")
         }
 
         stilling?.to(it.value)
