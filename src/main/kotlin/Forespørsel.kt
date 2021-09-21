@@ -107,8 +107,21 @@ data class Forespørsel(
                 arbeidssted.land
             )
         },
-        KontaktInfo() //TODO
+        hentKontaktinfoFraStilling(stilling)
     )
+
+    private fun hentKontaktinfoFraStilling(stilling: Stilling): KontaktInfo {
+        val kontaktinformasjon = stilling.contacts?.first()
+
+        return if (kontaktinformasjon == null)
+            KontaktInfo("", "", "", "")
+        else KontaktInfo(
+            kontaktinformasjon.name,
+            kontaktinformasjon.title,
+            kontaktinformasjon.phone,
+            kontaktinformasjon.email
+        )
+    }
 
     fun tilOutboundDto() = ForespørselOutboundDto(
         aktørId,

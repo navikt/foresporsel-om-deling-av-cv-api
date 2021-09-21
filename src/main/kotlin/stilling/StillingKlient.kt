@@ -8,7 +8,7 @@ import utils.Cluster
 import utils.log
 import java.util.*
 
-class ElasticsearchStillingKlient(private val accessToken: () -> String) {
+class StillingKlient(private val accessToken: () -> String) {
     private val stillingssokProxyDokumentUrl = when (Cluster.current) {
         Cluster.DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
         Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
@@ -37,7 +37,8 @@ private data class EsResponse(
         stillingtittel = _source.stilling.title,
         søknadsfrist = _source.stilling.properties.applicationdue,
         arbeidsgiver = _source.stilling.employer.name,
-        arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted)
+        arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
+        contacts = _source.stilling.contacts
     )
 
     data class EsSource(
@@ -48,8 +49,25 @@ private data class EsResponse(
         val title: String,
         val properties: Properties,
         val employer: Employer,
-        val locations: List<EsArbeidssted>
+        val locations: List<EsArbeidssted>,
+        val contacts: List<EsContact>
     )
+
+    data class EsContact(
+        val name: String,
+        val title: String,
+        val email: String,
+        val phone: String,
+        val role: String
+    ){
+        fun toContact = Contact(
+            name = this.name,
+            title = this.title,
+            email = this.email,
+            phone = this.phone,
+            role = this.role
+        )
+    }
 
     data class Employer(
         val name: String

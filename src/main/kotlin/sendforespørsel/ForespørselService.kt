@@ -5,7 +5,6 @@ import Repository
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
-import stilling.RekbisStilling
 import stilling.Stilling
 import utils.log
 import java.util.*
@@ -16,7 +15,6 @@ class ForespørselService(
     private val producer: Producer<String, ForesporselOmDelingAvCv>,
     private val repository: Repository,
     private val hentStilling: (UUID) -> Stilling?,
-    private val hentRekbisStilling: (UUID) -> RekbisStilling?
 ) {
     fun sendUsendte() {
         val usendteForespørsler = repository.hentUsendteForespørsler()

@@ -22,8 +22,7 @@ fun startLokalApp(
     forespørselService: ForespørselService = ForespørselService(
         producer,
         repository,
-        hentStillingMock,
-        hentRekbisStillingMock
+        hentStillingMock
     ),
     consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
 ): App {

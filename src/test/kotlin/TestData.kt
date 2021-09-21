@@ -1,6 +1,4 @@
 import stilling.Arbeidssted
-import stilling.RekbisKontaktinfo
-import stilling.RekbisStilling
 import stilling.Stilling
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -16,11 +14,6 @@ fun enStilling() = Stilling(
 )
 
 val hentStillingMock: (UUID) -> Stilling? = { enStilling() }
-
-val rekbisStilling =
-    RekbisStilling("anyId", RekbisKontaktinfo("anyNavn", "anyTittel", "anyTlfnr", "anyEpostadr")) // TODO Are
-val hentRekbisStillingMock: (UUID) -> RekbisStilling? = { rekbisStilling }
-
 
 fun enForespørsel(
     aktørId: String = "aktørId",

@@ -9,8 +9,6 @@ import sendforespørsel.ForespørselService
 import setup.TestDatabase
 import setup.mockProducer
 import setup.mockProducerUtenAutocomplete
-import stilling.RekbisKontaktinfo
-import stilling.RekbisStilling
 import stilling.Stilling
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -27,12 +25,8 @@ class SendForespørselTest {
         val stillingFraElasticsearch = enStilling()
         val hentStillingMock: (UUID) -> Stilling? = { stillingFraElasticsearch }
 
-        val stillingFraRekbisKandidatApi =
-            RekbisStilling("anyId", RekbisKontaktinfo("anyNavn", "anyTittel", "anyTlfnr", "anyEpostadr")) // TODO Are
-        val hentRekbisStillingMock: (UUID) -> RekbisStilling? = { stillingFraRekbisKandidatApi }
-
         val forespørselService =
-            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock, hentRekbisStillingMock)
+            ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 
         startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
@@ -75,7 +69,7 @@ class SendForespørselTest {
                 assertThat(actual.getStillingstittel()).isEqualTo(stillingFraElasticsearch.stillingtittel)
                 assertThat(actual.getSoknadsfrist()).isEqualTo(stillingFraElasticsearch.søknadsfrist)
 
-                assertKontaktinfo(actual.getKontaktInfo(), stillingFraRekbisKandidatApi.kontaktinfo)
+                assertKontaktinfo(actual.getKontaktInfo(), expected.kontaktinfo)
 
                 actual.getArbeidssteder().forEachIndexed { arbeidsstedIndex, actualArbeidssted ->
                     val expectedArbeidssted = stillingFraElasticsearch.arbeidssteder[arbeidsstedIndex]
