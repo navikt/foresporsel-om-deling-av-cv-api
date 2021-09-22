@@ -39,11 +39,8 @@ class SendForespørselTest {
             )
             
             database.lagreBatch(forespørsler)
-
-            // When
             forespørselService.sendUsendte()
 
-            // Then
             val meldingerSendtPåKafka = mockProducer.history()
             assertThat(meldingerSendtPåKafka.size).isEqualTo(2)
 
