@@ -50,6 +50,7 @@ data class Forespørsel(
 
     val tilstand: Tilstand?,
     val svar: Svar?,
+    val begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?,
 
     val sendtTilKafkaTidspunkt: LocalDateTime?,
     val callId: String,
@@ -57,6 +58,10 @@ data class Forespørsel(
     companion object {
         private fun tilstandEllerNull(verdi: String?): Tilstand? {
             return Tilstand.values().firstOrNull { it.name == verdi }
+        }
+
+        private fun begrunnelseEllerNull(verdi: String?): BegrunnelseForAtAktivitetIkkeBleOpprettet? {
+            return BegrunnelseForAtAktivitetIkkeBleOpprettet.values().firstOrNull { it.name == verdi }
         }
 
         fun fromDb(rs: ResultSet): Forespørsel {
@@ -80,8 +85,9 @@ data class Forespørsel(
                 svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
                 tilstand = tilstandEllerNull(rs.getString("tilstand")),
                 svar = svar,
+                begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseEllerNull(rs.getString("begrunnelse_for_at_aktivitet_ikke_ble_opprettet")),
                 sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
-                callId = rs.getString("call_id")
+                callId = rs.getString("call_id"),
             )
         }
     }
@@ -151,4 +157,14 @@ enum class IdentType {
 enum class DeltStatus {
     SENDT,
     IKKE_SENDT,
+}
+
+enum class BegrunnelseForAtAktivitetIkkeBleOpprettet {
+    UGYLDIG_OPPFOLGINGSSTATUS,
+    UGYLDIG_INPUT;
+
+    companion object {
+        fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.KanIkkeOppretteBegrunnelse?) =
+            if (melding == null) null else valueOf(melding.getBegrunnelse().name)
+    }
 }

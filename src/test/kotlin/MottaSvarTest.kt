@@ -39,7 +39,7 @@ class MottaSvarTest {
                     svartAv,
                     true
                 ),
-                nullFeilmelding
+                nullKanIkkeOppretteBegrunnelse
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -87,7 +87,7 @@ class MottaSvarTest {
                     Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
                     true
                 ),
-                nullFeilmelding
+                nullKanIkkeOppretteBegrunnelse
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -120,7 +120,7 @@ class MottaSvarTest {
                 UUID.randomUUID().toString(),
                 TilstandEnum.PROVER_VARSLING,
                 nullSvar,
-                nullFeilmelding
+                nullKanIkkeOppretteBegrunnelse
             )
 
             mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
@@ -132,6 +132,37 @@ class MottaSvarTest {
             }
         }
     }
+
+    @Test
+    fun `Motta response skal lagre begrunnelse i database hvis aktivitetskortet ikke ble opprettet`() {
+        val nullSvar: Svar? = null
+        val database = TestDatabase()
+        val mockConsumer = mockConsumer()
+
+        startLokalApp(database, consumer = mockConsumer).use {
+            val forespørsel = enForespørsel("123", DeltStatus.SENDT)
+            database.lagreBatch(listOf(forespørsel))
+
+            val svarKafkamelding = DelingAvCvRespons(
+                forespørsel.forespørselId.toString(),
+                forespørsel.aktørId,
+                UUID.randomUUID().toString(),
+                TilstandEnum.KAN_IKKE_OPPRETTE,
+                nullSvar,
+                KanIkkeOppretteBegrunnelse(null, BegrunnelseEnum.UGYLDIG_OPPFOLGINGSSTATUS)
+            )
+
+            mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
+
+            assertTrueWithTimeout {
+                val lagretForespørsel = database.hentAlleForespørsler().first()
+
+                lagretForespørsel.tilstand == Tilstand.KAN_IKKE_OPPRETTE &&
+                        lagretForespørsel.svar == null &&
+                        lagretForespørsel.begrunnelseForAtAktivitetIkkeBleOpprettet == BegrunnelseForAtAktivitetIkkeBleOpprettet.UGYLDIG_OPPFOLGINGSSTATUS
+            }
+        }
+    }
 }
 
 private fun assertTrueWithTimeout(timeoutSeconds: Int = 2, conditional: (Any) -> Boolean) =
@@ -140,4 +171,4 @@ private fun assertTrueWithTimeout(timeoutSeconds: Int = 2, conditional: (Any) ->
 private fun sleepIfFalse(conditional: (Any) -> Boolean): (Any) -> Boolean =
     { conditional(it).also { answer -> if (!answer) Thread.sleep(100) } }
 
-private val nullFeilmelding: String? = null
+private val nullKanIkkeOppretteBegrunnelse: KanIkkeOppretteBegrunnelse? = null

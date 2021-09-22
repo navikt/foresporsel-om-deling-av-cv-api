@@ -1,3 +1,4 @@
+import no.nav.veilarbaktivitet.avro.KanIkkeOppretteBegrunnelse
 import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -67,10 +68,10 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun oppdaterMedRespons(forespørselId: UUID, tilstand: Tilstand, svar: Svar?) {
+    fun oppdaterMedRespons(forespørselId: UUID, tilstand: Tilstand, svar: Svar?, begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?) {
         val oppdaterSvarSql = """
             UPDATE foresporsel_om_deling_av_cv
-                SET tilstand = ?, svar = ?, svar_tidspunkt = ?, svart_av_ident = ?, svart_av_ident_type = ?
+                SET tilstand = ?, svar = ?, svar_tidspunkt = ?, svart_av_ident = ?, svart_av_ident_type = ?, begrunnelse_for_at_aktivitet_ikke_ble_opprettet = ?
                 WHERE foresporsel_id = ?
         """.trimIndent()
 
@@ -91,7 +92,9 @@ class Repository(private val dataSource: DataSource) {
                     setString(5, null)
                 }
 
-                setObject(6, forespørselId)
+                setObject(6, begrunnelseForAtAktivitetIkkeBleOpprettet?.name)
+
+                setObject(7, forespørselId)
 
             }.executeUpdate()
 

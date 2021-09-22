@@ -53,8 +53,9 @@ class SvarService(
         val forespørselId = svarKafkamelding.getBestillingsId().toUUID()
         val tilstand = Tilstand.valueOf(svarKafkamelding.getTilstand().toString())
         val svar = Svar.fraKafkamelding(svarKafkamelding.getSvar())
+        val begrunnelse = BegrunnelseForAtAktivitetIkkeBleOpprettet.fraKafkamelding(svarKafkamelding.getKanIkkeOppretteBegrunnelse())
 
-        repository.oppdaterMedRespons(forespørselId, tilstand, svar)
+        repository.oppdaterMedRespons(forespørselId, tilstand, svar, begrunnelse)
 
         val svartAv = if (svar?.svartAv?.identType == IdentType.NAV_IDENT) "veileder (${svar.svartAv.ident})" else "brukeren selv"
         log.info("Behandlet svar for forespørsel-ID: ${forespørselId}, tilstand: ${tilstand}, svar: ${svar?.svar}, svart av $svartAv")

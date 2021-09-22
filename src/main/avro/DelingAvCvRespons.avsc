@@ -13,10 +13,26 @@
                 "type": {
                     "name": "IdentTypeEnum",
                     "type": "enum",
-                    "symbols": [
-                        "AKTOR_ID",
-                        "NAV_IDENT"
-                    ]
+                    "symbols": ["AKTOR_ID", "NAV_IDENT"]
+                }
+            }
+        ]
+    },
+    {
+        "namespace": "no.nav.veilarbaktivitet.avro",
+        "type": "record",
+        "name": "KanIkkeOppretteBegrunnelse",
+        "fields": [
+            {
+                "name": "feilmelding",
+                "type": ["string", "null"]
+            },
+            {
+                "name": "begrunnelse",
+                "type": {
+                    "name": "BegrunnelseEnum",
+                    "type": "enum",
+                    "symbols": ["UGYLDIG_OPPFOLGINGSSTATUS", "UGYLDIG_INPUT"]
                 }
             }
         ]
@@ -32,7 +48,6 @@
                     "type": "long",
                     "logicalType": "timestamp-millis"
                 }
-
             },
             {
                 "name": "svartAv",
@@ -59,10 +74,7 @@
             },
             {
                 "name": "aktivitetId",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "tilstand",
@@ -70,7 +82,6 @@
                     "name": "TilstandEnum",
                     "type": "enum",
                     "symbols": [
-                        "KAN_IKKE_BEHANDLE",
                         "KAN_IKKE_OPPRETTE",
                         "PROVER_VARSLING",
                         "HAR_VARSLET",
@@ -82,14 +93,11 @@
             },
             {
                 "name": "svar",
-                "type": [
-                    "Svar",
-                    "null"
-                ]
+                "type": ["Svar", "null"]
             },
             {
-                "name": "feilmelding",
-                "type": ["string", "null"]
+                "name": "kanIkkeOppretteBegrunnelse",
+                "type": ["KanIkkeOppretteBegrunnelse", "null"]
             }
         ]
     }

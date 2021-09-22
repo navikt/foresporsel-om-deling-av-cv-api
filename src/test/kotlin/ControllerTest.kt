@@ -111,6 +111,7 @@ class ControllerTest {
                 forespørsel,
                 enForespørsel(),
                 enForespørsel(),
+                enForespørsel(begrunnelseForAtAktivitetIkkeBleOpprettet = BegrunnelseForAtAktivitetIkkeBleOpprettet.UGYLDIG_OPPFOLGINGSSTATUS)
             )
 
             database.lagreBatch(forespørsler)
