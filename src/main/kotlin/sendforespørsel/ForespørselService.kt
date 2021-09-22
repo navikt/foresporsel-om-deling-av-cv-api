@@ -14,7 +14,7 @@ const val forespørselTopic = "pto.deling-av-stilling-fra-nav-forespurt-v2"
 class ForespørselService(
     private val producer: Producer<String, ForesporselOmDelingAvCv>,
     private val repository: Repository,
-    private val hentStilling: (UUID) -> Stilling?
+    private val hentStilling: (UUID) -> Stilling?,
 ) {
     fun sendUsendte() {
         val usendteForespørsler = repository.hentUsendteForespørsler()

@@ -1,43 +1,51 @@
 [
     {
         "type": "record",
+        "name": "KontaktInfo",
+        "namespace": "no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv",
+        "fields": [
+            {
+                "name": "navn",
+                "type": "string"
+            },
+            {
+                "name": "tittel",
+                "type": "string"
+            },
+            {
+                "name": "mobil",
+                "type": ["string", "null"]
+            },
+            {
+                "name": "epost",
+                "type": ["string", "null"]
+            }
+        ]
+    },
+    {
+        "type": "record",
         "name": "Arbeidssted",
         "namespace": "no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv",
         "fields": [
             {
                 "name": "adresse",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "postkode",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "by",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "kommune",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "fylke",
-                "type": [
-                    "string",
-                    "null"
-                ]
+                "type": ["string", "null"]
             },
             {
                 "name": "land",
@@ -102,6 +110,10 @@
                     "type": "array",
                     "items": "Arbeidssted"
                 }
+            },
+            {
+                "name": "kontaktInfo",
+                "type": "KontaktInfo"
             }
         ]
     }

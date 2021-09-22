@@ -1,5 +1,6 @@
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.KontaktInfo
 import stilling.Stilling
 import utils.getNullableBoolean
 import utils.toUUID
@@ -105,8 +106,22 @@ data class Forespørsel(
                 arbeidssted.fylke,
                 arbeidssted.land
             )
-        }
+        },
+        hentKontaktinfoFraStilling(stilling)
     )
+
+    private fun hentKontaktinfoFraStilling(stilling: Stilling): KontaktInfo {
+        val kontaktinformasjon = stilling.kontaktinfo?.firstOrNull()
+
+        return if (kontaktinformasjon == null)
+            KontaktInfo("", "", "", "")
+        else KontaktInfo(
+            kontaktinformasjon.navn,
+            kontaktinformasjon.tittel,
+            kontaktinformasjon.mobil,
+            kontaktinformasjon.epost
+        )
+    }
 
     fun tilOutboundDto() = ForespørselOutboundDto(
         aktørId,

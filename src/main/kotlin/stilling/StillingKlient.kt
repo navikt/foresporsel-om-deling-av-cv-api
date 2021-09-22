@@ -8,7 +8,7 @@ import utils.Cluster
 import utils.log
 import java.util.*
 
-class StillingClient(private val accessToken: () -> String) {
+class StillingKlient(private val accessToken: () -> String) {
     private val stillingssokProxyDokumentUrl = when (Cluster.current) {
         Cluster.DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
         Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
@@ -24,10 +24,9 @@ class StillingClient(private val accessToken: () -> String) {
             is Result.Success -> result.value.toStilling()
             is Result.Failure -> {
                 log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
-
-                return null
+                null
             }
-        }.also { log.info("Hentet stilling $it") }
+        }
     }
 }
 
@@ -38,7 +37,8 @@ private data class EsResponse(
         stillingtittel = _source.stilling.title,
         søknadsfrist = _source.stilling.properties.applicationdue,
         arbeidsgiver = _source.stilling.employer.name,
-        arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted)
+        arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
+        kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt)
     )
 
     private data class EsSource(
@@ -49,8 +49,25 @@ private data class EsResponse(
         val title: String,
         val properties: Properties,
         val employer: Employer,
-        val locations: List<EsArbeidssted>
+        val locations: List<EsArbeidssted>,
+        val contacts: List<EsContact>
     )
+
+    private data class EsContact(
+        val name: String,
+        val title: String,
+        val email: String,
+        val phone: String,
+        val role: String
+    ){
+        fun toKontakt() = Kontakt(
+            navn = name,
+            tittel = title,
+            epost = email,
+            mobil = phone,
+            rolle = role
+        )
+    }
 
     private data class Employer(
         val name: String

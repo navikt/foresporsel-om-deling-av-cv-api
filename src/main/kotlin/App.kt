@@ -13,7 +13,7 @@ import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import sendforespørsel.producerConfig
 import stilling.AccessTokenClient
-import stilling.StillingClient
+import stilling.StillingKlient
 import utils.Cluster
 import utils.log
 import utils.objectMapper
@@ -73,10 +73,14 @@ fun main() {
         val controller = Controller(repository)
 
         val accessTokenClient = AccessTokenClient(azureConfig)
-        val stillingClient = StillingClient(accessTokenClient::getAccessToken)
+        val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
 
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
-        val forespørselService = ForespørselService(forespørselProducer, repository, stillingClient::hentStilling)
+        val forespørselService = ForespørselService(
+            forespørselProducer,
+            repository,
+           stillingKlient::hentStilling,
+        )
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository)
