@@ -67,4 +67,5 @@ data class ForespørselOutboundDto(
 
     val tilstand: Tilstand?,
     val svar: Svar?,
+    val begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?
 )

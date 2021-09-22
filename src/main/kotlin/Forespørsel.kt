@@ -136,7 +136,8 @@ data class Forespørsel(
         deltAv,
         svarfrist,
         tilstand,
-        svar
+        svar,
+        begrunnelseForAtAktivitetIkkeBleOpprettet
     )
 }
 
