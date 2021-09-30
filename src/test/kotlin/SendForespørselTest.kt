@@ -85,7 +85,6 @@ class SendForespørselTest {
         assertThat(actual.getNavn()).isEqualTo(expected.navn)
         assertThat(actual.getTittel()).isEqualTo(expected.tittel)
         assertThat(actual.getMobil()).isEqualTo(expected.mobil)
-        assertThat(actual.getEpost()).isEqualTo(expected.epost)
     }
 
     @Test
