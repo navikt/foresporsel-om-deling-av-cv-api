@@ -59,6 +59,11 @@ class SvarService(
 
         val svartAv = if (svar?.svartAv?.identType == IdentType.NAV_IDENT) "veileder (${svar.svartAv.ident})" else "brukeren selv"
         log.info("Behandlet svar for forespørsel-ID: ${forespørselId}, tilstand: ${tilstand}, svar: ${svar?.svar}, svart av $svartAv")
+
+        if (tilstand == Tilstand.KAN_IKKE_OPPRETTE) {
+            val feilmelding = svarKafkamelding.getKanIkkeOppretteBegrunnelse().getFeilmelding()
+            log.error("Kan ikke opprette aktivitetskort for forespørsel-ID $forespørselId. Begrunnelse: $begrunnelse, Feilmelding: $feilmelding")
+        }
     }
 
     override fun close() {
