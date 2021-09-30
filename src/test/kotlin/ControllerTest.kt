@@ -61,7 +61,6 @@ class ControllerTest {
                 assertThat(lagretForespørsel.stillingsId.toString()).isEqualTo(inboundDto.stillingsId)
                 assertThat(lagretForespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
-                assertThat(lagretForespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
                 assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
                 assertThat(lagretForespørsel.tilstand).isNull()
                 assertThat(lagretForespørsel.svar).isNull()
