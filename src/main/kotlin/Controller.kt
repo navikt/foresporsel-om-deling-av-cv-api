@@ -1,4 +1,5 @@
 import io.javalin.http.Context
+import sendforespørsel.UsendtScheduler
 import utils.hentCallId
 import utils.toUUID
 import java.time.LocalDateTime
@@ -6,7 +7,7 @@ import java.util.*
 
 const val stillingsIdParamName = "stillingsId"
 
-class Controller(repository: Repository) {
+class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit) {
 
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -47,6 +48,8 @@ class Controller(repository: Repository) {
 
             ctx.json(alleForespørslerPåStilling)
             ctx.status(201)
+
+            sendUsendteForespørsler()
         }
     }
 }

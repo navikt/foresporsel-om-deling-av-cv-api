@@ -9,6 +9,7 @@ import java.time.Instant
 import java.util.*
 import javax.sql.DataSource
 import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timerTask
 
 class UsendtScheduler(dataSource: DataSource, sendUsendteForespørsler: () -> Any) {
 
@@ -28,6 +29,10 @@ class UsendtScheduler(dataSource: DataSource, sendUsendteForespørsler: () -> An
         } catch (error: Exception) {
             log.error("Det skjedde en feil i UsendtScheduler:", error)
         }
+    }
+
+    fun kjørEnGang() {
+        timerTask(runnableMedLås).run()
     }
 
     fun kjørPeriodisk() {

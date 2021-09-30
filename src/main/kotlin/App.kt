@@ -70,8 +70,6 @@ fun main() {
 
         val database = Database()
         val repository = Repository(database.dataSource)
-        val controller = Controller(repository)
-
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
 
@@ -79,8 +77,11 @@ fun main() {
         val forespørselService = ForespørselService(
             forespørselProducer,
             repository,
-           stillingKlient::hentStilling,
+            stillingKlient::hentStilling,
         )
+
+        val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
+        val controller = Controller(repository, usendtScheduler::kjørEnGang)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository)
@@ -88,7 +89,7 @@ fun main() {
         App(
             controller,
             issuerProperties,
-            UsendtScheduler(database.dataSource, forespørselService::sendUsendte),
+            usendtScheduler,
             svarService
         ).start()
 
