@@ -5,8 +5,11 @@ data class Stilling(
     val søknadsfrist: String,
     val arbeidsgiver: String,
     val arbeidssteder: List<Arbeidssted>,
-    val kontaktinfo: List<Kontakt>?
-)
+    val kontaktinfo: List<Kontakt>?,
+    val stillingskategoriErStilling: Boolean
+) {
+    fun kanIkkeDelesMedBruker() = !stillingskategoriErStilling
+}
 
 data class Kontakt(
     val navn: String,

@@ -81,7 +81,7 @@ fun main() {
         )
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-        val controller = Controller(repository, usendtScheduler::kjørEnGang)
+        val controller = Controller(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository)

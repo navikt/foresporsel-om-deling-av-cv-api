@@ -38,11 +38,13 @@ private data class EsResponse(
         søknadsfrist = _source.stilling.properties.applicationdue,
         arbeidsgiver = _source.stilling.employer.name,
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
-        kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt)
+        kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt),
+        stillingskategoriErStilling = _source.stillingsinfo?.stillingskategori == "Stilling"
     )
 
     private data class EsSource(
-        val stilling: EsStilling
+        val stilling: EsStilling,
+        val stillingsinfo: EsStillingsinfo?
     )
 
     private data class EsStilling(
@@ -51,6 +53,15 @@ private data class EsResponse(
         val employer: Employer,
         val locations: List<EsArbeidssted>,
         val contacts: List<EsContact>
+    )
+
+    private data class EsStillingsinfo(
+        val eierNavident: String?,
+        val eierNavn: String?,
+        val notat: String?,
+        val stillingsid: String,
+        val stillingsinfoid: String,
+        val stillingskategori: String?,
     )
 
     private data class EsContact(

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
 import setup.medVeilederCookie
+import stilling.Stilling
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
 import java.time.LocalDate
@@ -93,6 +94,33 @@ class ControllerTest {
                 .response()
 
             assertThat(response.statusCode).isEqualTo(409)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt skal returnere bad request hvis stillingen ikke er en ekte stilling`() {
+        val database = TestDatabase()
+        val hentStillingMock: (UUID) -> Stilling? = {enStilling().copy(stillingskategoriErStilling = false)}
+
+        startLokalApp(database,hentStilling = hentStillingMock).use {
+            val navIdent = "X12345"
+            val stillingsId = UUID.randomUUID()
+            val forespørsel = enForespørsel(stillingsId = stillingsId)
+
+            database.lagreBatch(listOf(forespørsel))
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf(forespørsel.aktørId),
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
         }
     }
 
