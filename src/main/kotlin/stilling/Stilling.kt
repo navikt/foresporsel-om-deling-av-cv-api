@@ -6,9 +6,16 @@ data class Stilling(
     val arbeidsgiver: String,
     val arbeidssteder: List<Arbeidssted>,
     val kontaktinfo: List<Kontakt>?,
-    val stillingskategoriErStilling: Boolean
+    private val stillingskategori: String?
 ) {
-    fun kanIkkeDelesMedBruker() = !stillingskategoriErStilling
+
+    /**
+     * Vi må anta at stillinger uten stillingskategori, og de som mangler stillingsinfo, kunne hatt stillingskategori
+     * STILLING fordi vi har kandidatlister som er opprettet før stillingskategorier ble innført.
+     */
+    private val stillingskategoriKanVæreStilling = stillingskategori?.let { it=="STILLING" } ?: true
+
+    val kanIkkeDelesMedKandidaten = !stillingskategoriKanVæreStilling
 }
 
 data class Kontakt(

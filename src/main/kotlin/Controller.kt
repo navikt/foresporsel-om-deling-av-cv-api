@@ -39,7 +39,7 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
             log.warn("Stillingen eksisterer ikke. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
             ctx.status(404)
             ctx.json("Stillingen eksisterer ikke")
-        } else if(stilling.kanIkkeDelesMedBruker()) {
+        } else if(stilling.kanIkkeDelesMedKandidaten) {
             log.warn("Stillingen kan ikke deles med brukeren pga. stillingskategori. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
             ctx.status(400)
             ctx.json("Stillingen kan ikke deles med brukeren pga. stillingskategori.")
