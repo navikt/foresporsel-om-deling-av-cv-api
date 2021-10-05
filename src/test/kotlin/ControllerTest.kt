@@ -264,7 +264,119 @@ class ControllerTest {
                     WireMock.aResponse().withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(
-                            """{"_index":"stilling_15","_type":"_doc","_id":"3f294b41-9fd6-4a83-b838-5036da69d83c","_version":2,"_seq_no":134026,"_primary_term":1,"found":true,"_source":{"stilling":{"title":"En formidling","uuid":"3f294b41-9fd6-4a83-b838-5036da69d83c","annonsenr":"610647","status":"ACTIVE","privacy":"INTERNAL_NOT_SHOWN","published":"2021-09-24T13:40:11.94403613","publishedByAdmin":"2021-09-24T13:40:11.94403613","expires":"2021-12-16T02:00:00","created":"2021-09-24T13:37:01.9965","updated":"2021-09-24T13:37:01.9965","employer":{"name":"FIRST HOUSE AS","publicName":"FIRST HOUSE AS","orgnr":"994618121","parentOrgnr":"994575775","orgform":"BEDR"},"categories":[{"styrkCode":"3433.01","name":"Taksidermist"}],"source":"DIR","medium":"DIR","businessName":"FIRST HOUSE AS","locations":[{"address":null,"postalCode":null,"city":null,"county":"VESTFOLD OG TELEMARK","countyCode":null,"municipal":"NOME","municipalCode":"3816","latitue":null,"longitude":null,"country":"NORGE"}],"reference":"3f294b41-9fd6-4a83-b838-5036da69d83c","administration":{"status":"DONE","remarks":[],"comments":"","reportee":"F_Z994003 E_Z994003","navIdent":"Z994003"},"properties":{"extent":"Deltid","workhours":["Dagtid"],"applicationdue":"Snarest","workday":["Ukedager"],"jobtitle":"Taksidermist","positioncount":1,"engagementtype":"Prosjekt","classification_styrk08_score":0.5,"adtext":"<p>tekst</p>","classification_styrk08_code":3212,"searchtags":[{"label":"Bioteknikere (ikke-medisinske laboratorier)","score":0.5},{"label":"Tekniske konservatorer","score":0.5},{"label":"Bioingeniører","score":0.5}],"classification_esco_code":"http://data.europa.eu/esco/occupation/a78d8e2b-fe31-447f-8694-38ed7198d143","classification_input_source":"jobtitle","sector":"Privat"},"contacts":[{"name":"Kulesen","role":"","title":"Kul","email":"","phone":"000"}]},"stillingsinfo":{"eierNavident":null,"eierNavn":null,"notat":null,"stillingsid":"3f294b41-9fd6-4a83-b838-5036da69d83c","stillingsinfoid":"c4accfe3-55b8-4667-9782-2967e86a1b3e","stillingskategori":${if (kategori == null) "null" else "\"$kategori\""}}}}"""
+                            """
+                                {
+                                  "_index": "stilling_15",
+                                  "_type": "_doc",
+                                  "_id": "3f294b41-9fd6-4a83-b838-5036da69d83c",
+                                  "_version": 2,
+                                  "_seq_no": 134026,
+                                  "_primary_term": 1,
+                                  "found": true,
+                                  "_source": {
+                                    "stilling": {
+                                      "title": "En formidling",
+                                      "uuid": "3f294b41-9fd6-4a83-b838-5036da69d83c",
+                                      "annonsenr": "610647",
+                                      "status": "ACTIVE",
+                                      "privacy": "INTERNAL_NOT_SHOWN",
+                                      "published": "2021-09-24T13:40:11.94403613",
+                                      "publishedByAdmin": "2021-09-24T13:40:11.94403613",
+                                      "expires": "2021-12-16T02:00:00",
+                                      "created": "2021-09-24T13:37:01.9965",
+                                      "updated": "2021-09-24T13:37:01.9965",
+                                      "employer": {
+                                        "name": "FIRST HOUSE AS",
+                                        "publicName": "FIRST HOUSE AS",
+                                        "orgnr": "994618121",
+                                        "parentOrgnr": "994575775",
+                                        "orgform": "BEDR"
+                                      },
+                                      "categories": [
+                                        {
+                                          "styrkCode": "3433.01",
+                                          "name": "Taksidermist"
+                                        }
+                                      ],
+                                      "source": "DIR",
+                                      "medium": "DIR",
+                                      "businessName": "FIRST HOUSE AS",
+                                      "locations": [
+                                        {
+                                          "address": null,
+                                          "postalCode": null,
+                                          "city": null,
+                                          "county": "VESTFOLD OG TELEMARK",
+                                          "countyCode": null,
+                                          "municipal": "NOME",
+                                          "municipalCode": "3816",
+                                          "latitue": null,
+                                          "longitude": null,
+                                          "country": "NORGE"
+                                        }
+                                      ],
+                                      "reference": "3f294b41-9fd6-4a83-b838-5036da69d83c",
+                                      "administration": {
+                                        "status": "DONE",
+                                        "remarks": [],
+                                        "comments": "",
+                                        "reportee": "F_Z994003 E_Z994003",
+                                        "navIdent": "Z994003"
+                                      },
+                                      "properties": {
+                                        "extent": "Deltid",
+                                        "workhours": [
+                                          "Dagtid"
+                                        ],
+                                        "applicationdue": "Snarest",
+                                        "workday": [
+                                          "Ukedager"
+                                        ],
+                                        "jobtitle": "Taksidermist",
+                                        "positioncount": 1,
+                                        "engagementtype": "Prosjekt",
+                                        "classification_styrk08_score": 0.5,
+                                        "adtext": "<p>tekst</p>",
+                                        "classification_styrk08_code": 3212,
+                                        "searchtags": [
+                                          {
+                                            "label": "Bioteknikere (ikke-medisinske laboratorier)",
+                                            "score": 0.5
+                                          },
+                                          {
+                                            "label": "Tekniske konservatorer",
+                                            "score": 0.5
+                                          },
+                                          {
+                                            "label": "Bioingeniører",
+                                            "score": 0.5
+                                          }
+                                        ],
+                                        "classification_esco_code": "http://data.europa.eu/esco/occupation/a78d8e2b-fe31-447f-8694-38ed7198d143",
+                                        "classification_input_source": "jobtitle",
+                                        "sector": "Privat"
+                                      },
+                                      "contacts": [
+                                        {
+                                          "name": "Kulesen",
+                                          "role": "",
+                                          "title": "Kul",
+                                          "email": "",
+                                          "phone": "000"
+                                        }
+                                      ]
+                                    },
+                                    "stillingsinfo": {
+                                      "eierNavident": null,
+                                      "eierNavn": null,
+                                      "notat": null,
+                                      "stillingsid": "3f294b41-9fd6-4a83-b838-5036da69d83c",
+                                      "stillingsinfoid": "c4accfe3-55b8-4667-9782-2967e86a1b3e",
+                                      "stillingskategori":   ${kategori?.let { """"$it"""" } }
+                                    }
+                                  }
+                                }
+                            """.trimIndent()
                         )
                 )
         )
