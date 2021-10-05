@@ -39,8 +39,15 @@ private data class EsResponse(
         arbeidsgiver = _source.stilling.employer.name,
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
         kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt),
-        stillingskategoriErStilling = _source.stillingsinfo?.stillingskategori == "Stilling"
+        stillingskategoriErStilling = stillingsKategoriErStilling()
     )
+
+    private fun stillingsKategoriErStilling() = when {
+        _source.stillingsinfo == null -> false
+        _source.stillingsinfo.stillingskategori == null -> true
+        _source.stillingsinfo.stillingskategori == "STILLING" -> true
+        else -> false
+    }
 
     private data class EsSource(
         val stilling: EsStilling,
