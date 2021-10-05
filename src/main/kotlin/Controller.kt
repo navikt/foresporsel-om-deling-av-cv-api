@@ -4,6 +4,7 @@ import utils.hentCallId
 import utils.log
 import utils.toUUID
 import java.time.LocalDateTime
+import java.util.*
 
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
@@ -49,11 +50,11 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
 
         val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
 
-        if(stilling==null) {
+        if (stilling == null) {
             log.warn("Stillingen eksisterer ikke. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
             ctx.status(404)
             ctx.json("Stillingen eksisterer ikke")
-        } else if(stilling.kanIkkeDelesMedKandidaten) {
+        } else if (stilling.kanIkkeDelesMedKandidaten) {
             log.warn("Stillingen kan ikke deles med brukeren pga. stillingskategori. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
             ctx.status(400)
             ctx.json("Stillingen kan ikke deles med brukeren pga. stillingskategori.")
@@ -70,8 +71,9 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
                 callId = ctx.hentCallId()
             )
 
-            val alleForespørslerPåStilling = repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
-                .map { it.tilOutboundDto() }
+            val alleForespørslerPåStilling =
+                repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+                    .map { it.tilOutboundDto() }
 
             ctx.json(alleForespørslerPåStilling)
             ctx.status(201)
