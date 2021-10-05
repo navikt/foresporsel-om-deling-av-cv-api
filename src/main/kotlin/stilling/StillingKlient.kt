@@ -41,15 +41,15 @@ private data class EsResponse(
         arbeidsgiver = _source.stilling.employer.name,
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
         kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt),
-        stillingskategoriErStilling = stillingsKategoriErStilling()
+        stillingskategoriErStilling = stillingskategoriKanVæreStilling
     )
 
-    private fun stillingsKategoriErStilling() = when {
-        _source.stillingsinfo == null -> false
-        _source.stillingsinfo.stillingskategori == null -> true
-        _source.stillingsinfo.stillingskategori == "STILLING" -> true
-        else -> false
-    }
+    /**
+     * Vi må anta at stillinger uten stillingskategori, og de som mangler stillingsinfo, kunne hatt stillingskategori
+     * STILLING fordi vi har kandidatlister som er opprettet før stillingskategorier ble innført.
+     */
+    private val stillingskategoriKanVæreStilling =
+        _source.stillingsinfo?.stillingskategori?.let { it=="STILLING" } ?: true
 
     private data class EsSource(
         val stilling: EsStilling,

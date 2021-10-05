@@ -117,7 +117,7 @@ class ControllerTest {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
 
-        stubHentStilling(stillingsReferanse, "FORMIDLING")
+        stubHentStilling(stillingsReferanse, kategori = "FORMIDLING")
 
         startWiremockApp(database).use {
             val navIdent = "X12345"
@@ -145,7 +145,7 @@ class ControllerTest {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
 
-        stubHentStilling(stillingsReferanse, "STILLING")
+        stubHentStilling(stillingsReferanse, kategori = "STILLING")
 
         startWiremockApp(database).use {
             val navIdent = "X12345"
@@ -153,7 +153,7 @@ class ControllerTest {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
-                aktorIder = listOf("123","345"),
+                aktorIder = listOf("123", "345"),
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -170,7 +170,7 @@ class ControllerTest {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
 
-        stubHentStilling(stillingsReferanse, null)
+        stubHentStilling(stillingsReferanse, kategori = null)
 
         startWiremockApp(database).use {
             val navIdent = "X12345"
@@ -178,7 +178,32 @@ class ControllerTest {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
-                aktorIder = listOf("123","345"),
+                aktorIder = listOf("123", "345"),
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(201)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt skal fungere hvis stillingsinfo er null og derfor skal tolkes som en ekte stilling`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+
+        stubHentStilling(stillingsReferanse, stillingsinfo = null)
+
+        startWiremockApp(database).use {
+            val navIdent = "X12345"
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf("123", "345"),
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -257,7 +282,7 @@ class ControllerTest {
         }
     }
 
-    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null) {
+    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null, stillingsinfo: String? = stillingsinfo(kategori)) {
         wireMock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/stilling/_doc/${stillingsReferanse}"))
                 .willReturn(
@@ -366,14 +391,7 @@ class ControllerTest {
                                         }
                                       ]
                                     },
-                                    "stillingsinfo": {
-                                      "eierNavident": null,
-                                      "eierNavn": null,
-                                      "notat": null,
-                                      "stillingsid": "3f294b41-9fd6-4a83-b838-5036da69d83c",
-                                      "stillingsinfoid": "c4accfe3-55b8-4667-9782-2967e86a1b3e",
-                                      "stillingskategori":   ${kategori?.let { """"$it"""" } }
-                                    }
+                                    "stillingsinfo": $stillingsinfo
                                   }
                                 }
                             """.trimIndent()
@@ -381,4 +399,16 @@ class ControllerTest {
                 )
         )
     }
+
+    private fun stillingsinfo(kategori: String?) =
+        """
+            {
+                "eierNavident": null,
+                "eierNavn": null,
+                "notat": null,
+                "stillingsid": "3f294b41-9fd6-4a83-b838-5036da69d83c",
+                "stillingsinfoid": "c4accfe3-55b8-4667-9782-2967e86a1b3e",
+                "stillingskategori":   ${kategori?.let { """"$it"""" }}
+            }
+        """.trimIndent()
 }
