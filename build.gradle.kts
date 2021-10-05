@@ -6,7 +6,7 @@ plugins {
 }
 
 application {
-    mainClassName = "AppKt"
+    mainClass.set("AppKt")
 }
 
 repositories {
