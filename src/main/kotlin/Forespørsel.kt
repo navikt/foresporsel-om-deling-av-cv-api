@@ -116,18 +116,10 @@ data class Forespørsel(
         hentKontaktinfoFraStilling(stilling)
     )
 
-    private fun hentKontaktinfoFraStilling(stilling: Stilling): KontaktInfo {
-        val kontaktinformasjon = stilling.kontaktinfo?.firstOrNull()
-
-        return if (kontaktinformasjon == null)
-            KontaktInfo("", "", "", "")
-        else KontaktInfo(
-            kontaktinformasjon.navn,
-            kontaktinformasjon.tittel,
-            kontaktinformasjon.mobil,
-            kontaktinformasjon.epost
-        )
-    }
+    private fun hentKontaktinfoFraStilling(stilling: Stilling): KontaktInfo? =
+        stilling.kontaktinfo?.firstOrNull()?.let {
+            KontaktInfo(it.navn, it.tittel, it.mobil)
+        }
 
     fun tilOutboundDto() = ForespørselOutboundDto(
         aktørId,
@@ -148,7 +140,7 @@ enum class Tilstand {
     HAR_VARSLET,
     KAN_IKKE_VARSLE,
     HAR_SVART,
-    SVARFRIST_UTLOPT
+    AVBRUTT
 }
 
 enum class IdentType {
