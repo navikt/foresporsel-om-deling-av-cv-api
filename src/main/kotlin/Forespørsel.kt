@@ -123,6 +123,7 @@ data class Forespørsel(
 
     fun tilOutboundDto() = ForespørselOutboundDto(
         aktørId,
+        stillingsId.toString(),
         deltStatus,
         deltTidspunkt,
         deltAv,

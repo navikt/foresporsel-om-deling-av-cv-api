@@ -39,6 +39,7 @@ class App(
         routes {
             get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
+            get("/foresporsler/kandidat/:$aktorIdParamName", controller.hentForespørslerForKandidat)
             get("/foresporsler/:$stillingsIdParamName", controller.hentForespørsler)
             post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
         }
