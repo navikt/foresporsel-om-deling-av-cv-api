@@ -2,21 +2,23 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil
 import org.flywaydb.core.Flyway
-import utils.Cluster
+import utils.Miljø
+import utils.Miljø.*
 import javax.sql.DataSource
 
 class Database {
     val dataSource: DataSource
 
-    private val config: DbConf = when (Cluster.current) {
-        Cluster.DEV_FSS -> DbConf(
+    private val config: DbConf = when (Miljø.current) {
+        DEV_FSS -> DbConf(
             mountPath = "postgresql/preprod-fss",
             jdbcUrl = "jdbc:postgresql://b27dbvl024.preprod.local:5432/foresporsel-om-deling-av-cv"
         )
-        Cluster.PROD_FSS -> DbConf(
+        PROD_FSS -> DbConf(
             mountPath = "postgresql/prod-fss",
             jdbcUrl = "jdbc:postgresql://A01DBVL022.adeo.no:5432/foresporsel-om-deling-av-cv"
         )
+        LOKAL -> throw TODO()
     }
 
     init {

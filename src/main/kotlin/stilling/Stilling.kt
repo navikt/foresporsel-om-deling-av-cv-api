@@ -5,8 +5,18 @@ data class Stilling(
     val søknadsfrist: String,
     val arbeidsgiver: String,
     val arbeidssteder: List<Arbeidssted>,
-    val kontaktinfo: List<Kontakt>?
-)
+    val kontaktinfo: List<Kontakt>?,
+    private val stillingskategori: String?
+) {
+
+    /**
+     * Vi må anta at stillinger uten stillingskategori, og de som mangler stillingsinfo, kunne hatt stillingskategori
+     * STILLING fordi vi har kandidatlister som er opprettet før stillingskategorier ble innført.
+     */
+    private val stillingskategoriKanVæreStilling = stillingskategori?.let { it=="STILLING" } ?: true
+
+    val kanIkkeDelesMedKandidaten = !stillingskategoriKanVæreStilling
+}
 
 data class Kontakt(
     val navn: String,

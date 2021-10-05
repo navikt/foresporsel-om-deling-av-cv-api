@@ -11,7 +11,9 @@ import setup.TestDatabase
 import setup.hentToken
 import setup.mockConsumer
 import setup.mockProducer
+import stilling.Stilling
 import java.net.URL
+import java.util.*
 
 fun main() {
     val mockOAuth2Server = MockOAuth2Server().apply {
@@ -27,15 +29,16 @@ fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
     producer: Producer<String, ForesporselOmDelingAvCv> = mockProducer(),
+    hentStilling: (UUID) -> Stilling? = hentStillingMock,
     forespørselService: ForespørselService = ForespørselService(
         producer,
         repository,
-        hentStillingMock
+        hentStilling
     ),
-    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
+    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer()
 ): App {
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-    val controller = Controller(repository, usendtScheduler::kjørEnGang)
+    val controller = Controller(repository, usendtScheduler::kjørEnGang, hentStilling)
 
     val issuerProperties = IssuerProperties(
         URL("http://localhost:18300/default/.well-known/openid-configuration"),

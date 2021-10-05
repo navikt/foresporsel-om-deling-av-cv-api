@@ -1,12 +1,14 @@
 import io.javalin.http.Context
+import stilling.Stilling
 import utils.hentCallId
+import utils.log
 import utils.toUUID
 import java.time.LocalDateTime
 
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
 
-class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit) {
+class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -39,12 +41,24 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit) {
     val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
 
-        val minstEnKandidatHarFåttForespørsel = repository.minstEnKandidatHarFåttForespørsel(
+
+        fun minstEnKandidatHarFåttForespørsel() = repository.minstEnKandidatHarFåttForespørsel(
             forespørselOmDelingAvCvDto.stillingsId.toUUID(),
             forespørselOmDelingAvCvDto.aktorIder
         )
 
-        if (minstEnKandidatHarFåttForespørsel) {
+        val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+
+        if(stilling==null) {
+            log.warn("Stillingen eksisterer ikke. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
+            ctx.status(404)
+            ctx.json("Stillingen eksisterer ikke")
+        } else if(stilling.kanIkkeDelesMedKandidaten) {
+            log.warn("Stillingen kan ikke deles med brukeren pga. stillingskategori. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
+            ctx.status(400)
+            ctx.json("Stillingen kan ikke deles med brukeren pga. stillingskategori.")
+        } else if (minstEnKandidatHarFåttForespørsel()) {
+            log.warn("Minst én kandidat har fått forespørselen fra før for stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
             ctx.status(409)
             ctx.json("Minst én kandidat har fått forespørselen fra før")
         } else {

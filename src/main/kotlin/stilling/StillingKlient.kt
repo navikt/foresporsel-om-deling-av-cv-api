@@ -4,14 +4,16 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.kittinunf.result.Result
-import utils.Cluster
+import utils.Miljø
+import utils.Miljø.*
 import utils.log
 import java.util.*
 
 class StillingKlient(private val accessToken: () -> String) {
-    private val stillingssokProxyDokumentUrl = when (Cluster.current) {
-        Cluster.DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
-        Cluster.PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
+    private val stillingssokProxyDokumentUrl = when (Miljø.current) {
+        DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
+        PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
+        LOKAL -> "http://localhost:9089/stilling/_doc"
     }
 
     fun hentStilling(uuid: UUID): Stilling? {
@@ -33,16 +35,18 @@ class StillingKlient(private val accessToken: () -> String) {
 private data class EsResponse(
     val _source: EsSource
 ) {
-    fun toStilling() = Stilling(
+    fun toStilling(): Stilling = Stilling(
         stillingtittel = _source.stilling.title,
         søknadsfrist = _source.stilling.properties.applicationdue,
         arbeidsgiver = _source.stilling.employer.name,
         arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
-        kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt)
+        kontaktinfo = _source.stilling.contacts.map(EsContact::toKontakt),
+        stillingskategori = _source.stillingsinfo?.stillingskategori
     )
 
     private data class EsSource(
-        val stilling: EsStilling
+        val stilling: EsStilling,
+        val stillingsinfo: EsStillingsinfo?
     )
 
     private data class EsStilling(
@@ -51,6 +55,15 @@ private data class EsResponse(
         val employer: Employer,
         val locations: List<EsArbeidssted>,
         val contacts: List<EsContact>
+    )
+
+    private data class EsStillingsinfo(
+        val eierNavident: String?,
+        val eierNavn: String?,
+        val notat: String?,
+        val stillingsid: String,
+        val stillingsinfoid: String,
+        val stillingskategori: String?,
     )
 
     private data class EsContact(

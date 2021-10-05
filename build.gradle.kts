@@ -43,11 +43,13 @@ dependencies {
     implementation("io.confluent:kafka-avro-serializer:6.0.1")
     implementation("org.apache.avro:avro:1.10.2")
 
+    val shedlockVersion = "4.23.0"
+    implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
+
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")
     testImplementation("org.assertj:assertj-core:3.19.0")
     testImplementation("no.nav.security:mock-oauth2-server:0.3.2")
-    val shedlockVersion = "4.23.0"
-    implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
+    testImplementation("com.github.tomakehurst:wiremock:2.27.2")
 }

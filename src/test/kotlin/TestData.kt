@@ -14,7 +14,8 @@ fun enStilling() = Stilling(
     ),
     listOf(
         Kontakt("Ola", "Veileder", "ola@nav.no", "", "")
-    )
+    ),
+    "STILLING"
 )
 
 val hentStillingMock: (UUID) -> Stilling? = { enStilling() }

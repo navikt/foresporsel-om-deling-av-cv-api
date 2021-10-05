@@ -14,7 +14,7 @@ import sendforespørsel.UsendtScheduler
 import sendforespørsel.producerConfig
 import stilling.AccessTokenClient
 import stilling.StillingKlient
-import utils.Cluster
+import utils.Miljø
 import utils.log
 import utils.objectMapper
 import utils.settCallId
@@ -67,7 +67,7 @@ class App(
 fun main() {
 
     try {
-        log("main").info("Starter app i cluster ${Cluster.current.asString()}")
+        log("main").info("Starter app i cluster ${Miljø.current.asString()}")
 
         val database = Database()
         val repository = Repository(database.dataSource)
@@ -82,7 +82,7 @@ fun main() {
         )
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-        val controller = Controller(repository, usendtScheduler::kjørEnGang)
+        val controller = Controller(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository)
