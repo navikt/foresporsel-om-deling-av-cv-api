@@ -5,7 +5,8 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.responseObject
 import java.time.LocalDateTime
 import com.github.kittinunf.result.Result
-import utils.Cluster
+import utils.Miljø
+import utils.Miljø.*
 
 
 class AccessTokenClient(private val config: AzureConfig) {
@@ -19,9 +20,10 @@ class AccessTokenClient(private val config: AzureConfig) {
     }
 
     private fun nyttToken(): CachedAccessToken {
-        val scope = when(Cluster.current) {
-            Cluster.DEV_FSS -> "dev-gcp"
-            Cluster.PROD_FSS -> "prod-gcp"
+        val scope = when(Miljø.current) {
+            DEV_FSS -> "dev-gcp"
+            PROD_FSS -> "prod-gcp"
+            LOKAL -> "lokal"
         }.let { cluster -> "api://${cluster}.arbeidsgiver.rekrutteringsbistand-stillingssok-proxy/.default" }
 
         val formData = listOf(

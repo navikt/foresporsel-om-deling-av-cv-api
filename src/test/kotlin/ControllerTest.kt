@@ -1,6 +1,9 @@
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -9,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
 import setup.medVeilederCookie
-import stilling.Stilling
+import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
 import java.time.LocalDate
@@ -20,24 +23,35 @@ import kotlin.test.assertEquals
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ControllerTest {
     private val mockOAuth2Server = MockOAuth2Server()
+    private val wireMock = WireMockServer(WireMockConfiguration.options().port(9089))
 
     @BeforeAll
     fun init() {
         mockOAuth2Server.start(port = 18300)
+        wireMock.start()
     }
 
     @AfterAll
     fun teardown() {
         mockOAuth2Server.shutdown()
+        wireMock.stop()
     }
+
+    private val stillingKlient = StillingKlient { mockOAuth2Server.issueToken().serialize() }
+
+    private fun startWiremockApp(
+        database: TestDatabase = TestDatabase()
+    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling)
 
     @Test
     fun `Kall til POST-endepunkt skal lagre informasjon om forespørselen i database`() {
         val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse)
 
-        startLokalApp(database).use {
+        startWiremockApp(database).use {
             val inboundDto = ForespørselInboundDto(
-                stillingsId = UUID.randomUUID().toString(),
+                stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
                 aktorIder = listOf("234", "345", "456"),
             )
@@ -74,16 +88,17 @@ class ControllerTest {
     @Test
     fun `Kall til POST-endepunkt skal returnere conflict hvis én av kandidatene har mottatt forespørsel på samme stilling fra før`() {
         val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse)
 
-        startLokalApp(database).use {
+        startWiremockApp(database).use {
             val navIdent = "X12345"
-            val stillingsId = UUID.randomUUID()
-            val forespørsel = enForespørsel(stillingsId = stillingsId)
+            val forespørsel = enForespørsel(stillingsId = stillingsReferanse)
 
             database.lagreBatch(listOf(forespørsel))
 
             val inboundDto = ForespørselInboundDto(
-                stillingsId = stillingsId.toString(),
+                stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
                 aktorIder = listOf(forespørsel.aktørId),
             )
@@ -100,17 +115,18 @@ class ControllerTest {
     @Test
     fun `Kall til POST-endepunkt skal returnere bad request hvis stillingen ikke er en ekte stilling`() {
         val database = TestDatabase()
-        val hentStillingMock: (UUID) -> Stilling? = {enStilling().copy(stillingskategoriErStilling = false)}
+        val stillingsReferanse = UUID.randomUUID()
 
-        startLokalApp(database,hentStilling = hentStillingMock).use {
+        stubHentStilling(stillingsReferanse, "FORMIDLING")
+
+        startWiremockApp(database).use {
             val navIdent = "X12345"
-            val stillingsId = UUID.randomUUID()
-            val forespørsel = enForespørsel(stillingsId = stillingsId)
+            val forespørsel = enForespørsel(stillingsId = stillingsReferanse)
 
             database.lagreBatch(listOf(forespørsel))
 
             val inboundDto = ForespørselInboundDto(
-                stillingsId = stillingsId.toString(),
+                stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
                 aktorIder = listOf(forespørsel.aktørId),
             )
@@ -125,14 +141,65 @@ class ControllerTest {
     }
 
     @Test
+    fun `Kall til POST-endepunkt skal fungere hvis stillingskategorien er en ekte stilling`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+
+        stubHentStilling(stillingsReferanse, "STILLING")
+
+        startWiremockApp(database).use {
+            val navIdent = "X12345"
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf("123","345"),
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(201)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt skal fungere hvis stillingskategorien er null og derfor skal tolkes som en ekte stilling`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+
+        stubHentStilling(stillingsReferanse, null)
+
+        startWiremockApp(database).use {
+            val navIdent = "X12345"
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf("123","345"),
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(201)
+        }
+    }
+
+    @Test
     fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId`() {
         val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse)
 
-        startLokalApp(database).use {
+        startWiremockApp(database).use {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
-            val stillingsId = UUID.randomUUID()
-            val forespørsel = enForespørsel(stillingsId = stillingsId)
+            val forespørsel = enForespørsel(stillingsId = stillingsReferanse)
             val forespørsler = listOf(
                 enForespørsel(),
                 forespørsel,
@@ -143,7 +210,7 @@ class ControllerTest {
 
             database.lagreBatch(forespørsler)
 
-            val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsId")
+            val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
@@ -158,12 +225,14 @@ class ControllerTest {
     @Test
     fun `Kall til POST-endepunkt skal returnere lagrede forespørsler på stillingsId`() {
         val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse)
 
-        startLokalApp(database).use {
+        startWiremockApp(database).use {
             val navIdent = "X12345"
 
             val inboundDto = ForespørselInboundDto(
-                stillingsId = UUID.randomUUID().toString(),
+                stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
                 aktorIder = listOf("234", "345"),
             )
@@ -186,5 +255,18 @@ class ControllerTest {
                 assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
             }
         }
+    }
+
+    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null) {
+        wireMock.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo("/stilling/_doc/${stillingsReferanse}"))
+                .willReturn(
+                    WireMock.aResponse().withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(
+                            """{"_index":"stilling_15","_type":"_doc","_id":"3f294b41-9fd6-4a83-b838-5036da69d83c","_version":2,"_seq_no":134026,"_primary_term":1,"found":true,"_source":{"stilling":{"title":"En formidling","uuid":"3f294b41-9fd6-4a83-b838-5036da69d83c","annonsenr":"610647","status":"ACTIVE","privacy":"INTERNAL_NOT_SHOWN","published":"2021-09-24T13:40:11.94403613","publishedByAdmin":"2021-09-24T13:40:11.94403613","expires":"2021-12-16T02:00:00","created":"2021-09-24T13:37:01.9965","updated":"2021-09-24T13:37:01.9965","employer":{"name":"FIRST HOUSE AS","publicName":"FIRST HOUSE AS","orgnr":"994618121","parentOrgnr":"994575775","orgform":"BEDR"},"categories":[{"styrkCode":"3433.01","name":"Taksidermist"}],"source":"DIR","medium":"DIR","businessName":"FIRST HOUSE AS","locations":[{"address":null,"postalCode":null,"city":null,"county":"VESTFOLD OG TELEMARK","countyCode":null,"municipal":"NOME","municipalCode":"3816","latitue":null,"longitude":null,"country":"NORGE"}],"reference":"3f294b41-9fd6-4a83-b838-5036da69d83c","administration":{"status":"DONE","remarks":[],"comments":"","reportee":"F_Z994003 E_Z994003","navIdent":"Z994003"},"properties":{"extent":"Deltid","workhours":["Dagtid"],"applicationdue":"Snarest","workday":["Ukedager"],"jobtitle":"Taksidermist","positioncount":1,"engagementtype":"Prosjekt","classification_styrk08_score":0.5,"adtext":"<p>tekst</p>","classification_styrk08_code":3212,"searchtags":[{"label":"Bioteknikere (ikke-medisinske laboratorier)","score":0.5},{"label":"Tekniske konservatorer","score":0.5},{"label":"Bioingeniører","score":0.5}],"classification_esco_code":"http://data.europa.eu/esco/occupation/a78d8e2b-fe31-447f-8694-38ed7198d143","classification_input_source":"jobtitle","sector":"Privat"},"contacts":[{"name":"Kulesen","role":"","title":"Kul","email":"","phone":"000"}]},"stillingsinfo":{"eierNavident":null,"eierNavn":null,"notat":null,"stillingsid":"3f294b41-9fd6-4a83-b838-5036da69d83c","stillingsinfoid":"c4accfe3-55b8-4667-9782-2967e86a1b3e","stillingskategori":${if (kategori == null) "null" else "\"$kategori\""}}}}"""
+                        )
+                )
+        )
     }
 }
