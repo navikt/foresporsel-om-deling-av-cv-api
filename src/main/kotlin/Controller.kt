@@ -1,11 +1,10 @@
 import io.javalin.http.Context
-import sendforespørsel.UsendtScheduler
 import utils.hentCallId
 import utils.toUUID
 import java.time.LocalDateTime
-import java.util.*
 
 const val stillingsIdParamName = "stillingsId"
+const val aktorIdParamName = "aktørId"
 
 class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit) {
 
@@ -17,6 +16,20 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit) {
             null
         }?.let { stillingsId ->
             val outboundDto = repository.hentForespørsler(stillingsId).map(Forespørsel::tilOutboundDto)
+
+            ctx.json(outboundDto)
+            ctx.status(200)
+        }
+    }
+
+    val hentForespørslerForKandidat: (Context) -> Unit = { ctx ->
+        try {
+            ctx.pathParam(aktorIdParamName)
+        } catch (exception: IllegalArgumentException) {
+            ctx.status(400)
+            null
+        }?.let { aktørId ->
+            val outboundDto = repository.hentForespørslerForKandidat(aktørId).map(Forespørsel::tilOutboundDto)
 
             ctx.json(outboundDto)
             ctx.status(200)
@@ -62,6 +75,7 @@ data class ForespørselInboundDto(
 
 data class ForespørselOutboundDto(
     val aktørId: String,
+    val stillingsId: String,
 
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,

@@ -129,6 +129,36 @@ class ControllerTest {
     }
 
     @Test
+    fun `Kall til GET-endpunkt for kandidat skal hente lagrede forespørsler på aktørId`() {
+        val database = TestDatabase()
+
+        startLokalApp(database).use {
+            val navIdent = "X12345"
+            val callId = UUID.randomUUID()
+            val aktørId = "123"
+
+            val forespørselForEnStilling = enForespørsel(aktørId = aktørId)
+            val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
+
+            database.lagreBatch(listOf(
+                forespørselForEnStilling,
+                forespørselForEnAnnenStilling
+            ))
+
+            val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .header(foretrukkenCallIdHeaderKey, callId.toString())
+                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+
+            assertThat(lagredeForespørslerForKandidat.size).isEqualTo(2)
+            assertThat(lagredeForespørslerForKandidat).containsExactlyInAnyOrder(
+                forespørselForEnStilling.tilOutboundDto(),
+                forespørselForEnAnnenStilling.tilOutboundDto()
+            )
+        }
+    }
+
+    @Test
     fun `Kall til POST-endepunkt skal returnere lagrede forespørsler på stillingsId`() {
         val database = TestDatabase()
 

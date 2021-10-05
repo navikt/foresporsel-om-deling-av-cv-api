@@ -117,6 +117,19 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
+    fun hentForespørslerForKandidat(aktørId: String): List<Forespørsel> {
+        val hentForespørslerForKandidatSql = """
+            SELECT * from foresporsel_om_deling_av_cv WHERE aktor_id = ?
+        """.trimIndent()
+
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(hentForespørslerForKandidatSql)
+
+            statement.setString(1, aktørId)
+            return statement.executeQuery().tilForespørsler()
+        }
+    }
+
     fun insertParameters(count: Int): String =
         Array(count) { "?" }.joinToString(",")
 
