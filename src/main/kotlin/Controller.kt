@@ -4,7 +4,7 @@ import utils.hentCallId
 import utils.log
 import utils.toUUID
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
