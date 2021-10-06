@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
@@ -52,12 +54,15 @@ class ControllerTest {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
         stubHentStilling(stillingsReferanse)
+        val aktørid1 = "234"
+        val aktørid2 = "345"
+        val aktørid3 = "456"
 
         startWiremockApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
-                aktorIder = listOf("234", "345", "456"),
+                aktorIder = listOf(aktørid1, aktørid2, aktørid3),
             )
 
             val callId = UUID.randomUUID().toString()
@@ -86,6 +91,11 @@ class ControllerTest {
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
+            assertThat(mockProducer.history()).hasSize(3)
+            val førsteMelding: ForesporselOmDelingAvCv? = mockProducer.history().find {  it.value().getAktorId() == aktørid1 }?.value()
+                ?: fail("Forventet å sende kafkamelding med aktørid $aktørid1")
+            assertThat(førsteMelding.)
+
         }
     }
 
