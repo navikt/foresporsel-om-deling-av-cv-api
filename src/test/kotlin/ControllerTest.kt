@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
@@ -91,10 +90,19 @@ class ControllerTest {
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
+
             assertThat(mockProducer.history()).hasSize(3)
-            val førsteMelding: ForesporselOmDelingAvCv? = mockProducer.history().find {  it.value().getAktorId() == aktørid1 }?.value()
-                ?: fail("Forventet å sende kafkamelding med aktørid $aktørid1")
-            assertThat(førsteMelding.)
+            val actualMeldinger: Map<String, ForesporselOmDelingAvCv> =
+                mockProducer.history().map { it.value() }.associateBy { it.getAktorId() }
+            assertThat(actualMeldinger).hasSameSizeAs(mockProducer.history())
+// TODO
+
+//            val aktørIdsOnOutboundTopic = mockProducer.history().map { it.value().getAktorId() }
+//            assertThat(aktørIdsOnOutboundTopic).containsExactlyInAnyOrder(aktørid1, aktørid2, aktørid3)
+//
+//            val actualMelding = mockProducer.history()[0].value()
+//            assertThat(actualMelding.getArbeidsgiver()).isEqualTo("FIRST HOUSE AS")
+//            assertThat(actualMelding.getArbeidssteder().map { i }).isEqualTo("FIRST HOUSE AS")
 
         }
     }
@@ -331,10 +339,12 @@ class ControllerTest {
             val forespørselForEnStilling = enForespørsel(aktørId = aktørId)
             val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
 
-            database.lagreBatch(listOf(
-                forespørselForEnStilling,
-                forespørselForEnAnnenStilling
-            ))
+            database.lagreBatch(
+                listOf(
+                    forespørselForEnStilling,
+                    forespørselForEnAnnenStilling
+                )
+            )
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
@@ -384,7 +394,12 @@ class ControllerTest {
         }
     }
 
-    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null, stillingsinfo: String? = stillingsinfo(kategori), soknadsFrist: String? = "Snarest") {
+    private fun stubHentStilling(
+        stillingsReferanse: UUID?,
+        kategori: String? = null,
+        stillingsinfo: String? = stillingsinfo(kategori),
+        soknadsFrist: String? = "Snarest"
+    ) {
         wireMock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/stilling/_doc/${stillingsReferanse}"))
                 .willReturn(
