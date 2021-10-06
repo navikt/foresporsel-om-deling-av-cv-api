@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
@@ -15,6 +16,7 @@ import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -52,12 +54,15 @@ class ControllerTest {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
         stubHentStilling(stillingsReferanse)
+        val aktørid1 = "234"
+        val aktørid2 = "345"
+        val aktørid3 = "456"
 
         startWiremockApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
-                aktorIder = listOf("234", "345", "456"),
+                aktorIder = listOf(aktørid1, aktørid2, aktørid3),
             )
 
             val callId = UUID.randomUUID().toString()
@@ -86,6 +91,42 @@ class ControllerTest {
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
+
+            assertThat(mockProducer.history()).hasSize(3)
+            val actualMeldinger: Map<String, ForesporselOmDelingAvCv> =
+                mockProducer.history().map { it.value() }.associateBy { it.getAktorId() }
+            assertThat(actualMeldinger).hasSameSizeAs(mockProducer.history())
+
+            val aktørIdsOnOutboundTopic = mockProducer.history().map { it.value().getAktorId() }
+            assertThat(aktørIdsOnOutboundTopic).containsExactlyInAnyOrder(aktørid1, aktørid2, aktørid3)
+
+            val aktør1: ForesporselOmDelingAvCv = actualMeldinger[aktørid1] ?: fail("Vi fant ikke aktørid1")
+            assertThat(aktør1.getArbeidsgiver()).isEqualTo("FIRST HOUSE AS")
+            assertThat(aktør1.getArbeidssteder()).hasSize(1)
+            aktør1.getArbeidssteder().first().apply {
+                assertThat(getAdresse()).isNull()
+                assertThat(getBy()).isNull()
+                assertThat(getFylke()).isEqualTo("VESTFOLD OG TELEMARK")
+                assertThat(getLand()).isEqualTo("NORGE")
+                assertThat(getKommune()).isEqualTo("NOME")
+                assertThat(getPostkode()).isNull()
+            }
+            lagredeForespørsler.find { it.aktørId == aktørid1 }.let {
+                assertThat(aktør1.getBestillingsId()).isEqualTo(it?.forespørselId?.toString() )
+                assertThat(aktør1.getCallId()).isEqualTo(it?.callId)
+                assertThat(it?.deltTidspunkt).isBetween(LocalDateTime.now().minusSeconds(10), LocalDateTime.now() )
+                assertThat(aktør1.getOpprettetAv()).isEqualTo(it?.deltAv)
+            }
+            aktør1.getKontaktInfo().apply {
+                assertThat(this.getMobil()).isEqualTo("000")
+                assertThat(this.getNavn()).isEqualTo("Kulesen")
+                assertThat(this.getTittel()).isEqualTo("Kul")
+            }
+
+            assertThat(aktør1.getSoknadsfrist()).isEqualTo("Snarest")
+            assertThat(aktør1.getStillingstittel()).isEqualTo("En formidling")
+            assertThat(aktør1.getStillingsId()).isEqualTo(inboundDto.stillingsId)
+            assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toInstant(ZoneOffset.UTC))
         }
     }
 
@@ -321,10 +362,12 @@ class ControllerTest {
             val forespørselForEnStilling = enForespørsel(aktørId = aktørId)
             val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
 
-            database.lagreBatch(listOf(
-                forespørselForEnStilling,
-                forespørselForEnAnnenStilling
-            ))
+            database.lagreBatch(
+                listOf(
+                    forespørselForEnStilling,
+                    forespørselForEnAnnenStilling
+                )
+            )
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
@@ -374,7 +417,12 @@ class ControllerTest {
         }
     }
 
-    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null, stillingsinfo: String? = stillingsinfo(kategori), soknadsFrist: String? = "Snarest") {
+    private fun stubHentStilling(
+        stillingsReferanse: UUID?,
+        kategori: String? = null,
+        stillingsinfo: String? = stillingsinfo(kategori),
+        soknadsFrist: String? = "Snarest"
+    ) {
         wireMock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/stilling/_doc/${stillingsReferanse}"))
                 .willReturn(
