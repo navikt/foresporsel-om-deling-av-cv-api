@@ -6,12 +6,10 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import setup.TestDatabase
 import setup.medVeilederCookie
+import setup.mockProducer
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
@@ -37,11 +35,17 @@ class ControllerTest {
         wireMock.stop()
     }
 
+    @BeforeEach
+    fun before() {
+        mockProducer.clear()
+    }
+
     private val stillingKlient = StillingKlient { mockOAuth2Server.issueToken().serialize() }
+    private val mockProducer = mockProducer()
 
     private fun startWiremockApp(
         database: TestDatabase = TestDatabase()
-    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling)
+    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling, producer = mockProducer)
 
     @Test
     fun `Kall til POST-endepunkt skal lagre informasjon om forespørselen i database`() {
@@ -82,6 +86,64 @@ class ControllerTest {
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
                 assertThat(lagretForespørsel.forespørselId).isInstanceOf(UUID::class.java)
             }
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt, med stilling med søknadsfrist, skal sende den videre på kafka`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        val soknadsFrist = "Snarest"
+        stubHentStilling(stillingsReferanse, soknadsFrist = soknadsFrist)
+
+        startWiremockApp(database).use {
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf("234"),
+            )
+
+            val callId = UUID.randomUUID().toString()
+
+            val navIdent = "X12345"
+
+            Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .header(foretrukkenCallIdHeaderKey, callId)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertEquals(1, mockProducer.history().size)
+            assertEquals(soknadsFrist, mockProducer.history()[0].value().getSoknadsfrist())
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt, med stilling uten søknadsfrist, skal sende uten søknadsfrist på kafka`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        val soknadsFrist = null
+        stubHentStilling(stillingsReferanse, soknadsFrist = soknadsFrist)
+
+        startWiremockApp(database).use {
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                aktorIder = listOf("234"),
+            )
+
+            val callId = UUID.randomUUID().toString()
+
+            val navIdent = "X12345"
+
+            Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .header(foretrukkenCallIdHeaderKey, callId)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertEquals(1, mockProducer.history().size)
+            assertEquals(soknadsFrist, mockProducer.history()[0].value().getSoknadsfrist())
         }
     }
 
@@ -312,7 +374,7 @@ class ControllerTest {
         }
     }
 
-    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null, stillingsinfo: String? = stillingsinfo(kategori)) {
+    private fun stubHentStilling(stillingsReferanse: UUID?, kategori: String? = null, stillingsinfo: String? = stillingsinfo(kategori), soknadsFrist: String? = "Snarest") {
         wireMock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/stilling/_doc/${stillingsReferanse}"))
                 .willReturn(
@@ -383,7 +445,7 @@ class ControllerTest {
                                         "workhours": [
                                           "Dagtid"
                                         ],
-                                        "applicationdue": "Snarest",
+                                        "applicationdue": ${soknadsFrist?.let { """"$it"""" }},
                                         "workday": [
                                           "Ukedager"
                                         ],
