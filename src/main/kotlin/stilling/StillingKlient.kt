@@ -87,7 +87,7 @@ private data class EsResponse(
     )
 
     private data class Properties(
-        val applicationdue: String
+        val applicationdue: String?
     )
 
     private data class EsArbeidssted(

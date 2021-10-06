@@ -7,6 +7,7 @@
             {
                 "name": "navn",
                 "type": "string"
+
             },
             {
                 "name": "tittel",
@@ -14,7 +15,10 @@
             },
             {
                 "name": "mobil",
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             }
         ]
     },
@@ -25,23 +29,38 @@
         "fields": [
             {
                 "name": "adresse",
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             },
             {
                 "name": "postkode",
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             },
             {
                 "name": "by",
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             },
             {
                 "name": "kommune",
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             },
             {
                 "name": "fylke",
-                "type": ["string", "null"]
+                "type": [
+                    "string",
+                    "null"
+                ]
             },
             {
                 "name": "land",
@@ -94,7 +113,7 @@
             },
             {
                 "name": "soknadsfrist",
-                "type": "string"
+                "type": ["string", "null"]
             },
             {
                 "name": "arbeidsgiver",

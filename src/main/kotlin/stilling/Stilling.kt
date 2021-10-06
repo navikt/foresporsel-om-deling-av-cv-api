@@ -2,7 +2,7 @@ package stilling
 
 data class Stilling(
     val stillingtittel: String,
-    val søknadsfrist: String,
+    val søknadsfrist: String?,
     val arbeidsgiver: String,
     val arbeidssteder: List<Arbeidssted>,
     val kontaktinfo: List<Kontakt>?,
