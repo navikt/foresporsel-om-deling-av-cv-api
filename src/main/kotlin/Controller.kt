@@ -93,11 +93,11 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
             inboundDto.stillingsId.toUUID()
         )
 
-        val kanSendeNyForespørsel = kanResendeForespørsel(kandidatensSisteForespørselForStillingen)
+        val (kanSendeNyForespørsel, feilmelding) = kanResendeForespørsel(kandidatensSisteForespørselForStillingen)
 
-        if (!kanSendeNyForespørsel.first) {
-            loggFeilMedStilling(kanSendeNyForespørsel.second, inboundDto.stillingsId)
-            ctx.status(400).json(kanSendeNyForespørsel.second)
+        if (!kanSendeNyForespørsel) {
+            loggFeilMedStilling(feilmelding, inboundDto.stillingsId)
+            ctx.status(400).json(feilmelding)
         } else {
             repository.lagreUsendteForespørsler(
                 aktørIder = listOf(aktørId),
@@ -121,19 +121,18 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
     private fun loggFeilMedStilling(feilmelding: String, stillingsId: String) =
         log.warn("$feilmelding: Stillingsid: $stillingsId")
 
-    private fun kanResendeForespørsel(sisteForespørselForKandidatOgStilling: Forespørsel?): Pair<Boolean, String> {
-        return if (sisteForespørselForKandidatOgStilling == null) {
+    private fun kanResendeForespørsel(sisteForespørselForKandidatOgStilling: Forespørsel?): Pair<Boolean, String> =
+        if (sisteForespørselForKandidatOgStilling == null) {
             Pair(false, "Kan ikke resende forespørsel fordi kandidaten ikke har fått forespørsel før")
-        } else if (sisteForespørselForKandidatOgStilling.svar?.harSvartJa == true) {
+        } else if (sisteForespørselForKandidatOgStilling.harSvartJa()) {
             Pair(false, "Kan ikke resende forespørsel fordi kandidaten allerede har svart ja")
-        } else if (sisteForespørselForKandidatOgStilling.tilstand == Tilstand.HAR_VARSLET || sisteForespørselForKandidatOgStilling.tilstand == Tilstand.PROVER_VARSLING) {
+        } else if (sisteForespørselForKandidatOgStilling.venterPåSvar()) {
             Pair(false, "Kan ikke resende forespørsel fordi kandidaten ennå ikke har besvart en aktiv forespørsel")
-        } else if (sisteForespørselForKandidatOgStilling.tilstand == Tilstand.KAN_IKKE_VARSLE) {
-            Pair(false, "Kan ikke resende forespørsel fordi...") // TODO: Vil en tilstand KAN_IKKE_VARSLE bli AVBRUTT når fristen går ut?
+        } else if (sisteForespørselForKandidatOgStilling.kanIkkeVarsleBruker()) {
+            Pair(false, "Kan ikke resende forespørsel fordi forrige forespørsel ikke kunne sendes til kandidat")
         } else {
             Pair(true, "")
         }
-    }
 }
 
 data class ForespørselInboundDto(
