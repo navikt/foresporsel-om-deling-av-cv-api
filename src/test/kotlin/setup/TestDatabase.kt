@@ -48,7 +48,7 @@ class TestDatabase {
                 statement.setString(9, it.callId)
 
                 if (it.svar != null) {
-                    statement.setBoolean(10, it.svar!!.svar)
+                    statement.setBoolean(10, it.svar!!.harSvartJa)
                     statement.setTimestamp(11, Timestamp.valueOf(it.svar?.svarTidspunkt))
                 } else {
                     statement.setNull(10, Types.BOOLEAN)

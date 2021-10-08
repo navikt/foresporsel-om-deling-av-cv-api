@@ -1,4 +1,3 @@
-import no.nav.veilarbaktivitet.avro.KanIkkeOppretteBegrunnelse
 import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -81,7 +80,7 @@ class Repository(private val dataSource: DataSource) {
                 setString(1, tilstand.toString())
 
                 if (svar != null) {
-                    setBoolean(2, svar.svar)
+                    setBoolean(2, svar.harSvartJa)
                     setTimestamp(3, Timestamp.valueOf(svar.svarTidspunkt))
                     setString(4, svar.svartAv.ident)
                     setString(5, svar.svartAv.identType.toString())
@@ -130,6 +129,23 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
+    fun hentSisteForespørselForKandidatOgStilling(aktørId: String, stillingsId: UUID): Forespørsel? {
+        val hentSisteForespørsel = """
+            SELECT * from foresporsel_om_deling_av_cv
+             WHERE aktor_id = ? AND stilling_id = ?
+             ORDER BY id DESC
+             LIMIT 1
+        """.trimIndent()
+
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(hentSisteForespørsel)
+
+            statement.setString(1, aktørId)
+            statement.setObject(2, stillingsId)
+            return statement.executeQuery().tilForespørsel()
+        }
+    }
+
     fun insertParameters(count: Int): String =
         Array(count) { "?" }.joinToString(",")
 
@@ -157,4 +173,8 @@ class Repository(private val dataSource: DataSource) {
         if (next()) Forespørsel.fromDb(this)
         else null
     }.toList()
+
+    private fun ResultSet.tilForespørsel() =
+        if (next()) Forespørsel.fromDb(this)
+        else null
 }

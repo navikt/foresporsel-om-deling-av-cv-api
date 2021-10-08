@@ -49,7 +49,7 @@ class MottaSvarTest {
                 val svarIOppdatertForespørsel = lagredeForespørsler[forespørsel.aktørId]?.svar
 
                 svarIOppdatertForespørsel != null &&
-                        svarIOppdatertForespørsel.svar &&
+                        svarIOppdatertForespørsel.harSvartJa &&
                         svarIOppdatertForespørsel.svartAv.ident == svartAv.getIdent()
             }
 
@@ -94,13 +94,13 @@ class MottaSvarTest {
 
             assertTrueWithTimeout {
                 val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
-                val svarIOppdatertForespørsel = lagredeForespørsler[enVeileder]?.svar?.svar
+                val svarIOppdatertForespørsel = lagredeForespørsler[enVeileder]?.svar?.harSvartJa
 
                 svarIOppdatertForespørsel == true
             }
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.deltAv }
-            assertNull(lagredeForespørsler[enAnnenVeileder]?.svar?.svar)
+            assertNull(lagredeForespørsler[enAnnenVeileder]?.svar?.harSvartJa)
         }
     }
 

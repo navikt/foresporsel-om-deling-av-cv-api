@@ -15,7 +15,7 @@ data class Ident(
 )
 
 data class Svar(
-    val svar: Boolean,
+    val harSvartJa: Boolean,
     val svarTidspunkt: LocalDateTime,
     val svartAv: Ident
 ) {
@@ -23,7 +23,7 @@ data class Svar(
         fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.Svar?): Svar? {
             return if (melding != null) {
                 Svar(
-                    svar = melding.getSvar(),
+                    harSvartJa = melding.getSvar(),
                     svarTidspunkt = LocalDateTime.ofInstant(melding.getSvarTidspunkt(), ZoneOffset.UTC),
                     svartAv = Ident(
                         ident = melding.getSvartAv().getIdent(),
@@ -66,7 +66,7 @@ data class Forespørsel(
 
         fun fromDb(rs: ResultSet): Forespørsel {
             val svar = if (rs.getNullableBoolean("svar") == null) null else Svar(
-                svar = rs.getBoolean("svar"),
+                harSvartJa = rs.getBoolean("svar"),
                 svarTidspunkt = rs.getTimestamp("svar_tidspunkt").toLocalDateTime(),
                 svartAv = Ident(
                     ident = rs.getString("svart_av_ident"),

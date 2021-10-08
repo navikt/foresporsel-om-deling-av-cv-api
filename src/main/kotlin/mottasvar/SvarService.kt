@@ -58,7 +58,7 @@ class SvarService(
         repository.oppdaterMedRespons(forespørselId, tilstand, svar, begrunnelse)
 
         val svartAv = if (svar?.svartAv?.identType == IdentType.NAV_IDENT) "veileder (${svar.svartAv.ident})" else "brukeren selv"
-        log.info("Behandlet svar for forespørsel-ID: ${forespørselId}, tilstand: ${tilstand}, svar: ${svar?.svar}, svart av $svartAv")
+        log.info("Behandlet svar for forespørsel-ID: ${forespørselId}, tilstand: ${tilstand}, svar: ${svar?.harSvartJa}, svart av $svartAv")
 
         if (tilstand == Tilstand.KAN_IKKE_OPPRETTE) {
             val feilmelding = svarKafkamelding.getKanIkkeOppretteBegrunnelse().getFeilmelding()

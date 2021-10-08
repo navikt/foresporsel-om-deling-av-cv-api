@@ -426,7 +426,7 @@ class ControllerTest {
             svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
         )
 
-        startWiremockApp().run {
+        startWiremockApp().use {
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
                 .medVeilederCookie(mockOAuth2Server, "A123456")
                 .objectBody(inboundDto, mapper = objectMapper)
@@ -445,7 +445,7 @@ class ControllerTest {
         )
 
         val database = TestDatabase()
-        startWiremockApp().run {
+        startWiremockApp().use {
             val forespørselMedUtgåttSvarfrist = enForespørsel(
                 aktørId = aktørId,
                 stillingsId = inboundDto.stillingsId.toUUID(),
@@ -481,8 +481,9 @@ class ControllerTest {
         val aktørId = "dummyAktørId"
         val stillingsId = UUID.randomUUID()
 
+        stubHentStilling(stillingsId)
         val database = TestDatabase()
-        startWiremockApp().run {
+        startWiremockApp().use {
             val gammelForespørselMedUtgåttSvarfrist = enForespørsel(
                 aktørId = aktørId,
                 stillingsId = stillingsId,
@@ -520,15 +521,16 @@ class ControllerTest {
         val aktørId = "dummyAktørId"
         val stillingsId = UUID.randomUUID()
 
+        stubHentStilling(stillingsId)
         val database = TestDatabase()
-        startWiremockApp().run {
+        startWiremockApp().use {
 
             val godkjentForespørsel = enForespørsel(
                 aktørId = aktørId,
                 stillingsId = stillingsId,
                 tilstand = Tilstand.HAR_SVART,
                 svar = Svar(
-                    svar = true,
+                    harSvartJa = true,
                     svarTidspunkt = LocalDateTime.now(),
                     svartAv = Ident(aktørId, IdentType.AKTOR_ID)
                 )
