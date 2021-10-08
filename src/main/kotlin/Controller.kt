@@ -1,4 +1,5 @@
 import io.javalin.http.Context
+import io.javalin.http.Handler
 import stilling.Stilling
 import utils.hentCallId
 import utils.log
@@ -42,7 +43,6 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
     val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
 
-
         fun minstEnKandidatHarFåttForespørsel() = repository.minstEnKandidatHarFåttForespørsel(
             forespørselOmDelingAvCvDto.stillingsId.toUUID(),
             forespørselOmDelingAvCvDto.aktorIder
@@ -81,12 +81,63 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
             sendUsendteForespørsler()
         }
     }
+
+    val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
+        val resendForespørselOmDelingAvCvDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
+        val aktørid = ctx.pathParam(aktorIdParamName)
+
+        val kandidatHarFåttForespørsel = repository.minstEnKandidatHarFåttForespørsel(
+        resendForespørselOmDelingAvCvDto.stillingsId.toUUID(),
+            listOf(aktørid)
+        )
+
+        val stilling = hentStilling(resendForespørselOmDelingAvCvDto.stillingsId.toUUID())
+
+        if (stilling == null) {
+            log.warn("Stillingen eksisterer ikke. Stillingsid: ${resendForespørselOmDelingAvCvDto.stillingsId}")
+            ctx.status(404)
+            ctx.json("Stillingen eksisterer ikke")
+        } else if (stilling.kanIkkeDelesMedKandidaten) {
+            log.warn("Stillingen kan ikke deles med brukeren pga. stillingskategori. Stillingsid: ${resendForespørselOmDelingAvCvDto.stillingsId}")
+            ctx.status(400)
+            ctx.json("Stillingen kan ikke deles med brukeren pga. stillingskategori.")
+        } else if (!kandidatHarFåttForespørsel) {
+            log.warn("Kan ikke resende forespørsel for kandidat fordi ingen er lagret fra før for stillingsid: ${resendForespørselOmDelingAvCvDto.stillingsId}")
+            ctx.status(409)
+            ctx.json("Minst én kandidat har fått forespørselen fra før")
+        } else {
+            repository.lagreUsendteForespørsler(
+                aktørIder = forespørselOmDelingAvCvDto.aktorIder,
+                stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+                svarfrist = forespørselOmDelingAvCvDto.svarfrist,
+                deltAvNavIdent = ctx.hentNavIdent(),
+                callId = ctx.hentCallId()
+            )
+
+            val alleForespørslerPåStilling =
+                repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+                    .map { it.tilOutboundDto() }
+
+            ctx.json(alleForespørslerPåStilling)
+            ctx.status(201)
+
+            sendUsendteForespørsler()
+        }
+
+
+
+    }
 }
 
 data class ForespørselInboundDto(
     val stillingsId: String,
     val svarfrist: LocalDateTime,
     val aktorIder: List<String>,
+)
+
+data class ResendForespørselInboundDto(
+    val stillingsId: String,
+    val svarfrist: LocalDateTime
 )
 
 data class ForespørselOutboundDto(
