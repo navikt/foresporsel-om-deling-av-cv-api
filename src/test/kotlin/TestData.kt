@@ -27,6 +27,7 @@ fun enForespørsel(
     stillingsId: UUID = UUID.randomUUID(),
     forespørselId: UUID = UUID.randomUUID(),
     deltAv: String = "veileder",
+    tilstand: Tilstand? = null,
     begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet? = null
 ) = Forespørsel(
     id = 0,

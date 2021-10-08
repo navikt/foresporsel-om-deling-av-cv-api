@@ -1,5 +1,4 @@
 import io.javalin.http.Context
-import io.javalin.http.Handler
 import stilling.Stilling
 import utils.hentCallId
 import utils.log
@@ -51,17 +50,20 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
         val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
 
         if (stilling == null) {
-            log.warn("Stillingen eksisterer ikke. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
-            ctx.status(404)
-            ctx.json("Stillingen eksisterer ikke")
+            val feilmelding = "Stillingen eksisterer ikke"
+            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
+
+            ctx.status(404).json(feilmelding)
         } else if (stilling.kanIkkeDelesMedKandidaten) {
-            log.warn("Stillingen kan ikke deles med brukeren pga. stillingskategori. Stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
-            ctx.status(400)
-            ctx.json("Stillingen kan ikke deles med brukeren pga. stillingskategori.")
+            val feilmelding = "Stillingen kan ikke deles med brukeren pga. stillingskategori."
+            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
+
+            ctx.status(400).json(feilmelding)
         } else if (minstEnKandidatHarFåttForespørsel()) {
-            log.warn("Minst én kandidat har fått forespørselen fra før for stillingsid: ${forespørselOmDelingAvCvDto.stillingsId}")
-            ctx.status(409)
-            ctx.json("Minst én kandidat har fått forespørselen fra før")
+            val feilmelding = "Minst én kandidat har fått forespørselen fra før."
+            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
+
+            ctx.status(409).json(feilmelding)
         } else {
             repository.lagreUsendteForespørsler(
                 aktørIder = forespørselOmDelingAvCvDto.aktorIder,
@@ -83,39 +85,30 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
     }
 
     val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
-        val resendForespørselOmDelingAvCvDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
-        val aktørid = ctx.pathParam(aktorIdParamName)
+        val inboundDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
+        val aktørId = ctx.pathParam(aktorIdParamName)
 
-        val kandidatHarFåttForespørsel = repository.minstEnKandidatHarFåttForespørsel(
-        resendForespørselOmDelingAvCvDto.stillingsId.toUUID(),
-            listOf(aktørid)
+        val kandidatenHarFåttForespørselFør = repository.minstEnKandidatHarFåttForespørsel(
+            inboundDto.stillingsId.toUUID(),
+            listOf(aktørId)
         )
 
-        val stilling = hentStilling(resendForespørselOmDelingAvCvDto.stillingsId.toUUID())
+        if (!kandidatenHarFåttForespørselFør) {
+            val feilmelding = "Kan ikke resende forespørsel fordi kandidaten ikke har fått forespørsel før"
+            loggFeilMedStilling(feilmelding, inboundDto.stillingsId)
 
-        if (stilling == null) {
-            log.warn("Stillingen eksisterer ikke. Stillingsid: ${resendForespørselOmDelingAvCvDto.stillingsId}")
-            ctx.status(404)
-            ctx.json("Stillingen eksisterer ikke")
-        } else if (stilling.kanIkkeDelesMedKandidaten) {
-            log.warn("Stillingen kan ikke deles med brukeren pga. stillingskategori. Stillingsid: ${resendForespørselOmDelingAvCvDto.stillingsId}")
-            ctx.status(400)
-            ctx.json("Stillingen kan ikke deles med brukeren pga. stillingskategori.")
-        } else if (!kandidatHarFåttForespørsel) {
-            log.warn("Kan ikke resende forespørsel for kandidat fordi ingen er lagret fra før for stillingsid: ${resendForespørselOmDelingAvCvDto.stillingsId}")
-            ctx.status(409)
-            ctx.json("Minst én kandidat har fått forespørselen fra før")
+            ctx.status(400).json(feilmelding)
         } else {
             repository.lagreUsendteForespørsler(
-                aktørIder = forespørselOmDelingAvCvDto.aktorIder,
-                stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
-                svarfrist = forespørselOmDelingAvCvDto.svarfrist,
+                aktørIder = listOf(aktørId),
+                stillingsId = inboundDto.stillingsId.toUUID(),
+                svarfrist = inboundDto.svarfrist,
                 deltAvNavIdent = ctx.hentNavIdent(),
                 callId = ctx.hentCallId()
             )
 
             val alleForespørslerPåStilling =
-                repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+                repository.hentForespørsler(inboundDto.stillingsId.toUUID())
                     .map { it.tilOutboundDto() }
 
             ctx.json(alleForespørslerPåStilling)
@@ -123,10 +116,10 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
 
             sendUsendteForespørsler()
         }
-
-
-
     }
+
+    private fun loggFeilMedStilling(feilmelding: String, stillingsId: String) =
+        log.warn("$feilmelding: Stillingsid: $stillingsId")
 }
 
 data class ForespørselInboundDto(
