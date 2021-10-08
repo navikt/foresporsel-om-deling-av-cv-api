@@ -113,9 +113,9 @@ class ControllerTest {
                 assertThat(getPostkode()).isNull()
             }
             lagredeForespørsler.find { it.aktørId == aktørid1 }.let {
-                assertThat(aktør1.getBestillingsId()).isEqualTo(it?.forespørselId?.toString() )
+                assertThat(aktør1.getBestillingsId()).isEqualTo(it?.forespørselId?.toString())
                 assertThat(aktør1.getCallId()).isEqualTo(it?.callId)
-                assertThat(it?.deltTidspunkt).isBetween(LocalDateTime.now().minusSeconds(10), LocalDateTime.now() )
+                assertThat(it?.deltTidspunkt).isBetween(LocalDateTime.now().minusSeconds(10), LocalDateTime.now())
                 assertThat(aktør1.getOpprettetAv()).isEqualTo(it?.deltAv)
             }
             aktør1.getKontaktInfo().apply {
@@ -432,7 +432,7 @@ class ControllerTest {
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
-                assertThat(response.statusCode).isEqualTo(400)
+            assertThat(response.statusCode).isEqualTo(400)
         }
     }
 
@@ -478,7 +478,80 @@ class ControllerTest {
 
     @Test
     fun `Kall til POST-endepunkt for resending skal gi 400 hvis siste forespørsel for kandidat ikke er besvart`() {
+        val aktørId = "dummyAktørId"
+        val stillingsId = UUID.randomUUID()
 
+        val database = TestDatabase()
+        startWiremockApp().run {
+            val gammelForespørselMedUtgåttSvarfrist = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.AVBRUTT
+            )
+            val ubesvartForespørsel = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.HAR_VARSLET
+            )
+
+            database.lagreBatch(
+                listOf(
+                    gammelForespørselMedUtgåttSvarfrist,
+                    ubesvartForespørsel
+                )
+            )
+
+            val nyForespørsel = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .objectBody(nyForespørsel, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for resending skal gi 400 hvis siste forespørsel for kandidat er besvart med ja`() {
+        val aktørId = "dummyAktørId"
+        val stillingsId = UUID.randomUUID()
+
+        val database = TestDatabase()
+        startWiremockApp().run {
+
+            val godkjentForespørsel = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.HAR_SVART,
+                svar = Svar(
+                    svar = true,
+                    svarTidspunkt = LocalDateTime.now(),
+                    svartAv = Ident(aktørId, IdentType.AKTOR_ID)
+                )
+            )
+
+            database.lagreBatch(
+                listOf(
+                    godkjentForespørsel
+                )
+            )
+
+            val nyForespørsel = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .objectBody(nyForespørsel, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
+        }
     }
 
     private fun stubHentStilling(
