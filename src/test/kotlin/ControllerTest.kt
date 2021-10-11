@@ -320,7 +320,7 @@ class ControllerTest {
     }
 
     @Test
-    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId`() {
+    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId gruppert på aktørId`() {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
         stubHentStilling(stillingsReferanse)
@@ -328,29 +328,31 @@ class ControllerTest {
         startWiremockApp(database).use {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
-            val forespørsel = enForespørsel(stillingsId = stillingsReferanse)
-            val forespørsler = listOf(
-                enForespørsel(),
-                forespørsel,
-                enForespørsel(),
-                enForespørsel(),
-                enForespørsel(begrunnelseForAtAktivitetIkkeBleOpprettet = BegrunnelseForAtAktivitetIkkeBleOpprettet.UGYLDIG_OPPFOLGINGSSTATUS)
+            val aktørId = "aktørId"
+            val annenAktørId = "annenAktørId"
+
+            val forespørslerGruppertPåKandidat = hashMapOf(
+                aktørId to listOf(
+                    enForespørsel(aktørId = aktørId, stillingsId = stillingsReferanse),
+                ),
+                annenAktørId to listOf(
+                    enForespørsel(aktørId = annenAktørId, stillingsId = stillingsReferanse),
+                    enForespørsel(aktørId = annenAktørId, stillingsId = stillingsReferanse),
+                )
             )
+            val alleForespørsler = forespørslerGruppertPåKandidat.flatMap { it.value }
+            database.lagreBatch(alleForespørsler)
 
-            database.lagreBatch(forespørsler)
-
-            val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
+            val kandidaterMedForespørsler = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .responseObject<Map<String, ForesporselOmDelingAvCv>>(mapper = objectMapper)
+                .responseObject<Map<String, List<ForespørselOutboundDto>>>(mapper = objectMapper)
+                .third
+                .get()
 
-            val kandidaterMedForespørsler = lagretForespørsel.third.get()
-
-            val forespørselOutboundDto = forespørsel.tilOutboundDto()
-            val kandidatMedForespørselOutboundDto = KandidatMedForespørslerOutboundDto(forespørselOutboundDto.aktørId, listOf(forespørselOutboundDto))
-
-            assertThat(kandidaterMedForespørsler.size).isEqualTo(1)
-            assertEquals(kandidatMedForespørselOutboundDto, kandidaterMedForespørsler[0])
+            assertThat(kandidaterMedForespørsler.size).isEqualTo(2)
+            assertThat(kandidaterMedForespørsler[aktørId]?.size).isEqualTo(forespørslerGruppertPåKandidat[aktørId]?.size)
+            assertThat(kandidaterMedForespørsler[annenAktørId]?.size).isEqualTo(forespørslerGruppertPåKandidat[annenAktørId]?.size)
         }
     }
 
