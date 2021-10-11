@@ -346,7 +346,7 @@ class ControllerTest {
             val kandidaterMedForespørsler = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .responseObject<Map<String, List<ForespørselOutboundDto>>>(mapper = objectMapper)
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
                 .third
                 .get()
 
@@ -406,13 +406,13 @@ class ControllerTest {
             val returverdi = Fuel.post("http://localhost:8333/foresporsler/")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
-                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper).third.get()
 
             assertThat(returverdi.size).isEqualTo(2)
 
             val nå = LocalDateTime.now()
-            returverdi.forEachIndexed { index, forespørsel ->
-                assertThat(forespørsel.aktørId).isEqualTo(inboundDto.aktorIder[index])
+            returverdi.values.flatten().forEach { forespørsel ->
+                assertThat(forespørsel.aktørId).isIn(inboundDto.aktorIder)
                 assertThat(forespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(forespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
                 assertThat(forespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
@@ -444,22 +444,20 @@ class ControllerTest {
     @Test
     fun `Kall til POST-endepunkt for resending skal returnere alle forespørsler på stillingsId`() {
         val aktørId = "dummyAktørId"
-        val inboundDto = ResendForespørselInboundDto(
-            stillingsId = UUID.randomUUID().toString(),
-            svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
-        )
 
         val database = TestDatabase()
         startWiremockApp().use {
+            val stillingsId = UUID.randomUUID()
+
             val forespørselMedUtgåttSvarfrist = enForespørsel(
                 aktørId = aktørId,
-                stillingsId = inboundDto.stillingsId.toUUID(),
+                stillingsId = stillingsId,
                 tilstand = Tilstand.AVBRUTT
             )
 
             val enAnnenLagretForespørsel = enForespørsel(
                 aktørId = "enAnnenAktør",
-                stillingsId = inboundDto.stillingsId.toUUID()
+                stillingsId = stillingsId
             )
 
             database.lagreBatch(
@@ -469,15 +467,22 @@ class ControllerTest {
                 )
             )
 
+            val inboundDto = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            )
+
             val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
                 .medVeilederCookie(mockOAuth2Server, "A123456")
                 .objectBody(inboundDto, mapper = objectMapper)
-                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper)
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
 
             val outboundDto = result.get()
 
             assertThat(response.statusCode).isEqualTo(201)
-            assertThat(outboundDto.size).isEqualTo(3)
+            assertThat(outboundDto.size).isEqualTo(2)
+            assertThat(outboundDto[aktørId]?.size).isEqualTo(2)
+            assertThat(outboundDto[enAnnenLagretForespørsel.aktørId]?.size).isEqualTo(1)
         }
     }
 

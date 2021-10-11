@@ -156,3 +156,5 @@ data class ForespørselOutboundDto(
     val svar: Svar?,
     val begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?
 )
+
+typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutboundDto>>
