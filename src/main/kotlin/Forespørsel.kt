@@ -15,7 +15,7 @@ data class Ident(
 )
 
 data class Svar(
-    val svar: Boolean,
+    val harSvartJa: Boolean,
     val svarTidspunkt: LocalDateTime,
     val svartAv: Ident
 ) {
@@ -23,7 +23,7 @@ data class Svar(
         fun fraKafkamelding(melding: no.nav.veilarbaktivitet.avro.Svar?): Svar? {
             return if (melding != null) {
                 Svar(
-                    svar = melding.getSvar(),
+                    harSvartJa = melding.getSvar(),
                     svarTidspunkt = LocalDateTime.ofInstant(melding.getSvarTidspunkt(), ZoneOffset.UTC),
                     svartAv = Ident(
                         ident = melding.getSvartAv().getIdent(),
@@ -55,42 +55,11 @@ data class Forespørsel(
     val sendtTilKafkaTidspunkt: LocalDateTime?,
     val callId: String,
 ) {
-    companion object {
-        private fun tilstandEllerNull(verdi: String?): Tilstand? {
-            return Tilstand.values().firstOrNull { it.name == verdi }
-        }
+    fun harSvartJa() = svar?.harSvartJa == true
 
-        private fun begrunnelseEllerNull(verdi: String?): BegrunnelseForAtAktivitetIkkeBleOpprettet? {
-            return BegrunnelseForAtAktivitetIkkeBleOpprettet.values().firstOrNull { it.name == verdi }
-        }
+    fun venterPåSvar() = tilstand == Tilstand.HAR_VARSLET || tilstand == Tilstand.PROVER_VARSLING
 
-        fun fromDb(rs: ResultSet): Forespørsel {
-            val svar = if (rs.getNullableBoolean("svar") == null) null else Svar(
-                svar = rs.getBoolean("svar"),
-                svarTidspunkt = rs.getTimestamp("svar_tidspunkt").toLocalDateTime(),
-                svartAv = Ident(
-                    ident = rs.getString("svart_av_ident"),
-                    identType = IdentType.valueOf(rs.getString("svart_av_ident_type")),
-                ),
-            )
-
-            return Forespørsel(
-                id = rs.getLong("id"),
-                aktørId = rs.getString("aktor_id"),
-                stillingsId = rs.getString("stilling_id").toUUID(),
-                forespørselId = rs.getString("foresporsel_id").toUUID(),
-                deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
-                deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
-                deltAv = rs.getString("delt_av"),
-                svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
-                tilstand = tilstandEllerNull(rs.getString("tilstand")),
-                svar = svar,
-                begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseEllerNull(rs.getString("begrunnelse_for_at_aktivitet_ikke_ble_opprettet")),
-                sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
-                callId = rs.getString("call_id"),
-            )
-        }
-    }
+    fun kanIkkeVarsleBruker() = tilstand == Tilstand.KAN_IKKE_VARSLE
 
     fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
         forespørselId.toString(),
@@ -132,6 +101,43 @@ data class Forespørsel(
         svar,
         begrunnelseForAtAktivitetIkkeBleOpprettet
     )
+
+    companion object {
+        private fun tilstandEllerNull(verdi: String?): Tilstand? {
+            return Tilstand.values().firstOrNull { it.name == verdi }
+        }
+
+        private fun begrunnelseEllerNull(verdi: String?): BegrunnelseForAtAktivitetIkkeBleOpprettet? {
+            return BegrunnelseForAtAktivitetIkkeBleOpprettet.values().firstOrNull { it.name == verdi }
+        }
+
+        fun fromDb(rs: ResultSet): Forespørsel {
+            val svar = if (rs.getNullableBoolean("svar") == null) null else Svar(
+                harSvartJa = rs.getBoolean("svar"),
+                svarTidspunkt = rs.getTimestamp("svar_tidspunkt").toLocalDateTime(),
+                svartAv = Ident(
+                    ident = rs.getString("svart_av_ident"),
+                    identType = IdentType.valueOf(rs.getString("svart_av_ident_type")),
+                ),
+            )
+
+            return Forespørsel(
+                id = rs.getLong("id"),
+                aktørId = rs.getString("aktor_id"),
+                stillingsId = rs.getString("stilling_id").toUUID(),
+                forespørselId = rs.getString("foresporsel_id").toUUID(),
+                deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
+                deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
+                deltAv = rs.getString("delt_av"),
+                svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
+                tilstand = tilstandEllerNull(rs.getString("tilstand")),
+                svar = svar,
+                begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseEllerNull(rs.getString("begrunnelse_for_at_aktivitet_ikke_ble_opprettet")),
+                sendtTilKafkaTidspunkt = rs.getTimestamp("sendt_til_kafka_tidspunkt")?.toLocalDateTime(),
+                callId = rs.getString("call_id"),
+            )
+        }
+    }
 }
 
 enum class Tilstand {

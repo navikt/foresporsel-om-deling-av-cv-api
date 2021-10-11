@@ -27,6 +27,8 @@ fun enForespørsel(
     stillingsId: UUID = UUID.randomUUID(),
     forespørselId: UUID = UUID.randomUUID(),
     deltAv: String = "veileder",
+    tilstand: Tilstand? = null,
+    svar: Svar? = null,
     begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet? = null
 ) = Forespørsel(
     id = 0,
@@ -37,8 +39,8 @@ fun enForespørsel(
     deltTidspunkt = deltTidspunkt,
     deltAv = deltAv,
     svarfrist = LocalDate.now().plusDays(6).atStartOfDay(),
-    tilstand = null,
-    svar = null,
+    tilstand = tilstand,
+    svar = svar,
     begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseForAtAktivitetIkkeBleOpprettet,
     sendtTilKafkaTidspunkt = null,
     callId = UUID.randomUUID().toString(),

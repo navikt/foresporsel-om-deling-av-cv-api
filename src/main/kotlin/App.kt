@@ -41,7 +41,8 @@ class App(
             get("/internal/isReady") { it.status(200) }
             get("/foresporsler/kandidat/:$aktorIdParamName", controller.hentForespørslerForKandidat)
             get("/foresporsler/:$stillingsIdParamName", controller.hentForespørsler)
-            post("/foresporsler", controller.lagreForespørselOmDelingAvCv)
+            post("/foresporsler", controller.sendForespørselOmDelingAvCv)
+            post("/foresporsler/kandidat/:$aktorIdParamName", controller.resendForespørselOmDelingAvCv)
         }
     }
 

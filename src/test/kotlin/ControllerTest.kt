@@ -14,6 +14,7 @@ import setup.mockProducer
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
+import utils.toUUID
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -112,9 +113,9 @@ class ControllerTest {
                 assertThat(getPostkode()).isNull()
             }
             lagredeForespørsler.find { it.aktørId == aktørid1 }.let {
-                assertThat(aktør1.getBestillingsId()).isEqualTo(it?.forespørselId?.toString() )
+                assertThat(aktør1.getBestillingsId()).isEqualTo(it?.forespørselId?.toString())
                 assertThat(aktør1.getCallId()).isEqualTo(it?.callId)
-                assertThat(it?.deltTidspunkt).isBetween(LocalDateTime.now().minusSeconds(10), LocalDateTime.now() )
+                assertThat(it?.deltTidspunkt).isBetween(LocalDateTime.now().minusSeconds(10), LocalDateTime.now())
                 assertThat(aktør1.getOpprettetAv()).isEqualTo(it?.deltAv)
             }
             aktør1.getKontaktInfo().apply {
@@ -414,6 +415,144 @@ class ControllerTest {
                 assertThat(forespørsel.svar).isNull()
                 assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
             }
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for resending skal gi 400 hvis kandidaten ikke har fått forespørsel før`() {
+        val aktørId = "dummyAktørId"
+        val inboundDto = ResendForespørselInboundDto(
+            stillingsId = UUID.randomUUID().toString(),
+            svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+        )
+
+        startWiremockApp().use {
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for resending skal returnere alle forespørsler på stillingsId`() {
+        val aktørId = "dummyAktørId"
+        val inboundDto = ResendForespørselInboundDto(
+            stillingsId = UUID.randomUUID().toString(),
+            svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+        )
+
+        val database = TestDatabase()
+        startWiremockApp().use {
+            val forespørselMedUtgåttSvarfrist = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = inboundDto.stillingsId.toUUID(),
+                tilstand = Tilstand.AVBRUTT
+            )
+
+            val enAnnenLagretForespørsel = enForespørsel(
+                aktørId = "enAnnenAktør",
+                stillingsId = inboundDto.stillingsId.toUUID()
+            )
+
+            database.lagreBatch(
+                listOf(
+                    forespørselMedUtgåttSvarfrist,
+                    enAnnenLagretForespørsel
+                )
+            )
+
+            val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .objectBody(inboundDto, mapper = objectMapper)
+                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper)
+
+            val outboundDto = result.get()
+
+            assertThat(response.statusCode).isEqualTo(201)
+            assertThat(outboundDto.size).isEqualTo(3)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for resending skal gi 400 hvis siste forespørsel for kandidat ikke er besvart`() {
+        val aktørId = "dummyAktørId"
+        val stillingsId = UUID.randomUUID()
+
+        stubHentStilling(stillingsId)
+        val database = TestDatabase()
+        startWiremockApp().use {
+            val gammelForespørselMedUtgåttSvarfrist = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.AVBRUTT
+            )
+            val ubesvartForespørsel = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.HAR_VARSLET
+            )
+
+            database.lagreBatch(
+                listOf(
+                    gammelForespørselMedUtgåttSvarfrist,
+                    ubesvartForespørsel
+                )
+            )
+
+            val nyForespørsel = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .objectBody(nyForespørsel, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for resending skal gi 400 hvis siste forespørsel for kandidat er besvart med ja`() {
+        val aktørId = "dummyAktørId"
+        val stillingsId = UUID.randomUUID()
+
+        stubHentStilling(stillingsId)
+        val database = TestDatabase()
+        startWiremockApp().use {
+
+            val godkjentForespørsel = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.HAR_SVART,
+                svar = Svar(
+                    harSvartJa = true,
+                    svarTidspunkt = LocalDateTime.now(),
+                    svartAv = Ident(aktørId, IdentType.AKTOR_ID)
+                )
+            )
+
+            database.lagreBatch(
+                listOf(
+                    godkjentForespørsel
+                )
+            )
+
+            val nyForespørsel = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .objectBody(nyForespørsel, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
         }
     }
 
