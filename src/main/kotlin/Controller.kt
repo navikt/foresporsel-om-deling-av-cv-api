@@ -18,9 +18,11 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
             ctx.status(400)
             null
         }?.let { stillingsId ->
-            val outboundDto = repository.hentForespørsler(stillingsId).map(Forespørsel::tilOutboundDto)
+            val forespørsler = repository.hentForespørsler(stillingsId)
+            val forespørslerDto = forespørsler.map { it.tilOutboundDto() }
+            val grupperPåAktørId = forespørslerDto.groupBy { it.aktørId }
 
-            ctx.json(outboundDto)
+            ctx.json(grupperPåAktørId)
             ctx.status(200)
         }
     }

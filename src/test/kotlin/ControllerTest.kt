@@ -342,12 +342,15 @@ class ControllerTest {
             val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+                .responseObject<Map<String, ForesporselOmDelingAvCv>>(mapper = objectMapper)
+
+            val kandidaterMedForespørsler = lagretForespørsel.third.get()
 
             val forespørselOutboundDto = forespørsel.tilOutboundDto()
+            val kandidatMedForespørselOutboundDto = KandidatMedForespørslerOutboundDto(forespørselOutboundDto.aktørId, listOf(forespørselOutboundDto))
 
-            assertThat(lagretForespørsel.size).isEqualTo(1)
-            assertEquals(forespørselOutboundDto, lagretForespørsel[0])
+            assertThat(kandidaterMedForespørsler.size).isEqualTo(1)
+            assertEquals(kandidatMedForespørselOutboundDto, kandidaterMedForespørsler[0])
         }
     }
 
