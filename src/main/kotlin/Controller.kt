@@ -9,7 +9,7 @@ import java.util.UUID
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
 
-class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
+class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -39,31 +39,23 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
         }
     }
 
-    val lagreForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
+    val sendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
 
-        fun minstEnKandidatHarFåttForespørsel() = repository.minstEnKandidatHarFåttForespørsel(
-            forespørselOmDelingAvCvDto.stillingsId.toUUID(),
-            forespørselOmDelingAvCvDto.aktorIder
-        )
+        val minstEnKandidatHarFåttForespørselFør: () -> Boolean = {
+                repository.minstEnKandidatHarFåttForespørsel(
+                    forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+                    forespørselOmDelingAvCvDto.aktorIder
+                )
+            }
 
         val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
 
-        if (stilling == null) {
-            val feilmelding = "Stillingen eksisterer ikke"
-            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
+        val (kanSende, statuskode, feilmelding) = kanSendeForespørsel(stilling, minstEnKandidatHarFåttForespørselFør)
 
-            ctx.status(404).json(feilmelding)
-        } else if (stilling.kanIkkeDelesMedKandidaten) {
-            val feilmelding = "Stillingen kan ikke deles med brukeren pga. stillingskategori."
+        if (!kanSende) {
             loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
-
-            ctx.status(400).json(feilmelding)
-        } else if (minstEnKandidatHarFåttForespørsel()) {
-            val feilmelding = "Minst én kandidat har fått forespørselen fra før."
-            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
-
-            ctx.status(409).json(feilmelding)
+            ctx.status(statuskode).json(feilmelding)
         } else {
             repository.lagreUsendteForespørsler(
                 aktørIder = forespørselOmDelingAvCvDto.aktorIder,
@@ -83,6 +75,17 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
             sendUsendteForespørsler()
         }
     }
+
+    private fun kanSendeForespørsel(stilling: Stilling?, minstEnKandidatHarFåttForespørselFør: () -> Boolean): Triple<Boolean, Int, String> =
+        if (stilling == null) {
+            Triple(false, 404,"Stillingen eksisterer ikke", )
+        } else if (stilling.kanIkkeDelesMedKandidaten) {
+            Triple(false, 400, "Stillingen kan ikke deles med brukeren pga. stillingskategori.")
+        } else if (minstEnKandidatHarFåttForespørselFør()) {
+            Triple(false, 409, "Minst én kandidat har fått forespørselen fra før.")
+        } else {
+            Triple(true, 200, "")
+        }
 
     val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val inboundDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
@@ -118,9 +121,6 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
         }
     }
 
-    private fun loggFeilMedStilling(feilmelding: String, stillingsId: String) =
-        log.warn("$feilmelding: Stillingsid: $stillingsId")
-
     private fun kanResendeForespørsel(sisteForespørselForKandidatOgStilling: Forespørsel?): Pair<Boolean, String> =
         if (sisteForespørselForKandidatOgStilling == null) {
             Pair(false, "Kan ikke resende forespørsel fordi kandidaten ikke har fått forespørsel før")
@@ -133,6 +133,9 @@ class Controller(repository: Repository, sendUsendteForespørsler: () -> Unit, h
         } else {
             Pair(true, "")
         }
+
+    private fun loggFeilMedStilling(feilmelding: String, stillingsId: String) =
+        log.warn("$feilmelding: Stillingsid: $stillingsId")
 }
 
 data class ForespørselInboundDto(
