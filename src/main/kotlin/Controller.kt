@@ -13,16 +13,12 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
 
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
-            ctx.pathParam(stillingsIdParamName).toUUID()
+            ctx.pathParam(stillingsIdParamName)
         } catch (exception: IllegalArgumentException) {
             ctx.status(400)
             null
         }?.let { stillingsId ->
-            val forespørsler = repository.hentForespørsler(stillingsId)
-            val forespørslerDto = forespørsler.map { it.tilOutboundDto() }
-            val grupperPåAktørId = forespørslerDto.groupBy { it.aktørId }
-
-            ctx.json(grupperPåAktørId)
+            ctx.json(hentForespørslerGruppertPåAktørId(stillingsId))
             ctx.status(200)
         }
     }
@@ -67,13 +63,8 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
                 callId = ctx.hentCallId()
             )
 
-            val alleForespørslerPåStilling =
-                repository.hentForespørsler(forespørselOmDelingAvCvDto.stillingsId.toUUID())
-                    .map { it.tilOutboundDto() }
-
-            ctx.json(alleForespørslerPåStilling)
+            ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
             ctx.status(201)
-
             sendUsendteForespørsler()
         }
     }
@@ -112,11 +103,7 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
                 callId = ctx.hentCallId()
             )
 
-            val alleForespørslerPåStilling =
-                repository.hentForespørsler(inboundDto.stillingsId.toUUID())
-                    .map { it.tilOutboundDto() }
-
-            ctx.json(alleForespørslerPåStilling)
+            ctx.json(hentForespørslerGruppertPåAktørId(inboundDto.stillingsId))
             ctx.status(201)
 
             sendUsendteForespørsler()
@@ -135,6 +122,11 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
         } else {
             Pair(true, "")
         }
+
+    private fun hentForespørslerGruppertPåAktørId(stillingsId: String) =
+        repository.hentForespørsler(stillingsId.toUUID())
+            .map { it.tilOutboundDto() }
+            .groupBy { it.aktørId }
 
     private fun loggFeilMedStilling(feilmelding: String, stillingsId: String) =
         log.warn("$feilmelding: Stillingsid: $stillingsId")
