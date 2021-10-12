@@ -320,7 +320,7 @@ class ControllerTest {
     }
 
     @Test
-    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId`() {
+    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId gruppert på aktørId`() {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
         stubHentStilling(stillingsReferanse)
@@ -328,31 +328,36 @@ class ControllerTest {
         startWiremockApp(database).use {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
-            val forespørsel = enForespørsel(stillingsId = stillingsReferanse)
-            val forespørsler = listOf(
-                enForespørsel(),
-                forespørsel,
-                enForespørsel(),
-                enForespørsel(),
-                enForespørsel(begrunnelseForAtAktivitetIkkeBleOpprettet = BegrunnelseForAtAktivitetIkkeBleOpprettet.UGYLDIG_OPPFOLGINGSSTATUS)
+            val aktørId = "aktørId"
+            val annenAktørId = "annenAktørId"
+
+            val forespørslerGruppertPåKandidat = hashMapOf(
+                aktørId to listOf(
+                    enForespørsel(aktørId = aktørId, stillingsId = stillingsReferanse),
+                ),
+                annenAktørId to listOf(
+                    enForespørsel(aktørId = annenAktørId, stillingsId = stillingsReferanse),
+                    enForespørsel(aktørId = annenAktørId, stillingsId = stillingsReferanse),
+                )
             )
+            val alleForespørsler = forespørslerGruppertPåKandidat.flatMap { it.value }
+            database.lagreBatch(alleForespørsler)
 
-            database.lagreBatch(forespørsler)
-
-            val lagretForespørsel = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
+            val kandidaterMedForespørsler = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
-                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
+                .third
+                .get()
 
-            val forespørselOutboundDto = forespørsel.tilOutboundDto()
-
-            assertThat(lagretForespørsel.size).isEqualTo(1)
-            assertEquals(forespørselOutboundDto, lagretForespørsel[0])
+            assertThat(kandidaterMedForespørsler.size).isEqualTo(2)
+            assertThat(kandidaterMedForespørsler[aktørId]?.size).isEqualTo(forespørslerGruppertPåKandidat[aktørId]?.size)
+            assertThat(kandidaterMedForespørsler[annenAktørId]?.size).isEqualTo(forespørslerGruppertPåKandidat[annenAktørId]?.size)
         }
     }
 
     @Test
-    fun `Kall til GET-endpunkt for kandidat skal hente lagrede forespørsler på aktørId`() {
+    fun `Kall til GET-endpunkt for kandidat skal hente gjeldende forespørsler på aktørId`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -360,12 +365,16 @@ class ControllerTest {
             val callId = UUID.randomUUID()
             val aktørId = "123"
 
-            val forespørselForEnStilling = enForespørsel(aktørId = aktørId)
+            val stillingUuid = UUID.randomUUID()
+            val gammelForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val gjeldendeForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
             val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
+
+            database.lagreBatch(listOf(gammelForespørselForStillingen))
 
             database.lagreBatch(
                 listOf(
-                    forespørselForEnStilling,
+                    gjeldendeForespørselForStillingen,
                     forespørselForEnAnnenStilling
                 )
             )
@@ -377,7 +386,7 @@ class ControllerTest {
 
             assertThat(lagredeForespørslerForKandidat.size).isEqualTo(2)
             assertThat(lagredeForespørslerForKandidat).containsExactlyInAnyOrder(
-                forespørselForEnStilling.tilOutboundDto(),
+                gjeldendeForespørselForStillingen.tilOutboundDto(),
                 forespørselForEnAnnenStilling.tilOutboundDto()
             )
         }
@@ -401,13 +410,13 @@ class ControllerTest {
             val returverdi = Fuel.post("http://localhost:8333/foresporsler/")
                 .medVeilederCookie(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
-                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper).third.get()
 
             assertThat(returverdi.size).isEqualTo(2)
 
             val nå = LocalDateTime.now()
-            returverdi.forEachIndexed { index, forespørsel ->
-                assertThat(forespørsel.aktørId).isEqualTo(inboundDto.aktorIder[index])
+            returverdi.values.flatten().forEach { forespørsel ->
+                assertThat(forespørsel.aktørId).isIn(inboundDto.aktorIder)
                 assertThat(forespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(forespørsel.deltStatus).isEqualTo(DeltStatus.IKKE_SENDT)
                 assertThat(forespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
@@ -439,22 +448,20 @@ class ControllerTest {
     @Test
     fun `Kall til POST-endepunkt for resending skal returnere alle forespørsler på stillingsId`() {
         val aktørId = "dummyAktørId"
-        val inboundDto = ResendForespørselInboundDto(
-            stillingsId = UUID.randomUUID().toString(),
-            svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
-        )
 
         val database = TestDatabase()
         startWiremockApp().use {
+            val stillingsId = UUID.randomUUID()
+
             val forespørselMedUtgåttSvarfrist = enForespørsel(
                 aktørId = aktørId,
-                stillingsId = inboundDto.stillingsId.toUUID(),
+                stillingsId = stillingsId,
                 tilstand = Tilstand.AVBRUTT
             )
 
             val enAnnenLagretForespørsel = enForespørsel(
                 aktørId = "enAnnenAktør",
-                stillingsId = inboundDto.stillingsId.toUUID()
+                stillingsId = stillingsId
             )
 
             database.lagreBatch(
@@ -464,15 +471,22 @@ class ControllerTest {
                 )
             )
 
+            val inboundDto = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            )
+
             val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
                 .medVeilederCookie(mockOAuth2Server, "A123456")
                 .objectBody(inboundDto, mapper = objectMapper)
-                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper)
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
 
             val outboundDto = result.get()
 
             assertThat(response.statusCode).isEqualTo(201)
-            assertThat(outboundDto.size).isEqualTo(3)
+            assertThat(outboundDto.size).isEqualTo(2)
+            assertThat(outboundDto[aktørId]?.size).isEqualTo(2)
+            assertThat(outboundDto[enAnnenLagretForespørsel.aktørId]?.size).isEqualTo(1)
         }
     }
 
