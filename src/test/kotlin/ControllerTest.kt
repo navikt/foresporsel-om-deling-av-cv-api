@@ -357,7 +357,7 @@ class ControllerTest {
     }
 
     @Test
-    fun `Kall til GET-endpunkt for kandidat skal hente lagrede forespørsler på aktørId`() {
+    fun `Kall til GET-endpunkt for kandidat skal hente gjeldende forespørsler på aktørId`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -365,12 +365,16 @@ class ControllerTest {
             val callId = UUID.randomUUID()
             val aktørId = "123"
 
-            val forespørselForEnStilling = enForespørsel(aktørId = aktørId)
+            val stillingUuid = UUID.randomUUID()
+            val gammelForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val gjeldendeForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
             val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
+
+            database.lagreBatch(listOf(gammelForespørselForStillingen))
 
             database.lagreBatch(
                 listOf(
-                    forespørselForEnStilling,
+                    gjeldendeForespørselForStillingen,
                     forespørselForEnAnnenStilling
                 )
             )
@@ -382,7 +386,7 @@ class ControllerTest {
 
             assertThat(lagredeForespørslerForKandidat.size).isEqualTo(2)
             assertThat(lagredeForespørslerForKandidat).containsExactlyInAnyOrder(
-                forespørselForEnStilling.tilOutboundDto(),
+                gjeldendeForespørselForStillingen.tilOutboundDto(),
                 forespørselForEnAnnenStilling.tilOutboundDto()
             )
         }
