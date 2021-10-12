@@ -30,7 +30,7 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
             ctx.status(400)
             null
         }?.let { aktørId ->
-            val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId).sortedBy { it.id }
+            val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
 
             val outboundDto = gjeldendeForespørslerForKandidat.map(Forespørsel::tilOutboundDto)
