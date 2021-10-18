@@ -4,6 +4,7 @@ import utils.hentCallId
 import utils.log
 import utils.toUUID
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 const val stillingsIdParamName = "stillingsId"
@@ -136,13 +137,13 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
 
 data class ForespørselInboundDto(
     val stillingsId: String,
-    val svarfrist: LocalDateTime,
+    val svarfrist: ZonedDateTime,
     val aktorIder: List<String>,
 )
 
 data class ResendForespørselInboundDto(
     val stillingsId: String,
-    val svarfrist: LocalDateTime
+    val svarfrist: ZonedDateTime
 )
 
 data class ForespørselOutboundDto(
@@ -152,7 +153,7 @@ data class ForespørselOutboundDto(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
-    val svarfrist: LocalDateTime,
+    val svarfrist: ZonedDateTime,
 
     val tilstand: Tilstand?,
     val svar: Svar?,

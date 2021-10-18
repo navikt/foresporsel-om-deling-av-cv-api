@@ -2,6 +2,7 @@ import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 import javax.sql.DataSource
 
@@ -10,7 +11,7 @@ class Repository(private val dataSource: DataSource) {
     fun lagreUsendteForespørsler(
         aktørIder: List<String>,
         stillingsId: UUID,
-        svarfrist: LocalDateTime,
+        svarfrist: ZonedDateTime,
         deltAvNavIdent: String,
         callId: String
     ) {
@@ -30,7 +31,7 @@ class Repository(private val dataSource: DataSource) {
                 statement.setString(4, DeltStatus.IKKE_SENDT.toString())
                 statement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()))
                 statement.setString(6, deltAvNavIdent)
-                statement.setTimestamp(7, Timestamp.valueOf(svarfrist))
+                statement.setTimestamp(7, Timestamp.valueOf(svarfrist.toLocalDateTime()))
                 statement.setString(8, callId)
                 statement.addBatch()
             }
