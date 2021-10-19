@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/endre-forespørselstruktur-til-map'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/datogreier'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
