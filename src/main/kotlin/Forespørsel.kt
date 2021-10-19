@@ -6,7 +6,9 @@ import utils.getNullableBoolean
 import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.*
 
 data class Ident(
@@ -96,7 +98,7 @@ data class Forespørsel(
         deltStatus,
         deltTidspunkt,
         deltAv,
-        svarfrist,
+        ZonedDateTime.of(svarfrist, ZoneId.of("Europe/Oslo")),
         tilstand,
         svar,
         begrunnelseForAtAktivitetIkkeBleOpprettet

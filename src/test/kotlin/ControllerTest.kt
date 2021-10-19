@@ -15,9 +15,7 @@ import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
 import utils.toUUID
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.*
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -422,7 +420,7 @@ class ControllerTest {
                 assertThat(forespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
                 assertThat(forespørsel.tilstand).isNull()
                 assertThat(forespørsel.svar).isNull()
-                assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
+                assertThat(forespørsel.svarfrist).isEqualTo(ZonedDateTime.of(inboundDto.svarfrist, ZoneId.of("Europe/Oslo")))
             }
         }
     }
@@ -568,6 +566,11 @@ class ControllerTest {
 
             assertThat(response.statusCode).isEqualTo(400)
         }
+    }
+
+    private fun inneholderNøyaktigOgMedSjekkForTidspunkt(inboundDto: ForespørselInboundDto, outboundDto: List<ForespørselOutboundDto>) {
+        assertThat(inboundDto)
+        //
     }
 
     private fun stubHentStilling(
