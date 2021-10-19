@@ -25,6 +25,8 @@ class ControllerTest {
 
     @BeforeAll
     fun init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
+
         mockOAuth2Server.start(port = 18300)
         wireMock.start()
     }
