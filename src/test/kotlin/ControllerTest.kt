@@ -83,7 +83,7 @@ class ControllerTest {
                 assertThat(lagretForespørsel.stillingsId.toString()).isEqualTo(inboundDto.stillingsId)
                 assertThat(lagretForespørsel.deltAv).isEqualTo(navIdent)
                 assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
-                // assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist.toLocalDateTime())
+                assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
                 assertThat(lagretForespørsel.tilstand).isNull()
                 assertThat(lagretForespørsel.svar).isNull()
                 assertThat(lagretForespørsel.callId).isEqualTo(callId)
@@ -124,7 +124,7 @@ class ControllerTest {
             assertThat(aktør1.getSoknadsfrist()).isEqualTo("Snarest")
             assertThat(aktør1.getStillingstittel()).isEqualTo("En formidling")
             assertThat(aktør1.getStillingsId()).isEqualTo(inboundDto.stillingsId)
-            // assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toLocalDateTime())
+            assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toInstant())
         }
     }
 
@@ -419,7 +419,7 @@ class ControllerTest {
                 assertThat(forespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
                 assertThat(forespørsel.tilstand).isNull()
                 assertThat(forespørsel.svar).isNull()
-                // assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist.toInstant())
+                assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
             }
         }
     }
