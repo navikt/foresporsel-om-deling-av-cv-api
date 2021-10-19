@@ -3,6 +3,8 @@ import stilling.Kontakt
 import stilling.Stilling
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 
 fun enStilling() = Stilling(
@@ -29,6 +31,7 @@ fun enForespørsel(
     deltAv: String = "veileder",
     tilstand: Tilstand? = null,
     svar: Svar? = null,
+    svarfrist: ZonedDateTime = LocalDate.now().plusDays(6).atStartOfDay().atZone(ZoneId.of("Europe/Oslo")),
     begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet? = null
 ) = Forespørsel(
     id = 0,
@@ -38,7 +41,7 @@ fun enForespørsel(
     deltStatus = deltStatus,
     deltTidspunkt = deltTidspunkt,
     deltAv = deltAv,
-    svarfrist = LocalDate.now().plusDays(6).atStartOfDay(),
+    svarfrist = svarfrist,
     tilstand = tilstand,
     svar = svar,
     begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseForAtAktivitetIkkeBleOpprettet,

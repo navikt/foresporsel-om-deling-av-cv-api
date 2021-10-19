@@ -6,7 +6,9 @@ import utils.getNullableBoolean
 import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.*
 
 data class Ident(
@@ -46,7 +48,7 @@ data class Forespørsel(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
-    val svarfrist: LocalDateTime,
+    val svarfrist: ZonedDateTime,
 
     val tilstand: Tilstand?,
     val svar: Svar?,
@@ -67,7 +69,7 @@ data class Forespørsel(
         stillingsId.toString(),
         deltAv,
         deltTidspunkt.toInstant(ZoneOffset.UTC),
-        svarfrist.toInstant(ZoneOffset.UTC),
+        svarfrist.toInstant(),
         callId,
         stilling.stillingtittel,
         stilling.søknadsfrist,
@@ -129,7 +131,7 @@ data class Forespørsel(
                 deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
                 deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
                 deltAv = rs.getString("delt_av"),
-                svarfrist = rs.getTimestamp("svarfrist").toLocalDateTime(),
+                svarfrist = ZonedDateTime.ofInstant(rs.getTimestamp("svarfrist").toInstant(), ZoneId.of("Europe/Oslo")),
                 tilstand = tilstandEllerNull(rs.getString("tilstand")),
                 svar = svar,
                 begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseEllerNull(rs.getString("begrunnelse_for_at_aktivitet_ikke_ble_opprettet")),

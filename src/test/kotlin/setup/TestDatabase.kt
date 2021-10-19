@@ -43,7 +43,7 @@ class TestDatabase {
                 statement.setString(4, it.deltStatus.toString())
                 statement.setTimestamp(5, Timestamp.valueOf(it.deltTidspunkt))
                 statement.setString(6, it.deltAv)
-                statement.setTimestamp(7, Timestamp.valueOf(it.svarfrist))
+                statement.setTimestamp(7, Timestamp.valueOf(it.svarfrist.toLocalDateTime()))
                 statement.setString(8, it.tilstand.toString())
                 statement.setString(9, it.callId)
 

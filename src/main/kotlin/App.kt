@@ -19,6 +19,7 @@ import utils.log
 import utils.objectMapper
 import utils.settCallId
 import java.io.Closeable
+import java.util.*
 import kotlin.concurrent.thread
 
 class App(
@@ -29,6 +30,7 @@ class App(
 ) : Closeable {
 
     init {
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
         JavalinJackson.configure(objectMapper)
     }
 

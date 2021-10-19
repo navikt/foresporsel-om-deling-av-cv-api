@@ -14,10 +14,7 @@ import setup.mockProducer
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
-import utils.toUUID
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.*
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -62,7 +59,7 @@ class ControllerTest {
         startWiremockApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf(aktørid1, aktørid2, aktørid3),
             )
 
@@ -127,7 +124,7 @@ class ControllerTest {
             assertThat(aktør1.getSoknadsfrist()).isEqualTo("Snarest")
             assertThat(aktør1.getStillingstittel()).isEqualTo("En formidling")
             assertThat(aktør1.getStillingsId()).isEqualTo(inboundDto.stillingsId)
-            assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toInstant(ZoneOffset.UTC))
+            assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toInstant())
         }
     }
 
@@ -141,7 +138,7 @@ class ControllerTest {
         startWiremockApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf("234"),
             )
 
@@ -170,7 +167,7 @@ class ControllerTest {
         startWiremockApp(database).use {
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf("234"),
             )
 
@@ -203,7 +200,7 @@ class ControllerTest {
 
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf(forespørsel.aktørId),
             )
 
@@ -231,7 +228,7 @@ class ControllerTest {
 
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf(forespørsel.aktørId),
             )
 
@@ -256,7 +253,7 @@ class ControllerTest {
 
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf("123", "345"),
             )
 
@@ -281,7 +278,7 @@ class ControllerTest {
 
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf("123", "345"),
             )
 
@@ -306,7 +303,7 @@ class ControllerTest {
 
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf("123", "345"),
             )
 
@@ -403,7 +400,7 @@ class ControllerTest {
 
             val inboundDto = ForespørselInboundDto(
                 stillingsId = stillingsReferanse.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay(),
+                svarfrist = omTreDager,
                 aktorIder = listOf("234", "345"),
             )
 
@@ -432,7 +429,7 @@ class ControllerTest {
         val aktørId = "dummyAktørId"
         val inboundDto = ResendForespørselInboundDto(
             stillingsId = UUID.randomUUID().toString(),
-            svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+            svarfrist = omTreDager
         )
 
         startWiremockApp().use {
@@ -473,7 +470,7 @@ class ControllerTest {
 
             val inboundDto = ResendForespørselInboundDto(
                 stillingsId = stillingsId.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+                svarfrist = omTreDager
             )
 
             val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
@@ -518,7 +515,7 @@ class ControllerTest {
 
             val nyForespørsel = ResendForespørselInboundDto(
                 stillingsId = stillingsId.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+                svarfrist = omTreDager
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
@@ -558,7 +555,7 @@ class ControllerTest {
 
             val nyForespørsel = ResendForespørselInboundDto(
                 stillingsId = stillingsId.toString(),
-                svarfrist = LocalDate.now().plusDays(3).atStartOfDay()
+                svarfrist = omTreDager
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
@@ -705,3 +702,5 @@ class ControllerTest {
             }
         """.trimIndent()
 }
+
+val omTreDager = ZonedDateTime.of(LocalDate.now().plusDays(3).atStartOfDay(), ZoneId.of("Europe/Oslo"))
