@@ -384,10 +384,10 @@ class ControllerTest {
                 .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
 
             assertThat(lagredeForespørslerForKandidat.size).isEqualTo(2)
-            // assertThat(lagredeForespørslerForKandidat).containsExactlyInAnyOrder(
-            //    gjeldendeForespørselForStillingen.tilOutboundDto(),
-            //    forespørselForEnAnnenStilling.tilOutboundDto()
-            //)
+            assertThat(lagredeForespørslerForKandidat).containsExactlyInAnyOrder(
+                gjeldendeForespørselForStillingen.tilOutboundDto(),
+                forespørselForEnAnnenStilling.tilOutboundDto()
+            )
         }
     }
 
