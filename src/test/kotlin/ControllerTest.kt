@@ -14,7 +14,6 @@ import setup.mockProducer
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
-import utils.toUUID
 import java.time.*
 import java.util.*
 import kotlin.test.assertEquals
@@ -125,7 +124,7 @@ class ControllerTest {
             assertThat(aktør1.getSoknadsfrist()).isEqualTo("Snarest")
             assertThat(aktør1.getStillingstittel()).isEqualTo("En formidling")
             assertThat(aktør1.getStillingsId()).isEqualTo(inboundDto.stillingsId)
-            assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist)
+            assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toInstant())
         }
     }
 
