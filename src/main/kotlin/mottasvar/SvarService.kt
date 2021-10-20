@@ -62,7 +62,12 @@ class SvarService(
 
         if (tilstand == Tilstand.KAN_IKKE_OPPRETTE) {
             val feilmelding = svarKafkamelding.getKanIkkeOppretteBegrunnelse().getFeilmelding()
-            log.error("Kan ikke opprette aktivitetskort for forespørsel-ID $forespørselId. Begrunnelse: $begrunnelse, Feilmelding: $feilmelding")
+
+            if (begrunnelse == BegrunnelseForAtAktivitetIkkeBleOpprettet.UGYLDIG_OPPFOLGINGSSTATUS && feilmelding == null) {
+                log.warn("Kan ikke opprette aktivitetskort for forespørsel-ID $forespørselId. Begrunnelse: $begrunnelse")
+            } else {
+                log.error("Kan ikke opprette aktivitetskort for forespørsel-ID $forespørselId. Begrunnelse: $begrunnelse, Feilmelding: $feilmelding")
+            }
         }
     }
 
