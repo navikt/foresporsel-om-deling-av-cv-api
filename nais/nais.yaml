@@ -2,9 +2,9 @@ apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
   name: foresporsel-om-deling-av-cv-api
-  namespace: toi
+  namespace: arbeidsgiver-inkludering
   labels:
-    team: toi
+    team: arbeidsgiver-inkludering
 spec:
   image: {{ image }}
   port: 8333
