@@ -2,9 +2,9 @@ apiVersion: "nais.io/v1"
 kind: "Alert"
 metadata:
   name: foresporsel-om-deling-av-cv-api
-  namespace: arbeidsgiver-inkludering
+  namespace: toi
   labels:
-    team: arbeidsgiver-inkludering
+    team: toi
 spec:
   receivers:
     slack:
