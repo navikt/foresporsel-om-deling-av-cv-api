@@ -31,20 +31,21 @@ class App(
 
     init {
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
-        JavalinJackson.configure(objectMapper)
     }
 
-    private val webServer = Javalin.create().apply {
+    private val webServer = Javalin.create { config ->
         config.defaultContentType = "application/json"
+        config.jsonMapper(JavalinJackson(objectMapper))
+    }.apply {
         before(validerToken(issuerProperties))
         before(settCallId)
         routes {
             get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
-            get("/foresporsler/kandidat/:$aktorIdParamName", controller.hentForespørslerForKandidat)
-            get("/foresporsler/:$stillingsIdParamName", controller.hentForespørsler)
+            get("/foresporsler/kandidat/{$aktorIdParamName}", controller.hentForespørslerForKandidat)
+            get("/foresporsler/{$stillingsIdParamName}", controller.hentForespørsler)
             post("/foresporsler", controller.sendForespørselOmDelingAvCv)
-            post("/foresporsler/kandidat/:$aktorIdParamName", controller.resendForespørselOmDelingAvCv)
+            post("/foresporsler/kandidat/{$aktorIdParamName}", controller.resendForespørselOmDelingAvCv)
         }
     }
 

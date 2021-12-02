@@ -23,7 +23,7 @@ tasks.test {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:3.13.7")
+    implementation("io.javalin:javalin:4.1.1")
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
