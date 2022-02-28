@@ -24,7 +24,7 @@ class AccessTokenClient(private val config: AzureConfig) {
             DEV_FSS -> "dev-gcp"
             PROD_FSS -> "prod-gcp"
             LOKAL -> "lokal"
-        }.let { cluster -> "api://${cluster}.arbeidsgiver.rekrutteringsbistand-stillingssok-proxy/.default" }
+        }.let { cluster -> "api://${cluster}.toi.rekrutteringsbistand-stillingssok-proxy/.default" }
 
         val formData = listOf(
             "grant_type" to "client_credentials",
