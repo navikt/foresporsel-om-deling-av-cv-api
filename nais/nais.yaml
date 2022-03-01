@@ -22,5 +22,14 @@ spec:
   azure:
     application:
       enabled: true
+      claims:
+        extra:
+          - NAVident
+  accessPolicy:
+    inbound:
+      rules:
+        - application: rekrutteringsbistand-container
+          namespace: toi
+          cluster: {{ gcp-cluster }}
   kafka:
     pool: {{ kafka-pool }}
