@@ -40,10 +40,12 @@ fun startLokalApp(
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
     val controller = Controller(repository, usendtScheduler::kjørEnGang, hentStilling)
 
-    val issuerProperties = IssuerProperties(
-        URL("http://localhost:18300/default/.well-known/openid-configuration"),
-        listOf("default"),
-        "isso-idtoken"
+    val issuerProperties = listOf(
+        IssuerProperties(
+            URL("http://localhost:18300/default/.well-known/openid-configuration"),
+            listOf("default"),
+            "isso-idtoken"
+        )
     )
 
     val svarService = SvarService(consumer, repository)

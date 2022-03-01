@@ -24,7 +24,7 @@ import kotlin.concurrent.thread
 
 class App(
     private val controller: Controller,
-    private val issuerProperties: IssuerProperties,
+    private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
 ) : Closeable {

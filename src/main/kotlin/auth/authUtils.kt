@@ -16,7 +16,7 @@ const val navIdentAttributeKey = "navIdent"
 
 private val skalValideres: String.() -> Boolean = { endepunktUtenTokenvalidering.none(this::contains) }
 
-val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties ->
+val validerToken: (List<IssuerProperties>) -> (Context) -> Unit = { issuerProperties ->
     { ctx ->
         val url = ctx.req.requestURL.toString()
 
@@ -24,9 +24,7 @@ val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties -
             val validerteTokens = hentValiderteTokens(ctx, issuerProperties)
 
             if (validerteTokens.hasValidToken()) {
-                val navIdent = validerteTokens
-                    .getClaims(issuerProperties.cookieName)
-                    .getStringClaim(navIdentClaimKey)
+                val navIdent = hentNavIdent(validerteTokens, issuerProperties)
 
                 ctx.attribute(navIdentAttributeKey, navIdent)
 
@@ -37,14 +35,22 @@ val validerToken: (IssuerProperties) -> (Context) -> Unit = { issuerProperties -
     }
 }
 
+private fun hentNavIdent(
+    validerteTokens: TokenValidationContext,
+    listOfIssuerProperties: List<IssuerProperties>
+) = listOfIssuerProperties.mapNotNull { issuerProperties ->
+    validerteTokens
+        .getClaims(issuerProperties.cookieName)
+        ?.getStringClaim(navIdentClaimKey)
+}.first()
+
 fun Context.hentNavIdent(): String {
     return attribute(navIdentAttributeKey)!!
 }
 
-private fun hentValiderteTokens(ctx: Context, issuerProperties: IssuerProperties): TokenValidationContext {
-    val cookieName = issuerProperties.cookieName
+private fun hentValiderteTokens(ctx: Context, issuerProperties: List<IssuerProperties>): TokenValidationContext {
     val tokenValidationHandler = JwtTokenValidationHandler(
-        MultiIssuerConfiguration(mapOf(Pair(cookieName, issuerProperties)))
+        MultiIssuerConfiguration(issuerProperties.associateBy { it.cookieName })
     )
 
     return tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
