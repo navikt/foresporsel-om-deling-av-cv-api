@@ -1,8 +1,9 @@
 {
-  "ingress": [
-    "https://foresporsel-om-deling-av-cv-api.intern.nav.no",
-    "https://foresporsel-om-deling-av-cv-api.prod-fss-pub.nais.io"
-  ],
-  "kafka-pool": "nav-prod",
-  "gcp-cluster": "prod-gcp"
+    "ingress": [
+        "https://foresporsel-om-deling-av-cv-api.intern.nav.no",
+        "https://foresporsel-om-deling-av-cv-api.prod-fss-pub.nais.io"
+    ],
+    "kafka-pool": "nav-prod",
+    "gcp-cluster": "prod-gcp",
+    "fss-cluster": "prod-fss"
 }
