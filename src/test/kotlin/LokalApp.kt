@@ -44,7 +44,7 @@ fun startLokalApp(
         IssuerProperties(
             URL("http://localhost:18300/default/.well-known/openid-configuration"),
             listOf("default"),
-            "isso-idtoken"
+            "azuread"
         )
     )
 

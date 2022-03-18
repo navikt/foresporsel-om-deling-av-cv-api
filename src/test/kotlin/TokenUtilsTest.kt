@@ -34,7 +34,7 @@ class TokenUtilsTest {
     @Test
     fun `Sikrede endepunkter skal returnere 401 hvis requesten inneholder et ugyldig token`() {
         val (_, response, _) = Fuel.post("http://localhost:8333/foresporsler")
-            .header("Cookie", "isso-idtoken=${hentUgyldigToken().serialize()}")
+            .header("Authorization", "Bearer ${hentUgyldigToken().serialize()}")
             .response()
 
         assertThat(response.statusCode).isEqualTo(401)
