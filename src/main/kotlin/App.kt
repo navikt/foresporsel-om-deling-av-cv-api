@@ -1,5 +1,5 @@
 import auth.azureConfig
-import auth.issuerProperties
+import auth.azureIssuerProperties
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
@@ -93,7 +93,7 @@ fun main() {
 
         App(
             controller,
-            issuerProperties,
+            listOf(azureIssuerProperties),
             usendtScheduler,
             svarService
         ).start()
