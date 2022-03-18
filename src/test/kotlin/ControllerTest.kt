@@ -9,7 +9,7 @@ import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDeling
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
-import setup.medVeilederCookie
+import setup.medVeilederToken
 import setup.mockProducer
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
@@ -68,7 +68,7 @@ class ControllerTest {
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
@@ -147,7 +147,7 @@ class ControllerTest {
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
@@ -176,7 +176,7 @@ class ControllerTest {
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
@@ -205,7 +205,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -233,7 +233,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -258,7 +258,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -283,7 +283,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -308,7 +308,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -341,7 +341,7 @@ class ControllerTest {
             database.lagreBatch(alleForespørsler)
 
             val kandidaterMedForespørsler = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
                 .third
@@ -377,7 +377,7 @@ class ControllerTest {
             )
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
 
@@ -405,7 +405,7 @@ class ControllerTest {
             )
 
             val returverdi = Fuel.post("http://localhost:8333/foresporsler/")
-                .medVeilederCookie(mockOAuth2Server, navIdent)
+                .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper).third.get()
 
@@ -434,7 +434,7 @@ class ControllerTest {
 
         startWiremockApp().use {
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .medVeilederToken(mockOAuth2Server, "A123456")
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -474,7 +474,7 @@ class ControllerTest {
             )
 
             val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .medVeilederToken(mockOAuth2Server, "A123456")
                 .objectBody(inboundDto, mapper = objectMapper)
                 .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
 
@@ -519,7 +519,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .medVeilederToken(mockOAuth2Server, "A123456")
                 .objectBody(nyForespørsel, mapper = objectMapper)
                 .response()
 
@@ -559,7 +559,7 @@ class ControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medVeilederCookie(mockOAuth2Server, "A123456")
+                .medVeilederToken(mockOAuth2Server, "A123456")
                 .objectBody(nyForespørsel, mapper = objectMapper)
                 .response()
 

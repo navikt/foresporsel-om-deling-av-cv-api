@@ -6,7 +6,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import setup.medVeilederCookie
+import setup.medVeilederToken
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TokenUtilsTest {
@@ -43,7 +43,7 @@ class TokenUtilsTest {
     @Test
     fun `Sikrede endepunkter skal returnere noe annet enn 401 hvis requesten inneholder et gyldig token`() {
         val (_, response, _) = Fuel.post("http://localhost:8333/foresporsler")
-            .medVeilederCookie(mockOAuth2Server)
+            .medVeilederToken(mockOAuth2Server)
             .response()
 
         assertThat(response.statusCode).isNotEqualTo(401)
