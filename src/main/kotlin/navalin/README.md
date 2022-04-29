@@ -3,11 +3,11 @@
 Vi støtter:
 - isReady
 - isAlive
+- accessManager med token-support (TODO: Tillatt wrapper rundt gruppe av endepunkt)
 
 Vi skal støtte:
 - isReady
 - isAlive
-- accessManager med token-support
 - hente token
 - hentMiljøvariabel
 - Hikari 

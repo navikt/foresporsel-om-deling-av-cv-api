@@ -3,55 +3,47 @@ package navalin
 import io.javalin.core.security.AccessManager
 import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
+import io.javalin.http.ForbiddenResponse
 import io.javalin.http.Handler
+import no.nav.security.token.support.core.configuration.IssuerProperties
+import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
+import no.nav.security.token.support.core.http.HttpRequest
+import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
 
 fun manageAccess(roleConfigs: List<RoleConfig>) =
-    AccessManager { handler: Handler, ctx: Context, roles: Set<RouteRole ->
+    AccessManager { handler: Handler, ctx: Context, roles: Set<RouteRole> ->
 
-        val allRoles = roleConfigs.map { it.role }
+        if (roles.isEmpty()) {
+            throw RuntimeException("Ikke tillatt med endepunkt uten spesifisert rolle")
+        }
 
-        if
+        val permittedRoleConfigs = roleConfigs.filter { roles.contains(it.role) }
+        val permittedIssuerProperties = permittedRoleConfigs.flatMap { it.issuerProperties }
+        val tokenClaims = getTokenClaims(ctx, permittedIssuerProperties)
 
+        val authenticated = permittedRoleConfigs.any {
+            it.necessaryTokenClaims.all { tokenClaim ->
+                tokenClaims[tokenClaim] != null
+            }
+        }
 
-    }
-
-
-/*
-
-fun styrTilgang(issuerProperties: Map<Rolle, IssuerProperties>) =
-    AccessManager { handler: Handler, ctx: Context, roller: Set<RouteRole> ->
-
-        val erAutentisert =
-            if (roller.contains(Rolle.VEILEDER)) {
-                autentiserVeileder(hentTokenClaims(ctx, issuerProperties[Rolle.VEILEDER]!!))
-            } else if (roller.contains(Rolle.ARBEIDSGIVER)) {
-                autentiserArbeidsgiver(hentTokenClaims(ctx, issuerProperties[Rolle.ARBEIDSGIVER]!!))
-            } else false
-
-        if (erAutentisert) {
+        if (authenticated) {
             handler.handle(ctx)
         } else {
             throw ForbiddenResponse()
         }
     }
 
-
-fun interface Autentiseringsmetode {
-    operator fun invoke(claims: JwtTokenClaims?): Boolean
-}
-
-val autentiserVeileder = Autentiseringsmetode { it?.get("NAVident")?.toString()?.isNotEmpty() ?: false }
-val autentiserArbeidsgiver = Autentiseringsmetode { it != null }
-
-
-private fun hentTokenClaims(ctx: Context, issuerProperties: IssuerProperties) =
-    lagTokenValidationHandler(issuerProperties)
+private fun getTokenClaims(ctx: Context, issuerProperties: List<IssuerProperties>) =
+    createTokenValidationHandler(issuerProperties)
         .getValidatedTokens(ctx.httpRequest)
         .anyValidClaims.orElseGet { null }
 
-private fun lagTokenValidationHandler(issuerProperties: IssuerProperties) =
+private fun createTokenValidationHandler(issuerProperties: List<IssuerProperties>) =
     JwtTokenValidationHandler(
-        MultiIssuerConfiguration(mapOf(issuerProperties.cookieName to issuerProperties))
+        MultiIssuerConfiguration(
+            issuerProperties.associateBy { it.cookieName }
+        )
     )
 
 private val Context.httpRequest: HttpRequest
@@ -64,8 +56,3 @@ private val Context.httpRequest: HttpRequest
             }
         }.toTypedArray()
     }
-
-
-
-
- */

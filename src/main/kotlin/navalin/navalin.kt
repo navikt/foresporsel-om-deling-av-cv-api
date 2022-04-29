@@ -16,6 +16,4 @@ data class RoleConfig(
     val necessaryTokenClaims: List<String>
 )
 
-fun accessManager(roleConfigs: List<RoleConfig>): AccessManager {
-
-}
+fun configureAccessManager(roleConfigs: List<RoleConfig>): AccessManager = manageAccess(roleConfigs)

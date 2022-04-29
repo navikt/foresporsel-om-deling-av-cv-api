@@ -1,12 +1,12 @@
+import auth.Rolle
 import auth.azureConfig
 import auth.azureIssuerProperties
+import auth.routeRoleConfigs
 import io.javalin.Javalin
-import io.javalin.core.security.RouteRole
 import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
 import mottasvar.consumerConfig
-import navalin.RoleConfig
-import navalin.accessManager
+import navalin.configureAccessManager
 import navalin.configureHealthEndpoints
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
@@ -37,27 +37,16 @@ class App(
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
     }
 
-    enum class Rolle : RouteRole {
-        ALLE
-    }
-
-    val routeRoleConfigs = listOf(
-        RoleConfig(
-            role = Rolle.ALLE,
-            issuerProperties = issuerProperties,
-            necessaryTokenClaims = listOf("NAVident")
-        )
-    )
-
     private val webServer = Javalin.create { config ->
         config.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
-        config.accessManager(accessManager(routeRoleConfigs))
+        config.accessManager(configureAccessManager(routeRoleConfigs))
     }.apply {
         configureHealthEndpoints { if (svarService.isOk()) 200 else 500 }
         before(settCallId)
+
         routes {
-            get("/foresporsler/kandidat/{$aktorIdParamName}", controller.hentForespørslerForKandidat)
+            get("/foresporsler/kandidat/{$aktorIdParamName}", controller.hentForespørslerForKandidat, Rolle.ALLE)
             get("/foresporsler/{$stillingsIdParamName}", controller.hentForespørsler)
             post("/foresporsler", controller.sendForespørselOmDelingAvCv)
             post("/foresporsler/kandidat/{$aktorIdParamName}", controller.resendForespørselOmDelingAvCv)
