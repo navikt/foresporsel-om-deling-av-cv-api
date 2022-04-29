@@ -1,9 +1,12 @@
 import auth.azureConfig
 import auth.azureIssuerProperties
 import io.javalin.Javalin
+import io.javalin.core.security.RouteRole
 import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
 import mottasvar.consumerConfig
+import navalin.RoleConfig
+import navalin.accessManager
 import navalin.configureHealthEndpoints
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
@@ -34,12 +37,24 @@ class App(
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
     }
 
+    enum class Rolle : RouteRole {
+        ALLE
+    }
+
+    val routeRoleConfigs = listOf(
+        RoleConfig(
+            role = Rolle.ALLE,
+            issuerProperties = issuerProperties,
+            necessaryTokenClaims = listOf("NAVident")
+        )
+    )
+
     private val webServer = Javalin.create { config ->
         config.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
+        config.accessManager(accessManager(routeRoleConfigs))
     }.apply {
         configureHealthEndpoints { if (svarService.isOk()) 200 else 500 }
-        before(validerToken(issuerProperties))
         before(settCallId)
         routes {
             get("/foresporsler/kandidat/{$aktorIdParamName}", controller.hentForespørslerForKandidat)
