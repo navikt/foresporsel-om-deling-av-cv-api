@@ -4,6 +4,7 @@ import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import mottasvar.SvarService
 import mottasvar.consumerConfig
+import navalin.configureHealthEndpoints
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
@@ -37,11 +38,10 @@ class App(
         config.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
     }.apply {
+        configureHealthEndpoints { if (svarService.isOk()) 200 else 500 }
         before(validerToken(issuerProperties))
         before(settCallId)
         routes {
-            get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
-            get("/internal/isReady") { it.status(200) }
             get("/foresporsler/kandidat/{$aktorIdParamName}", controller.hentForespørslerForKandidat)
             get("/foresporsler/{$stillingsIdParamName}", controller.hentForespørsler)
             post("/foresporsler", controller.sendForespørselOmDelingAvCv)
