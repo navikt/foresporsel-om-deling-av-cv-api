@@ -10,14 +10,14 @@ spec:
     slack:
       channel: 'inkludering-alerts-prod'
   alerts:
-    - alert: Applikasjon nede
+    - alert: 'foresporsel-om-deling-av-cv-api'
       expr: sum(up{app="foresporsel-om-deling-av-cv-api", job="kubernetes-pods"}) == 0
       for: 1s
-      description: "foresporsel-om-deling-av-cv-api er nede"
-      action: "Sjekk logs.adeo.no for logger: https://logs.adeo.no/goto/79573b16d0d653679c481c14e5af65f3"
+      description: "Appen er nede"
+      action: "https://logs.adeo.no/goto/ab2e52186c18abccf8a98e0ec87eb85c"
 
-    - alert: Det har skjedd en feil i foresporsel-om-deling-av-cv-api
+    - alert: 'foresporsel-om-deling-av-cv-api'
       expr: sum(increase(logd_messages_total{log_app="foresporsel-om-deling-av-cv-api",log_level="Error"}[10m])) > 0
       for: 10s
-      description: "foresporsel-om-deling-av-cv-api har logget en feil"
-      action: "Sjekk logs.adeo.no for logger: https://logs.adeo.no/goto/404fa2be7cff7f9408494a3007d2f44e"
+      description: "Appen har logget en feil"
+      action: "https://logs.adeo.no/goto/ab2e52186c18abccf8a98e0ec87eb85c"
