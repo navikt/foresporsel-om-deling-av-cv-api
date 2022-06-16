@@ -61,6 +61,9 @@ data class Forespørsel(
 
     fun venterPåSvar() = tilstand == Tilstand.HAR_VARSLET || tilstand == Tilstand.PROVER_VARSLING
 
+    fun utløpt() = tilstand == Tilstand.AVBRUTT || tilstand == Tilstand.SVARFRIST_UTLOPT
+
+
     fun kanIkkeVarsleBruker() = tilstand == Tilstand.KAN_IKKE_VARSLE
 
     fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
@@ -148,7 +151,8 @@ enum class Tilstand {
     HAR_VARSLET,
     KAN_IKKE_VARSLE,
     HAR_SVART,
-    AVBRUTT
+    AVBRUTT,
+    SVARFRIST_UTLOPT
 }
 
 enum class IdentType {

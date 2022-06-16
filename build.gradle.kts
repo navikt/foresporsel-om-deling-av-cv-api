@@ -5,7 +5,7 @@ plugins {
     application
 }
 
-application {
+application {3
     mainClass.set("AppKt")
 }
 

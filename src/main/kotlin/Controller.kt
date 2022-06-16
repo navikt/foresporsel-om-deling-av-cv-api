@@ -13,11 +13,18 @@ const val aktorIdParamName = "aktørId"
 class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
     val hentSvarstatistikk: (Context) -> Unit = { ctx ->
+        val forespørselOmStatistikk = ctx.bodyAsClass(ForespørselOmStatistikk::class.java)
+        val forespørsler: List<Forespørsel> = repository.hentForespørsler(forespørselOmStatistikk.fraOgMed.toLocalDateTime(), forespørselOmStatistikk.tilOgMed.toLocalDateTime())
+        val svartJa = forespørsler.count { it.harSvartJa() }
+        val svartNei = forespørsler.count { it.svar != null && !it.harSvartJa() }
+        val utløpt = forespørsler.count { it.utløpt() }
+        val venterPåSvar = forespørsler.count { it.venterPåSvar() }
+
         val outboundDto = Svarstatistikk(
-            antallSvartJa = 1,
-            antallSvartNei = 2,
-            antallUtløpteSvar = 3,
-            antallVenterPåSvar = 4,
+            antallSvartJa = svartJa,
+            antallSvartNei = svartNei,
+            antallUtløpteSvar = utløpt,
+            antallVenterPåSvar = venterPåSvar
         )
 
         ctx.json(outboundDto)
@@ -180,4 +187,10 @@ data class Svarstatistikk(
     val antallSvartNei: Number,
     val antallVenterPåSvar: Number,
     val antallUtløpteSvar: Number,
+)
+
+data class ForespørselOmStatistikk(
+    val navKontor: String,
+    val fraOgMed: ZonedDateTime,
+    val tilOgMed: ZonedDateTime,
 )

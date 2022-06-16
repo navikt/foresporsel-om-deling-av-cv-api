@@ -1,6 +1,7 @@
 import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -46,6 +47,21 @@ class Repository(private val dataSource: DataSource) {
 
         dataSource.connection.use { connection ->
             return connection.prepareStatement(hentUsendteSql).executeQuery().tilForespørsler()
+        }
+    }
+
+    fun hentForespørsler(fraOgMed: LocalDateTime, tilOgMed: LocalDateTime): List<Forespørsel> {
+        val sql = """
+            SELECT * FROM foresporsel_om_deling_av_cv 
+            WHERE delt_tidspunkt BETWEEN ? AND ?
+        """.trimIndent()
+
+        dataSource.connection.use { connection ->
+            val statement = connection.prepareStatement(sql)
+
+            statement.setTimestamp(1, Timestamp.valueOf(fraOgMed))
+            statement.setTimestamp(2, Timestamp.valueOf(tilOgMed))
+            return statement.executeQuery().tilForespørsler()
         }
     }
 
