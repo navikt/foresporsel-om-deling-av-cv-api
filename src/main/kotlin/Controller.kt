@@ -12,6 +12,19 @@ const val aktorIdParamName = "aktørId"
 
 class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
+    val hentSvarstatistikk: (Context) -> Unit = { ctx ->
+        val outboundDto = Svarstatistikk(
+            antallSvartJa = 1,
+            antallSvartNei = 2,
+            antallUtløpteSvar = 3,
+            antallVenterPåSvar = 4,
+        )
+
+        ctx.json(outboundDto)
+        ctx.status(200)
+    }
+
+
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
             ctx.pathParam(stillingsIdParamName)
@@ -161,3 +174,10 @@ data class ForespørselOutboundDto(
 )
 
 typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutboundDto>>
+
+data class Svarstatistikk(
+    val antallSvartJa: Number,
+    val antallSvartNei: Number,
+    val antallVenterPåSvar: Number,
+    val antallUtløpteSvar: Number,
+)

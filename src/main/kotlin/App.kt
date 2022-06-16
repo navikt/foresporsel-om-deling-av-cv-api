@@ -46,6 +46,7 @@ class App(
             get("/foresporsler/{$stillingsIdParamName}", controller.hentForespørsler)
             post("/foresporsler", controller.sendForespørselOmDelingAvCv)
             post("/foresporsler/kandidat/{$aktorIdParamName}", controller.resendForespørselOmDelingAvCv)
+            get("/statistikk", controller.hentSvarstatistikk)
         }
     }
 
