@@ -14,10 +14,9 @@ const val aktorIdParamName = "aktørId"
 class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
     val hentSvarstatistikk: (Context) -> Unit = { ctx ->
-        log.info("pathtest: ${ctx.path()} map: ${ctx.pathParamMap().entries.map { it.key + " " + it.value}}")
-        val navKontor = ctx.queryParam("navKontor");
-        val fraOgMed = ctx.queryParam("fraOgMed");
-        val tilOgMed = ctx.queryParam("tilOgMed");
+        val navKontor = ctx.queryParam("navKontor")!!;
+        val fraOgMed = ctx.queryParam("fraOgMed")!!;
+        val tilOgMed = ctx.queryParam("tilOgMed")!!;
 
         val forespørsler: List<Forespørsel> = repository.hentForespørsler(
             LocalDate.parse(fraOgMed).atStartOfDay(),
