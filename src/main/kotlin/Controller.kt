@@ -3,6 +3,7 @@ import stilling.Stilling
 import utils.hentCallId
 import utils.log
 import utils.toUUID
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -14,7 +15,9 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
 
     val hentSvarstatistikk: (Context) -> Unit = { ctx ->
         val forespørselOmStatistikk = ctx.bodyAsClass(ForespørselOmStatistikk::class.java)
-        val forespørsler: List<Forespørsel> = repository.hentForespørsler(forespørselOmStatistikk.fraOgMed.toLocalDateTime(), forespørselOmStatistikk.tilOgMed.toLocalDateTime())
+        val forespørsler: List<Forespørsel> = repository.hentForespørsler(
+            LocalDate.parse(forespørselOmStatistikk.fraOgMed).atStartOfDay(),
+            LocalDate.parse(forespørselOmStatistikk.tilOgMed).plusDays(1).atStartOfDay())
         val svartJa = forespørsler.count { it.harSvartJa() }
         val svartNei = forespørsler.count { it.svar != null && !it.harSvartJa() }
         val utløpt = forespørsler.count { it.utløpt() }
@@ -191,6 +194,6 @@ data class Svarstatistikk(
 
 data class ForespørselOmStatistikk(
     val navKontor: String,
-    val fraOgMed: ZonedDateTime,
-    val tilOgMed: ZonedDateTime,
+    val fraOgMed: String,
+    val tilOgMed: String,
 )
