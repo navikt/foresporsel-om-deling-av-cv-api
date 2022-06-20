@@ -14,10 +14,15 @@ const val aktorIdParamName = "aktørId"
 class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
     val hentSvarstatistikk: (Context) -> Unit = { ctx ->
-        val forespørselOmStatistikk = ctx.bodyAsClass(ForespørselOmStatistikk::class.java)
+        val navKontor = ctx.pathParam("navKontor");
+        val fraOgMed = ctx.pathParam("fraOgMed");
+        val tilOgMed = ctx.pathParam("tilOgMed");
+
         val forespørsler: List<Forespørsel> = repository.hentForespørsler(
-            LocalDate.parse(forespørselOmStatistikk.fraOgMed).atStartOfDay(),
-            LocalDate.parse(forespørselOmStatistikk.tilOgMed).plusDays(1).atStartOfDay())
+            LocalDate.parse(fraOgMed).atStartOfDay(),
+            LocalDate.parse(tilOgMed).plusDays(1).atStartOfDay(),
+            navKontor
+            )
         val svartJa = forespørsler.count { it.harSvartJa() }
         val svartNei = forespørsler.count { it.svar != null && !it.harSvartJa() }
         val utløpt = forespørsler.count { it.utløpt() }

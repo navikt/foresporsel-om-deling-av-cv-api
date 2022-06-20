@@ -50,7 +50,7 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun hentForespørsler(fraOgMed: LocalDateTime, tilOgMed: LocalDateTime): List<Forespørsel> {
+    fun hentForespørsler(fraOgMed: LocalDateTime, tilOgMed: LocalDateTime, navKontor: String): List<Forespørsel> {
         val sql = """
             SELECT * FROM foresporsel_om_deling_av_cv 
             WHERE delt_tidspunkt BETWEEN ? AND ?
