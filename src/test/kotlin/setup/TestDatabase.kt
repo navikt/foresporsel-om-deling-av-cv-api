@@ -29,8 +29,8 @@ class TestDatabase {
     fun lagreBatch(forespørselOmDelingAvCver: List<Forespørsel>) {
         val lagreBatchSql = """
                 INSERT INTO foresporsel_om_deling_av_cv (
-                    aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, tilstand, call_id, svar, svar_tidspunkt, svart_av_ident, svart_av_ident_type
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, tilstand, call_id, svar, svar_tidspunkt, svart_av_ident, svart_av_ident_type, nav_kontor
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
         dataSource.connection.use { connection ->
@@ -57,6 +57,7 @@ class TestDatabase {
 
                 statement.setString(12, it.svar?.svartAv?.ident)
                 statement.setString(13, it.svar?.svartAv?.identType.toString())
+                statement.setString(14, it.navKontor)
 
                 statement.addBatch()
             }

@@ -61,6 +61,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf(aktørid1, aktørid2, aktørid3),
+                navKontor = navKontor
             )
 
             val callId = UUID.randomUUID().toString()
@@ -82,6 +83,7 @@ class ControllerTest {
                 assertThat(lagretForespørsel.aktørId).isEqualTo(inboundDto.aktorIder[index])
                 assertThat(lagretForespørsel.stillingsId.toString()).isEqualTo(inboundDto.stillingsId)
                 assertThat(lagretForespørsel.deltAv).isEqualTo(navIdent)
+                assertThat(lagretForespørsel.navKontor).isEqualTo(inboundDto.navKontor)
                 assertThat(lagretForespørsel.deltTidspunkt).isBetween(nå.minusMinutes(1), nå)
                 assertThat(lagretForespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
                 assertThat(lagretForespørsel.tilstand).isNull()
@@ -140,6 +142,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf("234"),
+                navKontor = navKontor
             )
 
             val callId = UUID.randomUUID().toString()
@@ -169,6 +172,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf("234"),
+                navKontor = navKontor
             )
 
             val callId = UUID.randomUUID().toString()
@@ -202,6 +206,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf(forespørsel.aktørId),
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -230,6 +235,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf(forespørsel.aktørId),
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -255,6 +261,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf("123", "345"),
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -280,6 +287,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf("123", "345"),
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -305,6 +313,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf("123", "345"),
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
@@ -402,6 +411,7 @@ class ControllerTest {
                 stillingsId = stillingsReferanse.toString(),
                 svarfrist = omTreDager,
                 aktorIder = listOf("234", "345"),
+                navKontor = navKontor
             )
 
             val returverdi = Fuel.post("http://localhost:8333/foresporsler/")
@@ -429,7 +439,8 @@ class ControllerTest {
         val aktørId = "dummyAktørId"
         val inboundDto = ResendForespørselInboundDto(
             stillingsId = UUID.randomUUID().toString(),
-            svarfrist = omTreDager
+            svarfrist = omTreDager,
+            navKontor = navKontor
         )
 
         startWiremockApp().use {
@@ -470,7 +481,8 @@ class ControllerTest {
 
             val inboundDto = ResendForespørselInboundDto(
                 stillingsId = stillingsId.toString(),
-                svarfrist = omTreDager
+                svarfrist = omTreDager,
+                navKontor = navKontor
             )
 
             val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
@@ -515,7 +527,8 @@ class ControllerTest {
 
             val nyForespørsel = ResendForespørselInboundDto(
                 stillingsId = stillingsId.toString(),
-                svarfrist = omTreDager
+                svarfrist = omTreDager,
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
@@ -555,7 +568,8 @@ class ControllerTest {
 
             val nyForespørsel = ResendForespørselInboundDto(
                 stillingsId = stillingsId.toString(),
-                svarfrist = omTreDager
+                svarfrist = omTreDager,
+                navKontor = navKontor
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
@@ -704,3 +718,5 @@ class ControllerTest {
 }
 
 val omTreDager = ZonedDateTime.of(LocalDate.now().plusDays(3).atStartOfDay(), ZoneId.of("Europe/Oslo"))
+
+val navKontor = "1234"

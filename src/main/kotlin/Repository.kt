@@ -13,12 +13,13 @@ class Repository(private val dataSource: DataSource) {
         stillingsId: UUID,
         svarfrist: LocalDateTime,
         deltAvNavIdent: String,
+        navKontor: String,
         callId: String
     ) {
         val lagreBatchSql = """
                 INSERT INTO foresporsel_om_deling_av_cv (
-                    aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, call_id
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, call_id, nav_kontor
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
 
         dataSource.connection.use { connection ->
@@ -33,6 +34,7 @@ class Repository(private val dataSource: DataSource) {
                 statement.setString(6, deltAvNavIdent)
                 statement.setTimestamp(7, Timestamp.valueOf(svarfrist))
                 statement.setString(8, callId)
+                statement.setString(9, navKontor)
                 statement.addBatch()
             }
 
@@ -53,14 +55,15 @@ class Repository(private val dataSource: DataSource) {
     fun hentForespørsler(fraOgMed: LocalDateTime, tilOgMed: LocalDateTime, navKontor: String): List<Forespørsel> {
         val sql = """
             SELECT * FROM foresporsel_om_deling_av_cv 
-            WHERE delt_tidspunkt BETWEEN ? AND ?
+            WHERE nav_kontor=? AND delt_tidspunkt BETWEEN ? AND ?
         """.trimIndent()
 
         dataSource.connection.use { connection ->
             val statement = connection.prepareStatement(sql)
 
-            statement.setTimestamp(1, Timestamp.valueOf(fraOgMed))
-            statement.setTimestamp(2, Timestamp.valueOf(tilOgMed))
+            statement.setString(1, navKontor)
+            statement.setTimestamp(2, Timestamp.valueOf(fraOgMed))
+            statement.setTimestamp(3, Timestamp.valueOf(tilOgMed))
             return statement.executeQuery().tilForespørsler()
         }
     }

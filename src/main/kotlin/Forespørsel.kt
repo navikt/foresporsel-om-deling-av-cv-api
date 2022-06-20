@@ -48,6 +48,7 @@ data class Forespørsel(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
+    val navKontor: String,
     val svarfrist: ZonedDateTime,
 
     val tilstand: Tilstand?,
@@ -134,6 +135,7 @@ data class Forespørsel(
                 deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
                 deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
                 deltAv = rs.getString("delt_av"),
+                navKontor = rs.getString("nav_kontor"),
                 svarfrist = ZonedDateTime.ofInstant(rs.getTimestamp("svarfrist").toInstant(), ZoneId.of("Europe/Oslo")),
                 tilstand = tilstandEllerNull(rs.getString("tilstand")),
                 svar = svar,

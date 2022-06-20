@@ -91,6 +91,7 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
                 stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
                 svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
                 deltAvNavIdent = ctx.hentNavIdent(),
+                navKontor = forespørselOmDelingAvCvDto.navKontor,
                 callId = ctx.hentCallId()
             )
 
@@ -131,7 +132,8 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
                 stillingsId = inboundDto.stillingsId.toUUID(),
                 svarfrist = inboundDto.svarfrist.toLocalDateTime(),
                 deltAvNavIdent = ctx.hentNavIdent(),
-                callId = ctx.hentCallId()
+                navKontor = inboundDto.navKontor,
+                callId = ctx.hentCallId(),
             )
 
             ctx.json(hentForespørslerGruppertPåAktørId(inboundDto.stillingsId))
@@ -167,11 +169,13 @@ data class ForespørselInboundDto(
     val stillingsId: String,
     val svarfrist: ZonedDateTime,
     val aktorIder: List<String>,
+    val navKontor: String
 )
 
 data class ResendForespørselInboundDto(
     val stillingsId: String,
-    val svarfrist: ZonedDateTime
+    val svarfrist: ZonedDateTime,
+    val navKontor: String
 )
 
 data class ForespørselOutboundDto(
@@ -195,10 +199,4 @@ data class Svarstatistikk(
     val antallSvartNei: Number,
     val antallVenterPåSvar: Number,
     val antallUtløpteSvar: Number,
-)
-
-data class ForespørselOmStatistikk(
-    val navKontor: String,
-    val fraOgMed: String,
-    val tilOgMed: String,
 )

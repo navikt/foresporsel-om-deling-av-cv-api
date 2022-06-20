@@ -47,5 +47,6 @@ fun enForespørsel(
     begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseForAtAktivitetIkkeBleOpprettet,
     sendtTilKafkaTidspunkt = null,
     callId = UUID.randomUUID().toString(),
+    navKontor = "1234"
 )
 
