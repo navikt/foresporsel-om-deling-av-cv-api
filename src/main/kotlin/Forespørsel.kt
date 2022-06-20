@@ -105,7 +105,8 @@ data class Forespørsel(
         svarfrist,
         tilstand,
         svar,
-        begrunnelseForAtAktivitetIkkeBleOpprettet
+        begrunnelseForAtAktivitetIkkeBleOpprettet,
+        navKontor
     )
 
     companion object {

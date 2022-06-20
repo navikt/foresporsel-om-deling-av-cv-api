@@ -1,7 +1,6 @@
 import utils.log
 import java.sql.ResultSet
 import java.sql.Timestamp
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
@@ -55,7 +54,7 @@ class Repository(private val dataSource: DataSource) {
     fun hentForespørsler(fraOgMed: LocalDateTime, tilOgMed: LocalDateTime, navKontor: String): List<Forespørsel> {
         val sql = """
             SELECT * FROM foresporsel_om_deling_av_cv 
-            WHERE nav_kontor=? AND delt_tidspunkt BETWEEN ? AND ?
+            WHERE nav_kontor=? AND delt_tidspunkt >= ? AND delt_tidspunkt < ?
         """.trimIndent()
 
         dataSource.connection.use { connection ->

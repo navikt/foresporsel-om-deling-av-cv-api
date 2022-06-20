@@ -32,7 +32,8 @@ fun enForespørsel(
     tilstand: Tilstand? = null,
     svar: Svar? = null,
     svarfrist: ZonedDateTime = LocalDate.now().plusDays(6).atStartOfDay().atZone(ZoneId.of("Europe/Oslo")),
-    begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet? = null
+    begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet? = null,
+    navKontor: String = "1234"
 ) = Forespørsel(
     id = 0,
     aktørId = aktørId,
@@ -47,6 +48,6 @@ fun enForespørsel(
     begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseForAtAktivitetIkkeBleOpprettet,
     sendtTilKafkaTidspunkt = null,
     callId = UUID.randomUUID().toString(),
-    navKontor = "1234"
+    navKontor = navKontor
 )
 
