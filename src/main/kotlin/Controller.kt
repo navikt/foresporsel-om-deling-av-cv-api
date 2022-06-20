@@ -14,6 +14,7 @@ const val aktorIdParamName = "aktørId"
 class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
 
     val hentSvarstatistikk: (Context) -> Unit = { ctx ->
+        log.info("pathtest: ${ctx.path()} map: ${ctx.pathParamMap().entries.map { it.key + " " + it.value}}")
         val navKontor = ctx.pathParam("navKontor");
         val fraOgMed = ctx.pathParam("fraOgMed");
         val tilOgMed = ctx.pathParam("tilOgMed");
