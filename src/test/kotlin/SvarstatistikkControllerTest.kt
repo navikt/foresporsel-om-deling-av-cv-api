@@ -38,7 +38,7 @@ class SvarstatistikkControllerTest {
     private val mockProducer = mockProducer()
 
     @Test
-    fun `Kall til GET-statistikk skal ha svar ja om det er svar ja i basen innenfor tidsperiode`() {
+    fun `GET mot statistikk skal ha svar ja om det er svar ja i basen innenfor tidsperiode`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -72,7 +72,7 @@ class SvarstatistikkControllerTest {
     }
 
     @Test
-    fun `Kall til GET-statistikk skal ikke ha svar om send dato er etter tidsperiode sendt inn`() {
+    fun `GET mot statistikk skal ikke ha svar om sendt-dato er etter tidsperiode sendt inn`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -106,7 +106,7 @@ class SvarstatistikkControllerTest {
     }
 
     @Test
-    fun `Kall til GET-statistikk skal ikke ha svar om send dato er før tidsperiode sendt inn`() {
+    fun `GET mot statistikk skal ikke ha svar om sendt-dato er før tidsperiode sendt inn`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -140,12 +140,11 @@ class SvarstatistikkControllerTest {
     }
 
     @Test
-    fun `Kall til GET-statistikk skal kunne hente en av hver svartype`() {
+    fun `GET mot statistikk skal kunne hente en av hver svartype`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
             val navIdent = "X12345"
-            val callId = UUID.randomUUID()
             val aktørId = "123"
             val navKontor="0314";
 
@@ -167,13 +166,25 @@ class SvarstatistikkControllerTest {
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}&navKontor=${navKontor}")
                 .medVeilederToken(mockOAuth2Server, navIdent)
-                .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<Svarstatistikk>(mapper = objectMapper).third.get()
 
             assertThat(lagredeForespørslerForKandidat.antallSvartJa).isEqualTo(1)
             assertThat(lagredeForespørslerForKandidat.antallSvartNei).isEqualTo(1)
             assertThat(lagredeForespørslerForKandidat.antallUtløpteSvar).isEqualTo(2)
             assertThat(lagredeForespørslerForKandidat.antallVenterPåSvar).isEqualTo(2)
+        }
+    }
+
+    @Test
+    fun `GET mot statistikk skal returnere 403 Bad Request hvis requesten mangler en query-parameter`() {
+        val fraOgMed="2020-04-02";
+        val tilOgMed="2020-04-04"
+
+        startLokalApp(database = TestDatabase()).use {
+            val (_, response) = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}")
+                .medVeilederToken(mockOAuth2Server, "X12345").response()
+
+            assertThat(response.statusCode).isEqualTo(403)
         }
     }
 }
