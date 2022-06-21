@@ -8,7 +8,7 @@ class SvarstatistikkController(private val repository: Repository) {
         val navKontor = ctx.queryParam("navKontor")
 
         if (fraOgMed == null || tilOgMed == null || navKontor == null) {
-            ctx.status(403).json("Du mangler én eller flere query-params, trenger fraOgMed, tilOgMed og navKontor")
+            ctx.status(400).json("Du mangler én eller flere query-params, trenger fraOgMed, tilOgMed og navKontor")
         } else {
             val forespørsler: List<Forespørsel> = repository.hentForespørsler(
                 LocalDate.parse(fraOgMed).atStartOfDay(),

@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
 import stilling.Stilling
 import utils.hentCallId
@@ -10,7 +11,11 @@ import java.util.UUID
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
 
-class ForespørselController(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
+class ForespørselController(
+    private val repository: Repository,
+    sendUsendteForespørsler: () -> Unit,
+    hentStilling: (UUID) -> Stilling?
+) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
             ctx.pathParam(stillingsIdParamName)
@@ -40,41 +45,55 @@ class ForespørselController(private val repository: Repository, sendUsendteFore
     }
 
     val sendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
-        val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
+        val forespørselOmDelingAvCvDto = try {
+            ctx.bodyAsClass(ForespørselInboundDto::class.java)
+        } catch (e: MissingKotlinParameterException) {
+            null
+        }
 
-        val minstEnKandidatHarFåttForespørselFør: () -> Boolean = {
+        if (forespørselOmDelingAvCvDto == null) {
+            ctx.status(400).json("Ugyldig input")
+        } else {
+            val minstEnKandidatHarFåttForespørselFør: () -> Boolean = {
                 repository.minstEnKandidatHarFåttForespørsel(
                     forespørselOmDelingAvCvDto.stillingsId.toUUID(),
                     forespørselOmDelingAvCvDto.aktorIder
                 )
             }
 
-        val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+            val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
 
-        val (kanSende, statuskode, feilmelding) = kanSendeForespørsel(stilling, minstEnKandidatHarFåttForespørselFør)
-
-        if (!kanSende) {
-            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
-            ctx.status(statuskode).json(feilmelding)
-        } else {
-            repository.lagreUsendteForespørsler(
-                aktørIder = forespørselOmDelingAvCvDto.aktorIder,
-                stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
-                svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
-                deltAvNavIdent = ctx.hentNavIdent(),
-                navKontor = forespørselOmDelingAvCvDto.navKontor,
-                callId = ctx.hentCallId()
+            val (kanSende, statuskode, feilmelding) = kanSendeForespørsel(
+                stilling,
+                minstEnKandidatHarFåttForespørselFør
             )
 
-            ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
-            ctx.status(201)
-            sendUsendteForespørsler()
+            if (!kanSende) {
+                loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
+                ctx.status(statuskode).json(feilmelding)
+            } else {
+                repository.lagreUsendteForespørsler(
+                    aktørIder = forespørselOmDelingAvCvDto.aktorIder,
+                    stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+                    svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
+                    deltAvNavIdent = ctx.hentNavIdent(),
+                    navKontor = forespørselOmDelingAvCvDto.navKontor,
+                    callId = ctx.hentCallId()
+                )
+
+                ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
+                ctx.status(201)
+                sendUsendteForespørsler()
+            }
         }
     }
 
-    private fun kanSendeForespørsel(stilling: Stilling?, minstEnKandidatHarFåttForespørselFør: () -> Boolean): Triple<Boolean, Int, String> =
+    private fun kanSendeForespørsel(
+        stilling: Stilling?,
+        minstEnKandidatHarFåttForespørselFør: () -> Boolean
+    ): Triple<Boolean, Int, String> =
         if (stilling == null) {
-            Triple(false, 404,"Stillingen eksisterer ikke", )
+            Triple(false, 404, "Stillingen eksisterer ikke")
         } else if (stilling.kanIkkeDelesMedKandidaten) {
             Triple(false, 400, "Stillingen kan ikke deles med brukeren pga. stillingskategori.")
         } else if (minstEnKandidatHarFåttForespørselFør()) {

@@ -1,4 +1,5 @@
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.tomakehurst.wiremock.WireMockServer
@@ -241,6 +242,25 @@ class ForespørselControllerTest {
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
                 .medVeilederToken(mockOAuth2Server, navIdent)
                 .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(400)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt skal returnere bad request hvis body ikke er gyldig`() {
+        startWiremockApp(TestDatabase()).use {
+            val navIdent = "X123456"
+            val inboundDto = """{
+                "stillingsId": "123",
+                "svarfrist": "${omTreDager}",
+                "aktorIder": ["123"]
+            }"""
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
+                .medVeilederToken(mockOAuth2Server, navIdent)
+                .jsonBody(inboundDto)
                 .response()
 
             assertThat(response.statusCode).isEqualTo(400)

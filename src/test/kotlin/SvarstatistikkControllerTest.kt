@@ -184,7 +184,7 @@ class SvarstatistikkControllerTest {
             val (_, response) = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}")
                 .medVeilederToken(mockOAuth2Server, "X12345").response()
 
-            assertThat(response.statusCode).isEqualTo(403)
+            assertThat(response.statusCode).isEqualTo(400)
         }
     }
 }
