@@ -64,7 +64,6 @@ data class Forespørsel(
 
     fun utløpt() = tilstand == Tilstand.AVBRUTT || tilstand == Tilstand.SVARFRIST_UTLOPT
 
-
     fun kanIkkeVarsleBruker() = tilstand == Tilstand.KAN_IKKE_VARSLE
 
     fun tilKafkamelding(stilling: Stilling) = ForesporselOmDelingAvCv(
