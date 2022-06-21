@@ -19,7 +19,7 @@ class SvarstatistikkController(private val repository: Repository) {
             val svartJa = forespørsler.count { it.harSvartJa() }
             val svartNei = forespørsler.count { it.svar != null && !it.harSvartJa() }
             val utløpt = forespørsler.count { it.utløpt() }
-            val venterPåSvar = forespørsler.count { it.venterPåSvar() }
+            val venterPåSvar = forespørsler.count { it.venterPåSvar() || it.kanIkkeVarsleBruker() }
 
             val outboundDto = Svarstatistikk(
                 antallSvartJa = svartJa,
