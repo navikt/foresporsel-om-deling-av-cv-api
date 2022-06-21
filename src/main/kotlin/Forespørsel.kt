@@ -48,7 +48,7 @@ data class Forespørsel(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
-    val navKontor: String,
+    val navKontor: String?,
     val svarfrist: ZonedDateTime,
 
     val tilstand: Tilstand?,
