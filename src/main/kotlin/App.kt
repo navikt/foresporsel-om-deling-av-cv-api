@@ -23,7 +23,8 @@ import java.util.*
 import kotlin.concurrent.thread
 
 class App(
-    private val controller: Controller,
+    private val forespørselController: ForespørselController,
+    private val svarstatistikkController: SvarstatistikkController,
     private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
@@ -42,11 +43,11 @@ class App(
         routes {
             get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
-            get("/foresporsler/kandidat/{$aktorIdParamName}", controller.hentForespørslerForKandidat)
-            get("/foresporsler/{$stillingsIdParamName}", controller.hentForespørsler)
-            post("/foresporsler", controller.sendForespørselOmDelingAvCv)
-            post("/foresporsler/kandidat/{$aktorIdParamName}", controller.resendForespørselOmDelingAvCv)
-            get("/statistikk", controller.hentSvarstatistikk)
+            get("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.hentForespørslerForKandidat)
+            get("/foresporsler/{$stillingsIdParamName}", forespørselController.hentForespørsler)
+            post("/foresporsler", forespørselController.sendForespørselOmDelingAvCv)
+            post("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.resendForespørselOmDelingAvCv)
+            get("/statistikk", svarstatistikkController.hentSvarstatistikk)
         }
     }
 
@@ -87,13 +88,15 @@ fun main() {
         )
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-        val controller = Controller(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
+        val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
+        val svarstatistikkController = SvarstatistikkController(repository)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository)
 
         App(
-            controller,
+            forespørselController,
+            svarstatistikkController,
             listOf(azureIssuerProperties),
             usendtScheduler,
             svarService

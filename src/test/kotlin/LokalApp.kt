@@ -38,7 +38,8 @@ fun startLokalApp(
     consumer: Consumer<String, DelingAvCvRespons> = mockConsumer()
 ): App {
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-    val controller = Controller(repository, usendtScheduler::kjørEnGang, hentStilling)
+    val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, hentStilling)
+    val svarstatistikkController = SvarstatistikkController(repository)
 
     val issuerProperties = listOf(
         IssuerProperties(
@@ -51,7 +52,8 @@ fun startLokalApp(
     val svarService = SvarService(consumer, repository)
 
     val app = App(
-        controller,
+        forespørselController,
+        svarstatistikkController,
         issuerProperties,
         usendtScheduler,
         svarService

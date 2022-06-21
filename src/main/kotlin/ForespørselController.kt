@@ -3,7 +3,6 @@ import stilling.Stilling
 import utils.hentCallId
 import utils.log
 import utils.toUUID
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -11,35 +10,7 @@ import java.util.UUID
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
 
-class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
-
-    val hentSvarstatistikk: (Context) -> Unit = { ctx ->
-        val navKontor = ctx.queryParam("navKontor")!!;
-        val fraOgMed = ctx.queryParam("fraOgMed")!!;
-        val tilOgMed = ctx.queryParam("tilOgMed")!!;
-
-        val forespørsler: List<Forespørsel> = repository.hentForespørsler(
-            LocalDate.parse(fraOgMed).atStartOfDay(),
-            LocalDate.parse(tilOgMed).plusDays(1).atStartOfDay(),
-            navKontor
-            )
-        val svartJa = forespørsler.count { it.harSvartJa() }
-        val svartNei = forespørsler.count { it.svar != null && !it.harSvartJa() }
-        val utløpt = forespørsler.count { it.utløpt() }
-        val venterPåSvar = forespørsler.count { it.venterPåSvar() }
-
-        val outboundDto = Svarstatistikk(
-            antallSvartJa = svartJa,
-            antallSvartNei = svartNei,
-            antallUtløpteSvar = utløpt,
-            antallVenterPåSvar = venterPåSvar
-        )
-
-        ctx.json(outboundDto)
-        ctx.status(200)
-    }
-
-
+class ForespørselController(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
             ctx.pathParam(stillingsIdParamName)
@@ -194,10 +165,3 @@ data class ForespørselOutboundDto(
 )
 
 typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutboundDto>>
-
-data class Svarstatistikk(
-    val antallSvartJa: Number,
-    val antallSvartNei: Number,
-    val antallVenterPåSvar: Number,
-    val antallUtløpteSvar: Number,
-)
