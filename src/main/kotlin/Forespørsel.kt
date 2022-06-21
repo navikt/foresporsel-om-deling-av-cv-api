@@ -48,6 +48,7 @@ data class Forespørsel(
     val deltStatus: DeltStatus,
     val deltTidspunkt: LocalDateTime,
     val deltAv: String,
+    val navKontor: String?,
     val svarfrist: ZonedDateTime,
 
     val tilstand: Tilstand?,
@@ -62,7 +63,6 @@ data class Forespørsel(
     fun venterPåSvar() = tilstand == Tilstand.HAR_VARSLET || tilstand == Tilstand.PROVER_VARSLING
 
     fun utløpt() = tilstand == Tilstand.AVBRUTT || tilstand == Tilstand.SVARFRIST_UTLOPT
-
 
     fun kanIkkeVarsleBruker() = tilstand == Tilstand.KAN_IKKE_VARSLE
 
@@ -104,7 +104,8 @@ data class Forespørsel(
         svarfrist,
         tilstand,
         svar,
-        begrunnelseForAtAktivitetIkkeBleOpprettet
+        begrunnelseForAtAktivitetIkkeBleOpprettet,
+        navKontor
     )
 
     companion object {
@@ -134,6 +135,7 @@ data class Forespørsel(
                 deltStatus = DeltStatus.valueOf(rs.getString("delt_status")),
                 deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
                 deltAv = rs.getString("delt_av"),
+                navKontor = rs.getString("nav_kontor"),
                 svarfrist = ZonedDateTime.ofInstant(rs.getTimestamp("svarfrist").toInstant(), ZoneId.of("Europe/Oslo")),
                 tilstand = tilstandEllerNull(rs.getString("tilstand")),
                 svar = svar,

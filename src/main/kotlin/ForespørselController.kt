@@ -1,9 +1,9 @@
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
 import stilling.Stilling
 import utils.hentCallId
 import utils.log
 import utils.toUUID
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -11,35 +11,11 @@ import java.util.UUID
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
 
-class Controller(private val repository: Repository, sendUsendteForespørsler: () -> Unit, hentStilling: (UUID) -> Stilling?) {
-
-    val hentSvarstatistikk: (Context) -> Unit = { ctx ->
-        val navKontor = ctx.queryParam("navKontor")!!;
-        val fraOgMed = ctx.queryParam("fraOgMed")!!;
-        val tilOgMed = ctx.queryParam("tilOgMed")!!;
-
-        val forespørsler: List<Forespørsel> = repository.hentForespørsler(
-            LocalDate.parse(fraOgMed).atStartOfDay(),
-            LocalDate.parse(tilOgMed).plusDays(1).atStartOfDay(),
-            navKontor
-            )
-        val svartJa = forespørsler.count { it.harSvartJa() }
-        val svartNei = forespørsler.count { it.svar != null && !it.harSvartJa() }
-        val utløpt = forespørsler.count { it.utløpt() }
-        val venterPåSvar = forespørsler.count { it.venterPåSvar() }
-
-        val outboundDto = Svarstatistikk(
-            antallSvartJa = svartJa,
-            antallSvartNei = svartNei,
-            antallUtløpteSvar = utløpt,
-            antallVenterPåSvar = venterPåSvar
-        )
-
-        ctx.json(outboundDto)
-        ctx.status(200)
-    }
-
-
+class ForespørselController(
+    private val repository: Repository,
+    sendUsendteForespørsler: () -> Unit,
+    hentStilling: (UUID) -> Stilling?
+) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
             ctx.pathParam(stillingsIdParamName)
@@ -69,40 +45,55 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
     }
 
     val sendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
-        val forespørselOmDelingAvCvDto = ctx.bodyAsClass(ForespørselInboundDto::class.java)
+        val forespørselOmDelingAvCvDto = try {
+            ctx.bodyAsClass(ForespørselInboundDto::class.java)
+        } catch (e: MissingKotlinParameterException) {
+            null
+        }
 
-        val minstEnKandidatHarFåttForespørselFør: () -> Boolean = {
+        if (forespørselOmDelingAvCvDto == null) {
+            ctx.status(400).json("Ugyldig input")
+        } else {
+            val minstEnKandidatHarFåttForespørselFør: () -> Boolean = {
                 repository.minstEnKandidatHarFåttForespørsel(
                     forespørselOmDelingAvCvDto.stillingsId.toUUID(),
                     forespørselOmDelingAvCvDto.aktorIder
                 )
             }
 
-        val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
+            val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
 
-        val (kanSende, statuskode, feilmelding) = kanSendeForespørsel(stilling, minstEnKandidatHarFåttForespørselFør)
-
-        if (!kanSende) {
-            loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
-            ctx.status(statuskode).json(feilmelding)
-        } else {
-            repository.lagreUsendteForespørsler(
-                aktørIder = forespørselOmDelingAvCvDto.aktorIder,
-                stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
-                svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
-                deltAvNavIdent = ctx.hentNavIdent(),
-                callId = ctx.hentCallId()
+            val (kanSende, statuskode, feilmelding) = kanSendeForespørsel(
+                stilling,
+                minstEnKandidatHarFåttForespørselFør
             )
 
-            ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
-            ctx.status(201)
-            sendUsendteForespørsler()
+            if (!kanSende) {
+                loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
+                ctx.status(statuskode).json(feilmelding)
+            } else {
+                repository.lagreUsendteForespørsler(
+                    aktørIder = forespørselOmDelingAvCvDto.aktorIder,
+                    stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+                    svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
+                    deltAvNavIdent = ctx.hentNavIdent(),
+                    navKontor = forespørselOmDelingAvCvDto.navKontor,
+                    callId = ctx.hentCallId()
+                )
+
+                ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
+                ctx.status(201)
+                sendUsendteForespørsler()
+            }
         }
     }
 
-    private fun kanSendeForespørsel(stilling: Stilling?, minstEnKandidatHarFåttForespørselFør: () -> Boolean): Triple<Boolean, Int, String> =
+    private fun kanSendeForespørsel(
+        stilling: Stilling?,
+        minstEnKandidatHarFåttForespørselFør: () -> Boolean
+    ): Triple<Boolean, Int, String> =
         if (stilling == null) {
-            Triple(false, 404,"Stillingen eksisterer ikke", )
+            Triple(false, 404, "Stillingen eksisterer ikke")
         } else if (stilling.kanIkkeDelesMedKandidaten) {
             Triple(false, 400, "Stillingen kan ikke deles med brukeren pga. stillingskategori.")
         } else if (minstEnKandidatHarFåttForespørselFør()) {
@@ -131,7 +122,8 @@ class Controller(private val repository: Repository, sendUsendteForespørsler: (
                 stillingsId = inboundDto.stillingsId.toUUID(),
                 svarfrist = inboundDto.svarfrist.toLocalDateTime(),
                 deltAvNavIdent = ctx.hentNavIdent(),
-                callId = ctx.hentCallId()
+                navKontor = inboundDto.navKontor,
+                callId = ctx.hentCallId(),
             )
 
             ctx.json(hentForespørslerGruppertPåAktørId(inboundDto.stillingsId))
@@ -167,11 +159,13 @@ data class ForespørselInboundDto(
     val stillingsId: String,
     val svarfrist: ZonedDateTime,
     val aktorIder: List<String>,
+    val navKontor: String
 )
 
 data class ResendForespørselInboundDto(
     val stillingsId: String,
-    val svarfrist: ZonedDateTime
+    val svarfrist: ZonedDateTime,
+    val navKontor: String
 )
 
 data class ForespørselOutboundDto(
@@ -185,20 +179,8 @@ data class ForespørselOutboundDto(
 
     val tilstand: Tilstand?,
     val svar: Svar?,
-    val begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?
+    val begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?,
+    val navKontor: String?
 )
 
 typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutboundDto>>
-
-data class Svarstatistikk(
-    val antallSvartJa: Number,
-    val antallSvartNei: Number,
-    val antallVenterPåSvar: Number,
-    val antallUtløpteSvar: Number,
-)
-
-data class ForespørselOmStatistikk(
-    val navKontor: String,
-    val fraOgMed: String,
-    val tilOgMed: String,
-)
