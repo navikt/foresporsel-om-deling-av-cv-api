@@ -10,13 +10,13 @@ class KandidatLytter(private val rapidsConnection: RapidsConnection) : River.Pac
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandKey("kandidat.dummy.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
+                it.demandKey("kandidathendelse")
             }
         }.register(this)
     }
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
 
-        log.info("Mottok kandidatevent: $JsonMessage")
+        log.info("Mottok kandidatevent: $packet")
     }
 
 }
