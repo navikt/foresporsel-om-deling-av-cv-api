@@ -44,7 +44,7 @@ class SvarService(
             log.info("Fikk beskjed om å lukke consument med groupId ${consumer.groupMetadata().groupId()}")
         } catch (exception: Exception) {
             log.error("Feil ved konsumering av svar på forespørsel.",exception)
-            isOk = false
+            delingAvCvResponsConsumerIsOk = false
         } finally {
             consumer.close()
         }
@@ -77,7 +77,7 @@ class SvarService(
         consumer.wakeup()
     }
 
-    private var isOk = true
+    private var delingAvCvResponsConsumerIsOk = true
 
-    fun isOk() = isOk && rapidIsAlive()
+    fun isOk() = delingAvCvResponsConsumerIsOk && rapidIsAlive()
 }

@@ -104,11 +104,7 @@ fun main() {
         val env = System.getenv()
         lateinit var rapidIsAlive: () -> Boolean
         val rapidsConnection = RapidApplication.create(env, configure = { _, kafkarapid ->
-            rapidIsAlive = {
-                kafkarapid.isRunning().apply {
-                    log.info("rapidIsAlive ble kalt, den returnerte: $this")
-                }
-            }
+            rapidIsAlive = kafkarapid::isRunning
         })
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
