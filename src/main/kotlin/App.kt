@@ -61,9 +61,11 @@ class App(
             scheduler.kjørPeriodisk()
             thread { svarService.start() }
 
-            rapidsConnection.also {
-                KandidatLytter(it)
-            }.start()
+            thread {
+                rapidsConnection.also {
+                    KandidatLytter(it)
+                }.start()
+            }
 
             log.info("App startet")
         } catch (exception: Exception) {
