@@ -18,7 +18,7 @@ val svarTopic = TopicPartition("pto.stilling-fra-nav-oppdatert-v2", 0)
 class SvarService(
     private val consumer: Consumer<String, DelingAvCvRespons>,
     private val repository: Repository,
-    rapidIsAlive: () -> Boolean
+    private val rapidIsAlive: () -> Boolean
 ): Closeable {
     fun start() {
         try {
@@ -79,5 +79,5 @@ class SvarService(
 
     private var isOk = true
 
-    fun isOk() = isOk
+    fun isOk() = isOk && rapidIsAlive()
 }
