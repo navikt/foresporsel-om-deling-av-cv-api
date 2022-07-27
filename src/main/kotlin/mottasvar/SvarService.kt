@@ -17,7 +17,8 @@ val svarTopic = TopicPartition("pto.stilling-fra-nav-oppdatert-v2", 0)
 
 class SvarService(
     private val consumer: Consumer<String, DelingAvCvRespons>,
-    private val repository: Repository
+    private val repository: Repository,
+    rapidIsAlive: () -> Boolean
 ): Closeable {
     fun start() {
         try {

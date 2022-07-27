@@ -1,4 +1,5 @@
 import mottasvar.SvarService
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
@@ -49,14 +50,15 @@ fun startLokalApp(
         )
     )
 
-    val svarService = SvarService(consumer, repository)
+    val svarService = SvarService(consumer, repository){true}
 
     val app = App(
         forespørselController,
         svarstatistikkController,
         issuerProperties,
         usendtScheduler,
-        svarService
+        svarService,
+        TestRapid()
     )
 
     app.start()

@@ -6,6 +6,7 @@ import kandidatevent.KandidatLytter
 import mottasvar.SvarService
 import mottasvar.consumerConfig
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
@@ -30,6 +31,7 @@ class App(
     private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
+    private val rapidsConnection: RapidsConnection
 ) : Closeable {
 
     init {
@@ -52,16 +54,6 @@ class App(
             get("/statistikk", svarstatistikkController.hentSvarstatistikk)
         }
     }
-
-    val env = System.getenv()
-    lateinit var rapidIsAlive: () -> Boolean
-    private val rapidsConnection = RapidApplication.create(env, configure = { _, kafkarapid ->
-        rapidIsAlive = {
-            kafkarapid.isRunning().apply {
-                log.info("rapidIsAlive ble kalt, den returnerte: $this")
-            }
-        }
-    })
 
     fun start() {
         try {
@@ -107,15 +99,28 @@ fun main() {
         val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
         val svarstatistikkController = SvarstatistikkController(repository)
 
+
+
+        val env = System.getenv()
+        lateinit var rapidIsAlive: () -> Boolean
+        val rapidsConnection = RapidApplication.create(env, configure = { _, kafkarapid ->
+            rapidIsAlive = {
+                kafkarapid.isRunning().apply {
+                    log.info("rapidIsAlive ble kalt, den returnerte: $this")
+                }
+            }
+        })
+
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
-        val svarService = SvarService(svarConsumer, repository)
+        val svarService = SvarService(svarConsumer, repository, rapidIsAlive)
 
         App(
             forespørselController,
             svarstatistikkController,
             listOf(azureIssuerProperties),
             usendtScheduler,
-            svarService
+            svarService,
+            rapidsConnection
         ).start()
 
     } catch (exception: Exception) {
