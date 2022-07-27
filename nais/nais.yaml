@@ -36,3 +36,10 @@ spec:
           cluster: {{ fss-cluster }}
   kafka:
     pool: {{ kafka-pool }}
+  env:
+    - name: KAFKA_RAPID_TOPIC
+      value: toi.rapid-1
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: {{ kafka_consumer_group_id }}
+    - name: KAFKA_RESET_POLICY
+      value: "earliest"

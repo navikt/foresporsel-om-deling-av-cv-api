@@ -5,5 +5,6 @@
     ],
     "kafka-pool": "nav-dev",
     "gcp-cluster": "dev-gcp",
-    "fss-cluster": "dev-fss"
+    "fss-cluster": "dev-fss",
+    "kafka_consumer_group_id": "foresporsel-om-deling-av-cv-api-rapidconsumer-1"
 }
