@@ -15,6 +15,8 @@ repositories {
     maven {
         url = uri("https://packages.confluent.io/maven/")
     }
+    maven("https://jitpack.io")
+
 }
 
 tasks.test {
@@ -46,6 +48,8 @@ dependencies {
     val shedlockVersion = "4.29.0"
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
+
+    implementation("com.github.navikt:rapids-and-rivers:2022061809451655538329.d6deccc62862")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")

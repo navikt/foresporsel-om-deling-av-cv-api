@@ -2,8 +2,10 @@ import auth.azureConfig
 import auth.azureIssuerProperties
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
+import kandidatevent.KandidatLytter
 import mottasvar.SvarService
 import mottasvar.consumerConfig
+import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
@@ -51,11 +53,25 @@ class App(
         }
     }
 
+    val env = System.getenv()
+    lateinit var rapidIsAlive: () -> Boolean
+    private val rapidsConnection = RapidApplication.create(env, configure = { _, kafkarapid ->
+        rapidIsAlive = {
+            kafkarapid.isRunning().apply {
+                log.info("rapidIsAlive ble kalt, den returnerte: $this")
+            }
+        }
+    })
+
     fun start() {
         try {
             webServer.start(8333)
             scheduler.kjørPeriodisk()
             thread { svarService.start() }
+
+            rapidsConnection.also {
+                KandidatLytter(it)
+            }.start()
 
             log.info("App startet")
         } catch (exception: Exception) {
