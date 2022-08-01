@@ -10,7 +10,8 @@ class KandidatLytter(private val rapidsConnection: RapidsConnection) : River.Pac
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandKey("kandidathendelse")
+                it.demandValue("@event_name", "kandidat.dummy.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
+                it.interestedIn("kandidathendelse")
             }
         }.register(this)
     }
