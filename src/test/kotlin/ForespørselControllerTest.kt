@@ -46,7 +46,7 @@ class ForespørselControllerTest {
 
     private fun startWiremockApp(
         database: TestDatabase = TestDatabase()
-    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling, producer = mockProducerAvro)
+    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling, avroProducer = mockProducerAvro)
 
     @Test
     fun `Kall til POST-endepunkt skal lagre informasjon om forespørselen i database`() {

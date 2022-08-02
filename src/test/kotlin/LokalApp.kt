@@ -26,14 +26,17 @@ fun main() {
 fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
-    producer: Producer<String, ForesporselOmDelingAvCv> = mockProducerAvro,
+    avroProducer: Producer<String, ForesporselOmDelingAvCv> = mockProducerAvro,
     hentStilling: (UUID) -> Stilling? = hentStillingMock,
     forespørselService: ForespørselService = ForespørselService(
-        producer,
+        avroProducer,
         repository,
         hentStilling
     ),
-    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer()
+    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
+    testRapid: TestRapid = TestRapid(),
+    jsonProducer: Producer<String, String> = mockProducerJson
+
 ): App {
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
     val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, hentStilling)
@@ -55,8 +58,8 @@ fun startLokalApp(
         issuerProperties,
         usendtScheduler,
         svarService,
-        TestRapid(),
-        mockProducerJson,
+        testRapid,
+        jsonProducer,
         repository
     )
 

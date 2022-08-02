@@ -28,7 +28,7 @@ class SendForespørselTest {
         val forespørselService =
             ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 
-        startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
+        startLokalApp(database, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
             val stillingsId = UUID.randomUUID()
 
@@ -94,7 +94,7 @@ class SendForespørselTest {
         val forespørselService =
             ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 
-        startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
+        startLokalApp(database, avroProducer = mockProducer, forespørselService = forespørselService).use {
             val nå = LocalDateTime.now()
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
 
@@ -128,7 +128,7 @@ class SendForespørselTest {
         val forespørselService =
             ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 
-        startLokalApp(database, producer = mockProducer, forespørselService = forespørselService).use {
+        startLokalApp(database, avroProducer = mockProducer, forespørselService = forespørselService).use {
             val enHalvtimeSiden = LocalDateTime.now().minusMinutes(30)
 
             val forespørsel = enForespørsel("123", IKKE_SENDT, enHalvtimeSiden)
