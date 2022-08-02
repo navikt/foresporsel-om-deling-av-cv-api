@@ -34,7 +34,8 @@ class App(
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
     private val rapidsConnection: RapidsConnection,
-    private val statusoppdateringProducer: Producer<String, String>
+    private val statusoppdateringProducer: Producer<String, String>,
+    private val repository: Repository
 ) : Closeable {
 
     init {
@@ -66,7 +67,7 @@ class App(
 
             thread {
                 rapidsConnection.also {
-                    KandidatLytter(it, statusoppdateringProducer)
+                    KandidatLytter(it, statusoppdateringProducer, repository)
                 }.start()
             }
 
@@ -122,7 +123,8 @@ fun main() {
             usendtScheduler,
             svarService,
             rapidsConnection,
-            statusoppdateringProducer
+            statusoppdateringProducer,
+            repository
         ).start()
 
     } catch (exception: Exception) {

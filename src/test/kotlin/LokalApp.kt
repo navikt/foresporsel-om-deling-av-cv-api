@@ -56,7 +56,8 @@ fun startLokalApp(
         usendtScheduler,
         svarService,
         TestRapid(),
-        mockProducerJson
+        mockProducerJson,
+        repository
     )
 
     app.start()

@@ -1,15 +1,19 @@
 package kandidatevent
 
+import Forespørsel
+import Repository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.apache.kafka.clients.producer.Producer
 import utils.log
+import java.util.UUID
 
 class KandidatLytter(
     rapidsConnection: RapidsConnection,
-    private val statusOppdateringProducer: Producer<String, String>
+    private val statusOppdateringProducer: Producer<String, String>,
+    private val repository: Repository
 ) : River.PacketListener {
 
     val topic = "pto.rekrutteringsbistand-statusoppdatering-v1"
@@ -25,6 +29,12 @@ class KandidatLytter(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Mottok kandidatevent: $packet")
+        val aktørId: String = packet["kandidathendelse"]["aktørId"].textValue()
+        val stillingsId: UUID = UUID.fromString(packet["kandidatahendelse"]["stillingsId"].textValue())
+        val bestillingsId: Forespørsel? = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
+            ?: throw IllegalStateException(
+                " Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
+            )
 //        val melding = ProducerRecord(topic, "key", "value")
 //        statusOppdateringProducer.send(melding)
     }
