@@ -5,6 +5,8 @@ import io.javalin.plugin.json.JavalinJackson
 import kandidatevent.KandidatLytter
 import mottasvar.SvarService
 import mottasvar.consumerConfig
+import no.nav.foresporselomdelingavcv.avroProducerConfig
+import no.nav.foresporselomdelingavcv.jsonProducerConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.security.token.support.core.configuration.IssuerProperties
@@ -12,9 +14,9 @@ import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.Producer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
-import sendforespørsel.producerConfig
 import stilling.AccessTokenClient
 import stilling.StillingKlient
 import utils.Miljø
@@ -31,7 +33,8 @@ class App(
     private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
-    private val rapidsConnection: RapidsConnection
+    private val rapidsConnection: RapidsConnection,
+    private val statusoppdateringProducer: Producer<String, String>
 ) : Closeable {
 
     init {
@@ -63,7 +66,7 @@ class App(
 
             thread {
                 rapidsConnection.also {
-                    KandidatLytter(it)
+                    KandidatLytter(it, statusoppdateringProducer)
                 }.start()
             }
 
@@ -90,7 +93,7 @@ fun main() {
         val accessTokenClient = AccessTokenClient(azureConfig)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
 
-        val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(producerConfig)
+        val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(avroProducerConfig)
         val forespørselService = ForespørselService(
             forespørselProducer,
             repository,
@@ -101,8 +104,6 @@ fun main() {
         val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
         val svarstatistikkController = SvarstatistikkController(repository)
 
-
-
         val env = System.getenv()
         lateinit var rapidIsAlive: () -> Boolean
         val rapidsConnection = RapidApplication.create(env, configure = { _, kafkarapid ->
@@ -112,13 +113,16 @@ fun main() {
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository, rapidIsAlive)
 
+        val statusoppdateringProducer = KafkaProducer<String, String>(jsonProducerConfig)
+
         App(
             forespørselController,
             svarstatistikkController,
             listOf(azureIssuerProperties),
             usendtScheduler,
             svarService,
-            rapidsConnection
+            rapidsConnection,
+            statusoppdateringProducer
         ).start()
 
     } catch (exception: Exception) {

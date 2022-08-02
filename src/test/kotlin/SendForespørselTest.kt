@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sendforespørsel.ForespørselService
 import setup.TestDatabase
-import setup.mockProducer
+import setup.mockProducerAvro
 import setup.mockProducerUtenAutocomplete
 import stilling.Stilling
 import java.time.LocalDateTime
@@ -21,7 +21,7 @@ class SendForespørselTest {
     @Test
     fun `Usendte forespørsler skal sendes på Kafka`() {
         val database = TestDatabase()
-        val mockProducer = mockProducer()
+        val mockProducer = mockProducerAvro
         val stillingFraElasticsearch = enStilling()
         val hentStillingMock: (UUID) -> Stilling? = { stillingFraElasticsearch }
 
@@ -90,7 +90,7 @@ class SendForespørselTest {
     @Test
     fun `Usendte forespørsler skal oppdateres med rett status i databasen når de sendes på Kafka`() {
         val database = TestDatabase()
-        val mockProducer = mockProducer()
+        val mockProducer = mockProducerAvro
         val forespørselService =
             ForespørselService(mockProducer, Repository(database.dataSource), hentStillingMock)
 

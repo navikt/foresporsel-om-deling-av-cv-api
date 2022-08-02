@@ -7,7 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
 import setup.medVeilederToken
-import setup.mockProducer
+import setup.mockProducerAvro
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
 import java.time.*
@@ -35,7 +35,7 @@ class SvarstatistikkControllerTest {
         mockProducer.clear()
     }
 
-    private val mockProducer = mockProducer()
+    private val mockProducer = mockProducerAvro
 
     @Test
     fun `GET mot statistikk skal ha svar ja om det er svar ja i basen innenfor tidsperiode`() {

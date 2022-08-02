@@ -4,9 +4,16 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import org.apache.kafka.clients.producer.Producer
 import utils.log
 
-class KandidatLytter(private val rapidsConnection: RapidsConnection) : River.PacketListener {
+class KandidatLytter(
+    rapidsConnection: RapidsConnection,
+    private val statusOppdateringProducer: Producer<String, String>
+) : River.PacketListener {
+
+    val topic = "pto.rekrutteringsbistand-statusoppdatering-v1"
+
     init {
         River(rapidsConnection).apply {
             validate {
@@ -15,9 +22,10 @@ class KandidatLytter(private val rapidsConnection: RapidsConnection) : River.Pac
             }
         }.register(this)
     }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-
         log.info("Mottok kandidatevent: $packet")
+//        val melding = ProducerRecord(topic, "key", "value")
+//        statusOppdateringProducer.send(melding)
     }
-
 }

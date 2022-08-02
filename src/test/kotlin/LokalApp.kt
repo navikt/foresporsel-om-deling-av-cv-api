@@ -8,10 +8,7 @@ import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
-import setup.TestDatabase
-import setup.hentToken
-import setup.mockConsumer
-import setup.mockProducer
+import setup.*
 import stilling.Stilling
 import java.net.URL
 import java.util.*
@@ -29,7 +26,7 @@ fun main() {
 fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
-    producer: Producer<String, ForesporselOmDelingAvCv> = mockProducer(),
+    producer: Producer<String, ForesporselOmDelingAvCv> = mockProducerAvro,
     hentStilling: (UUID) -> Stilling? = hentStillingMock,
     forespørselService: ForespørselService = ForespørselService(
         producer,
@@ -58,7 +55,8 @@ fun startLokalApp(
         issuerProperties,
         usendtScheduler,
         svarService,
-        TestRapid()
+        TestRapid(),
+        mockProducerJson
     )
 
     app.start()
