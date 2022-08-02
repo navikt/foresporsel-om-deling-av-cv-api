@@ -32,7 +32,7 @@ class KandidatLytter(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Mottok kandidatevent: $packet")
         val aktørId: String = packet["kandidathendelse"]["aktørId"].textValue()
-        val stillingsId: UUID = UUID.fromString(packet["kandidatahendelse"]["stillingsId"].textValue())
+        val stillingsId: UUID = UUID.fromString(packet["kandidathendelse"]["stillingsId"].textValue())
         val forespørsel: Forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
             ?: throw IllegalStateException(
                 "Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
