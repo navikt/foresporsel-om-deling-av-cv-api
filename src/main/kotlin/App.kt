@@ -65,11 +65,12 @@ class App(
             scheduler.kjørPeriodisk()
             thread { svarService.start() }
 
-            thread {
+            // TODO Are: thread problem for test?
+//            thread {
                 rapidsConnection.also {
                     KandidatLytter(it, statusoppdateringProducer, repository)
                 }.start()
-            }
+//            }
 
             log.info("App startet")
         } catch (exception: Exception) {
