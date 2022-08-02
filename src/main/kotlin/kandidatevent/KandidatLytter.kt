@@ -33,6 +33,7 @@ class KandidatLytter(
         log.info("Mottok kandidatevent: $packet")
         val aktørId: String = packet["kandidathendelse"]["aktørId"].textValue()
         val stillingsId: UUID = UUID.fromString(packet["kandidathendelse"]["stillingsId"].textValue())
+        val tidspunkt: String = packet["kandidathendelse"]["tidspunkt"].textValue()
         val forespørsel: Forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
             ?: throw IllegalStateException(
                 "Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
@@ -43,7 +44,7 @@ class KandidatLytter(
             )
         }
 
-        val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":${LocalDateTime.now()}}"""
+        val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":$tidspunkt}"""
 
         val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
         statusOppdateringProducer.send(melding)
