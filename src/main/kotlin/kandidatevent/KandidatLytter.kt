@@ -7,7 +7,9 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.apache.kafka.clients.producer.Producer
+import org.apache.kafka.clients.producer.ProducerRecord
 import utils.log
+import java.time.LocalDateTime
 import java.util.UUID
 
 class KandidatLytter(
@@ -21,7 +23,7 @@ class KandidatLytter(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("@event_name", "kandidat.dummy.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
+                it.demandValue("@event_name", "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
                 it.interestedIn("kandidathendelse")
             }
         }.register(this)
@@ -31,11 +33,19 @@ class KandidatLytter(
         log.info("Mottok kandidatevent: $packet")
         val aktørId: String = packet["kandidathendelse"]["aktørId"].textValue()
         val stillingsId: UUID = UUID.fromString(packet["kandidatahendelse"]["stillingsId"].textValue())
-        val bestillingsId: Forespørsel? = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
+        val forespørsel: Forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
             ?: throw IllegalStateException(
-                " Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
+                "Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
             )
-//        val melding = ProducerRecord(topic, "key", "value")
-//        statusOppdateringProducer.send(melding)
+        if(!forespørsel.harSvartJa()) {
+            throw IllegalStateException(
+                "Forespørsel skal ikke ha svar nei, da kan vi ikke dele til arebidsgiver"
+            )
+        }
+
+        val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":${LocalDateTime.now()}}"""
+
+        val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
+        statusOppdateringProducer.send(melding)
     }
 }
