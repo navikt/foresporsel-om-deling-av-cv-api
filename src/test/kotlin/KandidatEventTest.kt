@@ -1,55 +1,107 @@
-import kandidatevent.KandidatLytter
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.assertj.core.api.Assertions.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 import setup.TestDatabase
 import setup.mockProducerJson
 import java.time.LocalDateTime
 import java.util.*
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KandidatEventTest {
 
+    private val database = TestDatabase()
+    private val testRapid = TestRapid()
+    private val mockProducer = mockProducerJson
+
+    @BeforeAll
+    fun init() {
+        startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        database.slettAlt()
+        testRapid.reset()
+        mockProducer.clear()
+    }
+
     @Test
-    fun håndterEvent() {
+    fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
+        val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = true)
+        val eventTidspunkt = nårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
+    }
 
-        val database = TestDatabase()
+    @Test
+    fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten har svart Nei på forespørsel`() {
+        val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = false)
+        assertExceptionNårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+    }
 
-        val testRapid = TestRapid()
-        val mockProducer = mockProducerJson
+    @Test
+    fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten ikke har blitt forespørsel`() {
+        val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
+        assertExceptionNårEventMottasPåRapid(forespørselSomIkkeFinnesIDatabasen.aktørId, forespørselSomIkkeFinnesIDatabasen.stillingsId)
+    }
 
-        val stillingsId = UUID.randomUUID()
-        val aktørId = "12345123451"
-        val forespørselId = UUID.randomUUID()
-        val tidspunkt = LocalDateTime.now()
-
-        database.lagreBatch(
-            listOf(
-                enForespørsel(
-                    aktørId,
-                    deltStatus = DeltStatus.IKKE_SENDT,
-                    stillingsId = stillingsId,
-                    forespørselId = forespørselId,
-                    svar = Svar(harSvartJa = true, svarTidspunkt = tidspunkt, svartAv = Ident("a", IdentType.NAV_IDENT))
-                ),
-            )
-        )
-
-
-        startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer).apply {
-            val eventJson = """
-            {"@event_name":"kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand","kandidathendelse":{"type":"CV_DELT_VIA_REKRUTTERINGSBISTAND","aktørId":"$aktørId","stillingsId":"$stillingsId", "organisasjonsnummer":"913086619","kandidatlisteId":"8081ef01-b023-4cd8-bd87-b830d9bcf9a4","tidspunkt":"$tidspunkt"}}
-        """.trimIndent()
-
+    private fun assertExceptionNårEventMottasPåRapid(aktørId: String, stillingsId: UUID) {
+        val eventJson = eventJson(aktørId, stillingsId)
+        assertThrows<IllegalStateException> {
             testRapid.sendTestMessage(eventJson)
-            val history = mockProducer.history()
-            assertThat(history).hasSize(1)
-            assertThat(history.first().key()).isEqualTo(forespørselId.toString())
-
-            assertThat(
-                history.first().value()
-            ).isEqualTo("""{"type":"CV_DELT","detaljer":"","tidspunkt":$tidspunkt}""")
-
         }
     }
+
+    private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel: Forespørsel, eventTidspunkt: LocalDateTime) {
+        val history = mockProducer.history()
+        assertThat(history).hasSize(1)
+        assertThat(history.first().key()).isEqualTo(forespørsel.forespørselId.toString())
+
+        assertThat(
+            history.first().value()
+        ).isEqualTo("""{"type":"CV_DELT","detaljer":"","tidspunkt":$eventTidspunkt}""")
+    }
+
+    private fun nårEventMottasPåRapid(
+        aktørId: String,
+        stillingsId: UUID,
+        tidspunktForEvent: LocalDateTime = LocalDateTime.now()
+    ): LocalDateTime {
+        val eventJson = eventJson(aktørId, stillingsId, tidspunktForEvent)
+        testRapid.sendTestMessage(eventJson)
+        return tidspunktForEvent
+    }
+
+    private fun gittAtForespørselErLagretIDatabasen(svarFraBruker: Boolean): Forespørsel {
+        val forespørsel = enForespørsel(
+            aktørId = tilfeldigString(lengde = 10),
+            deltStatus = DeltStatus.SENDT,
+            stillingsId = UUID.randomUUID(),
+            forespørselId = UUID.randomUUID(),
+            svar = Svar(harSvartJa = svarFraBruker, svarTidspunkt = LocalDateTime.now(), svartAv = Ident("a", IdentType.NAV_IDENT))
+        )
+
+        database.lagreBatch(listOf(forespørsel))
+        return forespørsel
+    }
+
+    private fun eventJson(aktørId: String, stillingsId: UUID, tidspunkt: LocalDateTime = LocalDateTime.now()) =
+        """
+            {
+                "@event_name": "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand",
+                "kandidathendelse": {
+                    "type":"CV_DELT_VIA_REKRUTTERINGSBISTAND",
+                    "aktørId":"$aktørId",
+                    "stillingsId":"$stillingsId", 
+                    "organisasjonsnummer":"913086619",
+                    "kandidatlisteId":"8081ef01-b023-4cd8-bd87-b830d9bcf9a4",
+                    "tidspunkt":"$tidspunkt"
+                }
+            }
+        """.trimIndent()
+
+    private fun tilfeldigString(lengde: Int = 10) = (1..lengde).map { ('A'..'Å').random() }.joinToString()
 }
