@@ -1,8 +1,9 @@
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.ArgumentMatchers.startsWith
 import org.mockito.Mockito
 import org.mockito.kotlin.verify
 import org.slf4j.Logger
@@ -46,20 +47,24 @@ class KandidatEventTest {
      */
 
     @Test
-    fun `Kandidat har ikke gitt samtykke til deling av CV`() {
-        startTestApp().use {
-            val forespørsel = lagreForespørsel(svarFraBruker = false)
-            val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
-            assertLogging("Hei")
-            assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
-        }
+    fun `Kandidat har ikke svart ja på forespørsel om deling av CV`() {
+        startTestApp() // TODO Are: Kunne denne vært i en @BeforeEach? Felles for alle testmeetoder?
+        val forespørsel = lagreForespørsel(svarFraBruker = false)
+
+        val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+
+        verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
     }
 
     @Test
     fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten ikke har blitt forespørsel`() {
         startTestApp().use {
             val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
-            assertExceptionNårEventMottasPåRapid(forespørselSomIkkeFinnesIDatabasen.aktørId, forespørselSomIkkeFinnesIDatabasen.stillingsId)
+            assertExceptionNårEventMottasPåRapid(
+                forespørselSomIkkeFinnesIDatabasen.aktørId,
+                forespørselSomIkkeFinnesIDatabasen.stillingsId
+            )
         }
     }
 
@@ -70,7 +75,10 @@ class KandidatEventTest {
         }
     }
 
-    private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel: Forespørsel, eventTidspunkt: LocalDateTime) {
+    private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
+        forespørsel: Forespørsel,
+        eventTidspunkt: LocalDateTime
+    ) {
         val history = mockProducer.history()
         assertThat(history).hasSize(1)
         assertThat(history.first().key()).isEqualTo(forespørsel.forespørselId.toString())
@@ -78,10 +86,6 @@ class KandidatEventTest {
         assertThat(
             history.first().value()
         ).isEqualTo("""{"type":"CV_DELT","detaljer":"","tidspunkt":$eventTidspunkt}""")
-    }
-
-    private fun assertLogging(forventetTekst: String = "") {
-        verify(log).info(forventetTekst)
     }
 
     private fun publiserKandidathendelsePåRapid(
@@ -96,11 +100,15 @@ class KandidatEventTest {
 
     private fun lagreForespørsel(svarFraBruker: Boolean): Forespørsel {
         val forespørsel = enForespørsel(
-            aktørId = tilfeldigString(lengde = 10),
+            aktørId = "anyAktørID",
             deltStatus = DeltStatus.SENDT,
             stillingsId = UUID.randomUUID(),
             forespørselId = UUID.randomUUID(),
-            svar = Svar(harSvartJa = svarFraBruker, svarTidspunkt = LocalDateTime.now(), svartAv = Ident("a", IdentType.NAV_IDENT))
+            svar = Svar(
+                harSvartJa = svarFraBruker,
+                svarTidspunkt = LocalDateTime.now(),
+                svartAv = Ident("a", IdentType.NAV_IDENT)
+            )
         )
 
         database.lagreBatch(listOf(forespørsel))
@@ -122,7 +130,6 @@ class KandidatEventTest {
             }
         """.trimIndent()
 
-    private fun tilfeldigString(lengde: Int = 10) = (1..lengde).map { ('A'..'Å').random() }.joinToString()
-
-    private fun startTestApp() = startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer, log = log)
+    private fun startTestApp() =
+        startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer, log = log)
 }

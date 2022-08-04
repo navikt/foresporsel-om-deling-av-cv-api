@@ -10,7 +10,7 @@ import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 
 class KandidatLytter(
     rapidsConnection: RapidsConnection,
@@ -39,10 +39,14 @@ class KandidatLytter(
             ?: throw IllegalStateException(
                 "Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
             )
-        if(!forespørsel.harSvartJa()) {
-            throw IllegalStateException(
-                "Forespørsel skal ikke ha svar nei, da kan vi ikke dele til arebidsgiver"
-            )
+        if (!forespørsel.harSvartJa()) {
+            // Putt hele kandidatheldense json i msg
+            val kandidathendelseJson = packet["kandidathendelse"]
+            val msg =
+                "Mottok melding om at CV har blitt delt med arbeidsgiver, " +
+                        "til tross for at kandidaten ikke har svart ja til deling av CV: " +
+                        kandidathendelseJson
+            log.error(msg)
         }
 
         val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":$tidspunkt}"""
