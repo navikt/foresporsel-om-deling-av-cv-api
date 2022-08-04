@@ -15,6 +15,8 @@ import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDeling
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.Producer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import stilling.AccessTokenClient
@@ -33,9 +35,7 @@ class App(
     private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
-    private val rapidsConnection: RapidsConnection,
-    private val statusoppdateringProducer: Producer<String, String>,
-    private val repository: Repository
+    private val rapidsConnection: RapidsConnection
 ) : Closeable {
 
     init {
@@ -64,14 +64,9 @@ class App(
             webServer.start(8333)
             scheduler.kjørPeriodisk()
             thread { svarService.start() }
-
             // TODO Are: thread problem for test?
-//            thread {
-                rapidsConnection.also {
-                    KandidatLytter(it, statusoppdateringProducer, repository)
-                }.start()
-//            }
-
+            // thread { rapidsConnection.start() }
+            rapidsConnection.start()
             log.info("App startet")
         } catch (exception: Exception) {
             close()
@@ -112,10 +107,11 @@ fun main() {
             rapidIsAlive = kafkarapid::isRunning
         })
 
+        val statusoppdateringProducer = KafkaProducer<String, String>(jsonProducerConfig)
+        KandidatLytter(rapidsConnection, statusoppdateringProducer, repository)
+
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository, rapidIsAlive)
-
-        val statusoppdateringProducer = KafkaProducer<String, String>(jsonProducerConfig)
 
         App(
             forespørselController,
@@ -123,9 +119,7 @@ fun main() {
             listOf(azureIssuerProperties),
             usendtScheduler,
             svarService,
-            rapidsConnection,
-            statusoppdateringProducer,
-            repository
+            rapidsConnection
         ).start()
 
     } catch (exception: Exception) {

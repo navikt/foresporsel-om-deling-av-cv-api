@@ -1,9 +1,7 @@
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import setup.TestDatabase
 import setup.mockProducerJson
@@ -26,16 +24,30 @@ class KandidatEventTest {
     @Test
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
         startTestApp().use {
-            val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = true)
-            val eventTidspunkt = nårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+            val forespørsel = lagreForespørsel(svarFraBruker = true)
+            val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
             assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
         }
     }
 
+    /**
+     * Gitt kandidat aldri forespurt om deling av CV
+     * Når melding om at CV leses fra rapid'en
+     * Så skal vi logge error (som beskriver at feilen ligger i annen applikasjon) uten å kaste exception
+     *
+     * Gitt kandidat forespurt men ikke svart Ja
+     * Når melding om at CV leses fra rapid'en
+     * Så skal vi logge error (som beskriver at feilen ligger i annen applikasjon)
+     *  og sende melding til Aktivitetsplanen
+     */
+
     @Test
-    fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten har svart Nei på forespørsel`() {
+    fun `Kandidat har ikke gitt samtykke til deling av CV`() {
         startTestApp().use {
-            val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = false)
+            val forespørsel = lagreForespørsel(svarFraBruker = false)
+            val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+
+
             assertExceptionNårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
         }
     }
@@ -65,7 +77,7 @@ class KandidatEventTest {
         ).isEqualTo("""{"type":"CV_DELT","detaljer":"","tidspunkt":$eventTidspunkt}""")
     }
 
-    private fun nårEventMottasPåRapid(
+    private fun publiserKandidathendelsePåRapid(
         aktørId: String,
         stillingsId: UUID,
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
@@ -75,7 +87,7 @@ class KandidatEventTest {
         return tidspunktForEvent
     }
 
-    private fun gittAtForespørselErLagretIDatabasen(svarFraBruker: Boolean): Forespørsel {
+    private fun lagreForespørsel(svarFraBruker: Boolean): Forespørsel {
         val forespørsel = enForespørsel(
             aktørId = tilfeldigString(lengde = 10),
             deltStatus = DeltStatus.SENDT,

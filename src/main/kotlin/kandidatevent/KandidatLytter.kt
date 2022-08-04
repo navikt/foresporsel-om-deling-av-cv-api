@@ -8,14 +8,15 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
-import utils.log
-import java.time.LocalDateTime
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class KandidatLytter(
     rapidsConnection: RapidsConnection,
     private val statusOppdateringProducer: Producer<String, String>,
-    private val repository: Repository
+    private val repository: Repository,
+    private val log: Logger = LoggerFactory.getLogger(KandidatLytter::class.java)
 ) : River.PacketListener {
 
     val topic = "pto.rekrutteringsbistand-statusoppdatering-v1"

@@ -1,3 +1,4 @@
+import kandidatevent.KandidatLytter
 import mottasvar.SvarService
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -6,6 +7,8 @@ import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import setup.*
@@ -35,8 +38,8 @@ fun startLokalApp(
     ),
     consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
     testRapid: TestRapid = TestRapid(),
-    jsonProducer: Producer<String, String> = mockProducerJson
-
+    jsonProducer: Producer<String, String> = mockProducerJson,
+    log: Logger = LoggerFactory.getLogger("LokalApp")
 ): App {
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
     val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, hentStilling)
@@ -52,15 +55,15 @@ fun startLokalApp(
 
     val svarService = SvarService(consumer, repository){true}
 
+    KandidatLytter(testRapid, jsonProducer, repository, log)
+
     val app = App(
         forespørselController,
         svarstatistikkController,
         issuerProperties,
         usendtScheduler,
         svarService,
-        testRapid,
-        jsonProducer,
-        repository
+        testRapid
     )
 
     app.start()
