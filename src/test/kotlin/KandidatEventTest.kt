@@ -3,6 +3,9 @@ import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
+import org.mockito.kotlin.verify
+import org.slf4j.Logger
 import setup.TestDatabase
 import setup.mockProducerJson
 import java.time.LocalDateTime
@@ -13,6 +16,7 @@ class KandidatEventTest {
     private val database = TestDatabase()
     private val testRapid = TestRapid()
     private val mockProducer = mockProducerJson
+    private val log = Mockito.mock(Logger::class.java)
 
     @AfterEach
     fun tearDown() {
@@ -46,9 +50,8 @@ class KandidatEventTest {
         startTestApp().use {
             val forespørsel = lagreForespørsel(svarFraBruker = false)
             val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
-
-
-            assertExceptionNårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+            assertLogging("Hei")
+            assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
         }
     }
 
@@ -75,6 +78,10 @@ class KandidatEventTest {
         assertThat(
             history.first().value()
         ).isEqualTo("""{"type":"CV_DELT","detaljer":"","tidspunkt":$eventTidspunkt}""")
+    }
+
+    private fun assertLogging(forventetTekst: String = "") {
+        verify(log).info(forventetTekst)
     }
 
     private fun publiserKandidathendelsePåRapid(
@@ -117,5 +124,5 @@ class KandidatEventTest {
 
     private fun tilfeldigString(lengde: Int = 10) = (1..lengde).map { ('A'..'Å').random() }.joinToString()
 
-    private fun startTestApp() = startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer)
+    private fun startTestApp() = startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer, log = log)
 }

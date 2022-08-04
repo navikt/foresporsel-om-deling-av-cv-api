@@ -56,4 +56,5 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.21.0")
     testImplementation("no.nav.security:mock-oauth2-server:0.3.6")
     testImplementation("com.github.tomakehurst:wiremock:2.27.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
