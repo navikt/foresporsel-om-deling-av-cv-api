@@ -10,17 +10,11 @@ import setup.mockProducerJson
 import java.time.LocalDateTime
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KandidatEventTest {
 
     private val database = TestDatabase()
     private val testRapid = TestRapid()
     private val mockProducer = mockProducerJson
-
-    @BeforeAll
-    fun init() {
-        startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer)
-    }
 
     @AfterEach
     fun tearDown() {
@@ -31,21 +25,27 @@ class KandidatEventTest {
 
     @Test
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
-        val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = true)
-        val eventTidspunkt = nårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
+        startTestApp().use {
+            val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = true)
+            val eventTidspunkt = nårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+            assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
+        }
     }
 
     @Test
     fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten har svart Nei på forespørsel`() {
-        val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = false)
-        assertExceptionNårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+        startTestApp().use {
+            val forespørsel = gittAtForespørselErLagretIDatabasen(svarFraBruker = false)
+            assertExceptionNårEventMottasPåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+        }
     }
 
     @Test
     fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten ikke har blitt forespørsel`() {
-        val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
-        assertExceptionNårEventMottasPåRapid(forespørselSomIkkeFinnesIDatabasen.aktørId, forespørselSomIkkeFinnesIDatabasen.stillingsId)
+        startTestApp().use {
+            val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
+            assertExceptionNårEventMottasPåRapid(forespørselSomIkkeFinnesIDatabasen.aktørId, forespørselSomIkkeFinnesIDatabasen.stillingsId)
+        }
     }
 
     private fun assertExceptionNårEventMottasPåRapid(aktørId: String, stillingsId: UUID) {
@@ -104,4 +104,6 @@ class KandidatEventTest {
         """.trimIndent()
 
     private fun tilfeldigString(lengde: Int = 10) = (1..lengde).map { ('A'..'Å').random() }.joinToString()
+
+    private fun startTestApp() = startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer)
 }
