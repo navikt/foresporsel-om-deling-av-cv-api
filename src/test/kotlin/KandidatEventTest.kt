@@ -1,6 +1,7 @@
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.startsWith
@@ -19,20 +20,25 @@ class KandidatEventTest {
     private val mockProducer = mockProducerJson
     private val log = Mockito.mock(Logger::class.java)
 
+    var app: App? = null
+    @BeforeEach
+    fun before() {
+        app = startTestApp()
+    }
+
     @AfterEach
     fun tearDown() {
         database.slettAlt()
         testRapid.reset()
         mockProducer.clear()
+        app?.close()
     }
 
     @Test
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
-        startTestApp().use {
-            val forespørsel = lagreForespørsel(svarFraBruker = true)
-            val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
-            assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
-        }
+        val forespørsel = lagreForespørsel(svarFraBruker = true)
+        val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
     }
 
     /**
@@ -48,7 +54,6 @@ class KandidatEventTest {
 
     @Test
     fun `Kandidat har ikke svart ja på forespørsel om deling av CV`() {
-        startTestApp() // TODO Are: Kunne denne vært i en @BeforeEach? Felles for alle testmeetoder?
         val forespørsel = lagreForespørsel(svarFraBruker = false)
 
         val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
@@ -59,13 +64,11 @@ class KandidatEventTest {
 
     @Test
     fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten ikke har blitt forespørsel`() {
-        startTestApp().use {
             val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
             assertExceptionNårEventMottasPåRapid(
                 forespørselSomIkkeFinnesIDatabasen.aktørId,
                 forespørselSomIkkeFinnesIDatabasen.stillingsId
             )
-        }
     }
 
     private fun assertExceptionNårEventMottasPåRapid(aktørId: String, stillingsId: UUID) {
