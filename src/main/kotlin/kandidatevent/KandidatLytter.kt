@@ -32,26 +32,34 @@ class KandidatLytter(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Mottok kandidatevent: $packet")
-        val aktørId: String = packet["kandidathendelse"]["aktørId"].textValue()
-        val stillingsId: UUID = UUID.fromString(packet["kandidathendelse"]["stillingsId"].textValue())
-        val tidspunkt: String = packet["kandidathendelse"]["tidspunkt"].textValue()
-        val forespørsel: Forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
-            ?: throw IllegalStateException(
-                "Skal alltid finne en forespørsel for en kandidat som skal ha blitt delt med arbeidsgiver. aktørId=$aktørId, stillingsId=$stillingsId"
-            )
-        if (!forespørsel.harSvartJa()) {
-            // Putt hele kandidatheldense json i msg
-            val kandidathendelseJson = packet["kandidathendelse"]
-            val msg =
-                "Mottok melding om at CV har blitt delt med arbeidsgiver, " +
-                        "til tross for at kandidaten ikke har svart ja til deling av CV: " +
-                        kandidathendelseJson
-            log.error(msg)
+        val kandidathendelseJson = packet["kandidathendelse"]
+        val aktørId: String = kandidathendelseJson["aktørId"].textValue()
+        val stillingsId: UUID = UUID.fromString(kandidathendelseJson["stillingsId"].textValue())
+        val tidspunkt: String = kandidathendelseJson["tidspunkt"].textValue()
+
+        val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
+
+        // TODO Mads: Bør vi virkelig logge hele kandidathendelseJson?
+
+        if (forespørsel == null) {
+            val melding = """
+                Mottok melding om at CV har blitt delt med arbeidsgiver
+                til tross for at kandidaten aldri har blitt forespurt om deling av CV: $kandidathendelseJson
+            """.trimIndent()
+            log.error(melding)
+        } else {
+            if (!forespørsel.harSvartJa()) {
+                val melding = """
+                    Mottok melding om at CV har blitt delt med arbeidsgiver
+                    til tross for at kandidaten ikke har svart ja til deling av CV: $kandidathendelseJson
+                """.trimIndent()
+                log.error(melding)
+            }
+
+            val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":$tidspunkt}"""
+
+            val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
+            statusOppdateringProducer.send(melding)
         }
-
-        val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":$tidspunkt}"""
-
-        val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
-        statusOppdateringProducer.send(melding)
     }
 }

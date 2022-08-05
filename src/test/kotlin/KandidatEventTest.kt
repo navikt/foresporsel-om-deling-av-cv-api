@@ -21,9 +21,10 @@ class KandidatEventTest {
     private val log = Mockito.mock(Logger::class.java)
 
     var app: App? = null
+
     @BeforeEach
     fun before() {
-        app = startTestApp()
+        app = startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer, log = log)
     }
 
     @AfterEach
@@ -41,17 +42,6 @@ class KandidatEventTest {
         assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
     }
 
-    /**
-     * Gitt kandidat aldri forespurt om deling av CV
-     * Når melding om at CV leses fra rapid'en
-     * Så skal vi logge error (som beskriver at feilen ligger i annen applikasjon) uten å kaste exception
-     *
-     * Gitt kandidat forespurt men ikke svart Ja
-     * Når melding om at CV leses fra rapid'en
-     * Så skal vi logge error (som beskriver at feilen ligger i annen applikasjon)
-     *  og sende melding til Aktivitetsplanen
-     */
-
     @Test
     fun `Kandidat har ikke svart ja på forespørsel om deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
@@ -63,19 +53,11 @@ class KandidatEventTest {
     }
 
     @Test
-    fun `Kast feil når CV har blitt delt med arbeidsgiver selv om kandidaten ikke har blitt forespørsel`() {
-            val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
-            assertExceptionNårEventMottasPåRapid(
-                forespørselSomIkkeFinnesIDatabasen.aktørId,
-                forespørselSomIkkeFinnesIDatabasen.stillingsId
-            )
-    }
-
-    private fun assertExceptionNårEventMottasPåRapid(aktørId: String, stillingsId: UUID) {
-        val eventJson = eventJson(aktørId, stillingsId)
-        assertThrows<IllegalStateException> {
-            testRapid.sendTestMessage(eventJson)
-        }
+    fun `Kandidat har ikke blitt forespurt om deling av CV`() {
+        val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
+        publiserKandidathendelsePåRapid(forespørselSomIkkeFinnesIDatabasen.aktørId, forespørselSomIkkeFinnesIDatabasen.stillingsId)
+        verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
+        assertThat(mockProducer.history().size).isZero
     }
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
@@ -132,7 +114,4 @@ class KandidatEventTest {
                 }
             }
         """.trimIndent()
-
-    private fun startTestApp() =
-        startLokalApp(database = database, testRapid = testRapid, jsonProducer = mockProducer, log = log)
 }
