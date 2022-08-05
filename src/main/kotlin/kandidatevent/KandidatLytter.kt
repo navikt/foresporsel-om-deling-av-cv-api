@@ -30,7 +30,7 @@ class KandidatLytter(
     }
 
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) { // TODO: Refaktorer, er for stor
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Mottok kandidatevent: $packet")
         val kandidathendelseJson = packet["kandidathendelse"]
         val aktørId: String = kandidathendelseJson["aktørId"].textValue()
