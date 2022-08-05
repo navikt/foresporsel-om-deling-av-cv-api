@@ -29,6 +29,7 @@ class KandidatLytter(
         }.register(this)
     }
 
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) { // TODO: Refaktorer, er for stor
         log.info("Mottok kandidatevent: $packet")
         val kandidathendelseJson = packet["kandidathendelse"]
@@ -36,28 +37,34 @@ class KandidatLytter(
         val stillingsId: UUID = UUID.fromString(kandidathendelseJson["stillingsId"].textValue())
         val tidspunkt: String = kandidathendelseJson["tidspunkt"].textValue()
         val utførtAvNavIdent: String = kandidathendelseJson["utførtAvNavIdent"].textValue()
-
         val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
+        val meldingJson =
+            """{"type":"CV_DELT","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
-        if (forespørsel == null) {
-            val melding = """
-                Mottok melding om at CV har blitt delt med arbeidsgiver
-                til tross for at kandidaten ikke har blitt forespurt om deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
-            """.trimIndent()
-            log.error(melding)
-        } else {
-            if (!forespørsel.harSvartJa()) {
-                val melding = """
-                    Mottok melding om at CV har blitt delt med arbeidsgiver
-                    til tross for at kandidaten ikke har svart ja til deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
-                """.trimIndent()
-                log.error(melding)
-            }
-
-            val meldingJson = """{"type":"CV_DELT","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
-
+        if (forespørsel != null) {
             val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
             statusOppdateringProducer.send(melding)
+
+            if (!forespørsel.harSvartJa()) {
+                log.error(harIkkeSvartJa(aktørId, stillingsId))
+            }
+        } else {
+            log.error(forespørselErNull(aktørId, stillingsId))
         }
     }
+
+    private fun forespørselErNull(aktørId: String, stillingsId: UUID): String =
+        """
+            Mottok melding om at CV har blitt delt med arbeidsgiver
+            til tross for at kandidaten ikke har blitt forespurt om deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
+        """.trimIndent()
+
+    private fun harIkkeSvartJa(aktørId: String, stillingsId: UUID): String =
+        """
+            Mottok melding om at CV har blitt delt med arbeidsgiver
+            til tross for at kandidaten ikke har svart ja til deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
+        """.trimIndent()
 }
+
+
+
