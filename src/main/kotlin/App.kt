@@ -14,9 +14,6 @@ import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.Producer
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import stilling.AccessTokenClient
@@ -64,9 +61,7 @@ class App(
             webServer.start(8333)
             scheduler.kjørPeriodisk()
             thread { svarService.start() }
-            // TODO Are: thread problem for test?
-            // thread { rapidsConnection.start() }
-            rapidsConnection.start()
+            thread { rapidsConnection.start() }
             log.info("App startet")
         } catch (exception: Exception) {
             close()
@@ -98,7 +93,8 @@ fun main() {
         )
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-        val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
+        val forespørselController =
+            ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
         val svarstatistikkController = SvarstatistikkController(repository)
 
         val env = System.getenv()
