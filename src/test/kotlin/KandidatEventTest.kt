@@ -3,7 +3,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.startsWith
 import org.mockito.Mockito
 import org.mockito.kotlin.verify
@@ -38,18 +37,18 @@ class KandidatEventTest {
     @Test
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
+        val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt, enNavIdent)
     }
 
     @Test
     fun `Kandidat har ikke svart ja på forespørsel om deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
 
-        val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId)
+        val eventTidspunkt = publiserKandidathendelsePåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
 
         verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt)
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(forespørsel, eventTidspunkt, enNavIdent)
     }
 
     @Test
@@ -62,7 +61,8 @@ class KandidatEventTest {
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
         forespørsel: Forespørsel,
-        eventTidspunkt: LocalDateTime
+        eventTidspunkt: LocalDateTime,
+        navIdent: String
     ) {
         val history = mockProducer.history()
         assertThat(history).hasSize(1)
@@ -70,15 +70,16 @@ class KandidatEventTest {
 
         assertThat(
             history.first().value()
-        ).isEqualTo("""{"type":"CV_DELT","detaljer":"","tidspunkt":$eventTidspunkt}""")
+        ).isEqualTo("""{"type":"CV_DELT","detaljer":"","utførtAvNavIdent":$navIdent,"tidspunkt":$eventTidspunkt}""")
     }
 
     private fun publiserKandidathendelsePåRapid(
         aktørId: String,
         stillingsId: UUID,
+        utførtAvNavIdent: String = enNavIdent,
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
-        val eventJson = eventJson(aktørId, stillingsId, tidspunktForEvent)
+        val eventJson = eventJson(aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
         testRapid.sendTestMessage(eventJson)
         return tidspunktForEvent
     }
@@ -100,7 +101,7 @@ class KandidatEventTest {
         return forespørsel
     }
 
-    private fun eventJson(aktørId: String, stillingsId: UUID, tidspunkt: LocalDateTime = LocalDateTime.now()) =
+    private fun eventJson(aktørId: String, stillingsId: UUID, utførtAvNavIdent: String, tidspunkt: LocalDateTime = LocalDateTime.now()) =
         """
             {
                 "@event_name": "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand",
@@ -110,7 +111,9 @@ class KandidatEventTest {
                     "stillingsId":"$stillingsId", 
                     "organisasjonsnummer":"913086619",
                     "kandidatlisteId":"8081ef01-b023-4cd8-bd87-b830d9bcf9a4",
+                    "utførtAvNavIdent":"$utførtAvNavIdent",
                     "tidspunkt":"$tidspunkt"
+             
                 }
             }
         """.trimIndent()
