@@ -37,11 +37,6 @@ class KandidatEventTest {
         app?.close()
     }
 
-    // TODO: Mangler testcase:
-    // Gitt kandidathendelse uten utførtAvNavIdent
-    // når kanidathendelsen publiseres på rapid
-    // så skal ???
-
     @Test
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)

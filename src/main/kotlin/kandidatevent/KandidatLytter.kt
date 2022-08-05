@@ -25,6 +25,12 @@ class KandidatLytter(
             validate {
                 it.demandValue("@event_name", "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
                 it.interestedIn("kandidathendelse")
+
+                // TODO:
+                // Nødvendig fordi feltet manglet på de første kandidateventene som ble publisert på rapid'en.
+                // Levetiden til meldingene på rapid'en er 14 dager.
+                // Kan fjernes etter 22.08.2022
+                it.demandKey("kandidathendelse.utførtAvNavIdent")
             }
         }.register(this)
     }
