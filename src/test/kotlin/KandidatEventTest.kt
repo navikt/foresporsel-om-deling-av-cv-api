@@ -1,3 +1,6 @@
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -34,6 +37,11 @@ class KandidatEventTest {
         app?.close()
     }
 
+    // TODO: Mangler testcase:
+    // Gitt kandidathendelse uten utførtAvNavIdent
+    // når kanidathendelsen publiseres på rapid
+    // så skal ???
+
     @Test
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
@@ -54,7 +62,10 @@ class KandidatEventTest {
     @Test
     fun `Kandidat har ikke blitt forespurt om deling av CV`() {
         val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
-        publiserKandidathendelsePåRapid(forespørselSomIkkeFinnesIDatabasen.aktørId, forespørselSomIkkeFinnesIDatabasen.stillingsId)
+        publiserKandidathendelsePåRapid(
+            forespørselSomIkkeFinnesIDatabasen.aktørId,
+            forespørselSomIkkeFinnesIDatabasen.stillingsId
+        )
         verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
         assertThat(mockProducer.history().size).isZero
     }
@@ -68,9 +79,12 @@ class KandidatEventTest {
         assertThat(history).hasSize(1)
         assertThat(history.first().key()).isEqualTo(forespørsel.forespørselId.toString())
 
-        assertThat(
-            history.first().value()
-        ).isEqualTo("""{"type":"CV_DELT","detaljer":"","utførtAvNavIdent":$navIdent,"tidspunkt":$eventTidspunkt}""")
+        val jsonAsString: String = history.first().value()
+        val jsonNode: JsonNode = jacksonObjectMapper().readTree(jsonAsString)!!
+        assertThat(jsonNode["type"].asText()).isEqualTo("CV_DELT")
+        assertThat(jsonNode["detaljer"].asText()).isEmpty()
+        assertThat(jsonNode["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
+        assertThat(jsonNode["tidspunkt"].asLocalDateTime()).isEqualToIgnoringNanos(eventTidspunkt)
     }
 
     private fun publiserKandidathendelsePåRapid(
@@ -101,7 +115,12 @@ class KandidatEventTest {
         return forespørsel
     }
 
-    private fun eventJson(aktørId: String, stillingsId: UUID, utførtAvNavIdent: String, tidspunkt: LocalDateTime = LocalDateTime.now()) =
+    private fun eventJson(
+        aktørId: String,
+        stillingsId: UUID,
+        utførtAvNavIdent: String,
+        tidspunkt: LocalDateTime = LocalDateTime.now()
+    ) =
         """
             {
                 "@event_name": "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand",

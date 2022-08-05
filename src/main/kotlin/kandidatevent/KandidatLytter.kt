@@ -1,6 +1,5 @@
 package kandidatevent
 
-import Forespørsel
 import Repository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -30,33 +29,32 @@ class KandidatLytter(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) { // TODO: Refaktorer, er for stor
         log.info("Mottok kandidatevent: $packet")
         val kandidathendelseJson = packet["kandidathendelse"]
         val aktørId: String = kandidathendelseJson["aktørId"].textValue()
         val stillingsId: UUID = UUID.fromString(kandidathendelseJson["stillingsId"].textValue())
         val tidspunkt: String = kandidathendelseJson["tidspunkt"].textValue()
+        val utførtAvNavIdent: String = kandidathendelseJson["utførtAvNavIdent"].textValue()
 
         val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
-
-        // TODO Mads: Bør vi virkelig logge hele kandidathendelseJson?
 
         if (forespørsel == null) {
             val melding = """
                 Mottok melding om at CV har blitt delt med arbeidsgiver
-                til tross for at kandidaten aldri har blitt forespurt om deling av CV: $kandidathendelseJson
+                til tross for at kandidaten ikke har blitt forespurt om deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
             """.trimIndent()
             log.error(melding)
         } else {
             if (!forespørsel.harSvartJa()) {
                 val melding = """
                     Mottok melding om at CV har blitt delt med arbeidsgiver
-                    til tross for at kandidaten ikke har svart ja til deling av CV: $kandidathendelseJson
+                    til tross for at kandidaten ikke har svart ja til deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
                 """.trimIndent()
                 log.error(melding)
             }
 
-            val meldingJson = """{"type":"CV_DELT","detaljer":"","tidspunkt":$tidspunkt}"""
+            val meldingJson = """{"type":"CV_DELT","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
             val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
             statusOppdateringProducer.send(melding)
