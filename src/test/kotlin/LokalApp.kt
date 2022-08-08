@@ -1,16 +1,17 @@
+import kandidatevent.KandidatLytter
 import mottasvar.SvarService
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
-import setup.TestDatabase
-import setup.hentToken
-import setup.mockConsumer
-import setup.mockProducer
+import setup.*
 import stilling.Stilling
 import java.net.URL
 import java.util.*
@@ -28,14 +29,17 @@ fun main() {
 fun startLokalApp(
     database: TestDatabase = TestDatabase(),
     repository: Repository = Repository(database.dataSource),
-    producer: Producer<String, ForesporselOmDelingAvCv> = mockProducer(),
+    avroProducer: Producer<String, ForesporselOmDelingAvCv> = mockProducerAvro,
     hentStilling: (UUID) -> Stilling? = hentStillingMock,
     forespørselService: ForespørselService = ForespørselService(
-        producer,
+        avroProducer,
         repository,
         hentStilling
     ),
-    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer()
+    consumer: Consumer<String, DelingAvCvRespons> = mockConsumer(),
+    testRapid: TestRapid = TestRapid(),
+    jsonProducer: Producer<String, String> = mockProducerJson,
+    log: Logger = LoggerFactory.getLogger("LokalApp")
 ): App {
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
     val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, hentStilling)
@@ -49,14 +53,17 @@ fun startLokalApp(
         )
     )
 
-    val svarService = SvarService(consumer, repository)
+    val svarService = SvarService(consumer, repository){true}
+
+    KandidatLytter(testRapid, jsonProducer, repository, log)
 
     val app = App(
         forespørselController,
         svarstatistikkController,
         issuerProperties,
         usendtScheduler,
-        svarService
+        svarService,
+        testRapid
     )
 
     app.start()

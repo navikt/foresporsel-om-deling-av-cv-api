@@ -20,6 +20,8 @@ fun enStilling() = Stilling(
     "STILLING"
 )
 
+val enNavIdent = "A100001"
+
 val hentStillingMock: (UUID) -> Stilling? = { enStilling() }
 
 fun enForespørsel(

@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
-          java-version: '15.x'
+          java-version: '17.x'
       - uses: actions/cache@v2
         with:
           path: |
@@ -28,13 +28,13 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/legg-til-nav-kontor'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/legg-til-kandidatevent-rapid'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
-          java-version: '15.x'
+          java-version: '17.x'
       - uses: actions/cache@v2
         with:
           path: |

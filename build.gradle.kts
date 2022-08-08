@@ -15,6 +15,8 @@ repositories {
     maven {
         url = uri("https://packages.confluent.io/maven/")
     }
+    maven("https://jitpack.io")
+
 }
 
 tasks.test {
@@ -47,9 +49,12 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 
+    implementation("com.github.navikt:rapids-and-rivers:2022061809451655538329.d6deccc62862")
+
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:1.4.200")
     testImplementation("org.assertj:assertj-core:3.21.0")
     testImplementation("no.nav.security:mock-oauth2-server:0.3.6")
     testImplementation("com.github.tomakehurst:wiremock:2.27.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }

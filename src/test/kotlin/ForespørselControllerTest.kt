@@ -11,7 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
 import setup.medVeilederToken
-import setup.mockProducer
+import setup.mockProducerAvro
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
@@ -42,11 +42,11 @@ class ForespørselControllerTest {
     }
 
     private val stillingKlient = StillingKlient { mockOAuth2Server.issueToken().serialize() }
-    private val mockProducer = mockProducer()
+    private val mockProducer = mockProducerAvro
 
     private fun startWiremockApp(
         database: TestDatabase = TestDatabase()
-    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling, producer = mockProducer)
+    ) = startLokalApp(database = database, hentStilling = stillingKlient::hentStilling, avroProducer = mockProducerAvro)
 
     @Test
     fun `Kall til POST-endepunkt skal lagre informasjon om forespørselen i database`() {
