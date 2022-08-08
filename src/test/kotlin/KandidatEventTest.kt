@@ -118,7 +118,7 @@ class KandidatEventTest {
     ) =
         """
             {
-                "@event_name": "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand",
+                "@event_name": "kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand",
                 "kandidathendelse": {
                     "type":"CV_DELT_VIA_REKRUTTERINGSBISTAND",
                     "aktørId":"$aktørId",
