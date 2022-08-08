@@ -23,7 +23,7 @@ class KandidatLytter(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("@event_name", "kandidat.dummy2.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
+                it.demandValue("@event_name", "kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
                 it.interestedIn("kandidathendelse")
 
                 // TODO:
@@ -37,7 +37,7 @@ class KandidatLytter(
 
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Mottok kandidatevent: $packet")
+        log.info("Mottok kandidatevent fra rapid")
         val kandidathendelseJson = packet["kandidathendelse"]
         val aktørId: String = kandidathendelseJson["aktørId"].textValue()
         val stillingsId: UUID = UUID.fromString(kandidathendelseJson["stillingsId"].textValue())
@@ -50,6 +50,7 @@ class KandidatLytter(
         if (forespørsel != null) {
             val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
             statusOppdateringProducer.send(melding)
+            log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
 
             if (!forespørsel.harSvartJa()) {
                 log.error(harIkkeSvartJa(aktørId, stillingsId))
