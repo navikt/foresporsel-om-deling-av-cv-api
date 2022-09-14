@@ -1,5 +1,6 @@
 package kandidatevent
 
+import Forespørsel
 import Repository
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -48,24 +49,22 @@ class KandidatLytter(
         val meldingJson =
             """{"type":"${type.aktivitetsplanEventName}","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
-        if (forespørsel != null) {
-            if (forespørsel.harSvartJa() && type == Hendelsestype.FIKK_IKKE_JOBBEN) {
-                val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
-                statusOppdateringProducer.send(melding)
-                log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
+        when {
+            forespørsel != null && forespørsel.harSvartJa() && type == Hendelsestype.FIKK_IKKE_JOBBEN -> sendMeldingOgLogg(forespørsel, meldingJson)
+            forespørsel != null && forespørsel.harSvartJa() && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> sendMeldingOgLogg(forespørsel, meldingJson)
+            forespørsel != null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> {
+                sendMeldingOgLogg(forespørsel, meldingJson)
+                log.error(harIkkeSvartJa(aktørId, stillingsId))
             }
-            if (type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND) {
-                val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
-                statusOppdateringProducer.send(melding)
-                log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
-
-                if (!forespørsel.harSvartJa()) {
-                    log.error(harIkkeSvartJa(aktørId, stillingsId))
-                }
-            }
-        } else if (forespørsel == null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND) {
-            log.error(forespørselErNull(aktørId, stillingsId))
+            forespørsel == null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> log.error(forespørselErNull(aktørId, stillingsId))
+            else -> {}
         }
+    }
+
+    private fun sendMeldingOgLogg(forespørsel: Forespørsel, meldingJson: String) {
+        val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
+        statusOppdateringProducer.send(melding)
+        log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
     }
 
     private fun forespørselErNull(aktørId: String, stillingsId: UUID): String =
