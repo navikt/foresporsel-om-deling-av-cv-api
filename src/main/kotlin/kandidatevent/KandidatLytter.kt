@@ -23,7 +23,7 @@ class KandidatLytter(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("@event_name", "kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand")
+                it.demandAny("@event_name", Hendelsestype.values().map { type -> type.eventName })
                 it.interestedIn("kandidathendelse")
 
                 // TODO:
@@ -44,8 +44,9 @@ class KandidatLytter(
         val tidspunkt: String = kandidathendelseJson["tidspunkt"].textValue()
         val utførtAvNavIdent: String = kandidathendelseJson["utførtAvNavIdent"].textValue()
         val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
+        val type: Hendelsestype = Hendelsestype.valueOf(kandidathendelseJson["type"].textValue())
         val meldingJson =
-            """{"type":"CV_DELT","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
+            """{"type":"${type.aktivitetsplanEventName}","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
         if (forespørsel != null) {
             val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)

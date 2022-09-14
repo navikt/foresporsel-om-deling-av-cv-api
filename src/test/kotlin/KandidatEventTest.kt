@@ -69,7 +69,7 @@ class KandidatEventTest {
     @Test
     fun `Skal behandle melding om fikk-ikke-jobben når kandidat svarte ja til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        val eventTidspunkt = publiserFikkIkkeJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
         assertAtMeldingErSendtPåTopicTilAktivitetsplanen(KandidatLytter.Hendelsestype.FIKK_IKKE_JOBBEN, forespørsel, eventTidspunkt, enNavIdent)
     }
 
@@ -86,6 +86,8 @@ class KandidatEventTest {
         publiserFikkIkkeJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
         assertThat(mockProducer.history().size).isZero
     }
+
+    // TODO lag test når personen aldri har blitt forespurt
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
         type: KandidatLytter.Hendelsestype,
