@@ -49,12 +49,19 @@ class KandidatLytter(
             """{"type":"${type.aktivitetsplanEventName}","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
         if (forespørsel != null) {
-            val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
-            statusOppdateringProducer.send(melding)
-            log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
+            if (forespørsel.harSvartJa() && type == Hendelsestype.FIKK_IKKE_JOBBEN) {
+                val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
+                statusOppdateringProducer.send(melding)
+                log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
+            }
+            if (type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND) {
+                val melding = ProducerRecord(topic, forespørsel.forespørselId.toString(), meldingJson)
+                statusOppdateringProducer.send(melding)
+                log.info("Har sendt melding til aktivitetsplanen på topic $topic ")
 
-            if (!forespørsel.harSvartJa()) {
-                log.error(harIkkeSvartJa(aktørId, stillingsId))
+                if (!forespørsel.harSvartJa()) {
+                    log.error(harIkkeSvartJa(aktørId, stillingsId))
+                }
             }
         } else {
             log.error(forespørselErNull(aktørId, stillingsId))

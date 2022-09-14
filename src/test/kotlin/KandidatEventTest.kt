@@ -82,12 +82,16 @@ class KandidatEventTest {
 
     @Test
     fun `Skal ignorere melding om fikk-ikke-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
-        val forespørsel = lagreUbesvarForespørsel()
+        val forespørsel = lagreUbesvartForespørsel()
         publiserFikkIkkeJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
         assertThat(mockProducer.history().size).isZero
     }
 
-    // TODO lag test når personen aldri har blitt forespurt
+    @Test
+    fun `Skal ignorere melding om fikk-ikke-jobben når kandidat aldri ble spurt om deling av CV`() {
+        publiserFikkIkkeJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
+        assertThat(mockProducer.history().size).isZero
+    }
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
         type: KandidatLytter.Hendelsestype,
@@ -146,7 +150,7 @@ class KandidatEventTest {
         return forespørsel
     }
 
-    private fun lagreUbesvarForespørsel(): Forespørsel {
+    private fun lagreUbesvartForespørsel(): Forespørsel {
         val forespørsel = enForespørsel(
             aktørId = "anyAktørID",
             deltStatus = DeltStatus.SENDT,
