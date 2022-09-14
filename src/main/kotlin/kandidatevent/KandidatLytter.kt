@@ -63,7 +63,7 @@ class KandidatLytter(
                     log.error(harIkkeSvartJa(aktørId, stillingsId))
                 }
             }
-        } else {
+        } else if (forespørsel == null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND) {
             log.error(forespørselErNull(aktørId, stillingsId))
         }
     }

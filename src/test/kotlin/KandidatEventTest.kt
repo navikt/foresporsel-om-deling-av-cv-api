@@ -9,6 +9,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.startsWith
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.slf4j.Logger
 import setup.TestDatabase
@@ -91,6 +93,13 @@ class KandidatEventTest {
     fun `Skal ignorere melding om fikk-ikke-jobben når kandidat aldri ble spurt om deling av CV`() {
         publiserFikkIkkeJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
         assertThat(mockProducer.history().size).isZero
+    }
+
+    @Test
+    fun `Skal ikke logge feil når vi mottar melding om fikk-ikke-jobben når kandidat aldri ble spurt om deling av CV`() {
+        publiserFikkIkkeJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
+        assertThat(mockProducer.history().size).isZero
+        verify(log, never()).error(any())
     }
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
