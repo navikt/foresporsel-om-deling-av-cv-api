@@ -72,9 +72,9 @@ class KandidatLytter(
             til tross for at kandidaten ikke har svart ja til deling av CV. aktørId=$aktørId, stillingsId=$stillingsId
         """.trimIndent()
 
-    enum class Hendelsestype(val eventName: String) {
-        CV_DELT_VIA_REKRUTTERINGSBISTAND("kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand"),
-        FIKK_IKKE_JOBBEN("kandidat.fikk-ikke-jobben");
+    enum class Hendelsestype(val eventName: String, val aktivitetsplanEventName: String) {
+        CV_DELT_VIA_REKRUTTERINGSBISTAND("kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand", "CV_DELT"),
+        FIKK_IKKE_JOBBEN("kandidat.fikk-ikke-jobben", "IKKE_FÅTT_JOBBEN");
     }
 }
 

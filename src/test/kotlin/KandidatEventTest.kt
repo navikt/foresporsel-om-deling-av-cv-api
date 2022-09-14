@@ -99,7 +99,7 @@ class KandidatEventTest {
 
         val jsonAsString: String = history.first().value()
         val jsonNode: JsonNode = jacksonObjectMapper().readTree(jsonAsString)!!
-        assertThat(jsonNode["type"].asText()).isEqualTo(type.toString())
+        assertThat(jsonNode["type"].asText()).isEqualTo(type.aktivitetsplanEventName)
         assertThat(jsonNode["detaljer"].asText()).isEmpty()
         assertThat(jsonNode["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
         assertThat(jsonNode["tidspunkt"].asLocalDateTime()).isEqualToIgnoringNanos(eventTidspunkt)
