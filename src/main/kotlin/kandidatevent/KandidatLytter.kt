@@ -26,12 +26,6 @@ class KandidatLytter(
             validate {
                 it.demandAny("@event_name", Hendelsestype.values().map { type -> type.eventName })
                 it.interestedIn("kandidathendelse")
-
-                // TODO:
-                // Nødvendig fordi feltet manglet på de første kandidateventene som ble publisert på rapid'en.
-                // Levetiden til meldingene på rapid'en er 14 dager.
-                // Kan fjernes etter 22.08.2022
-                it.demandKey("kandidathendelse.utførtAvNavIdent")
             }
         }.register(this)
     }
@@ -46,19 +40,36 @@ class KandidatLytter(
         val utførtAvNavIdent: String = kandidathendelseJson["utførtAvNavIdent"].textValue()
         val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
         val type: Hendelsestype = Hendelsestype.valueOf(kandidathendelseJson["type"].textValue())
+        val ikkeFåttJobbenType =
+            type == Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN || type == Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN
+        val detaljer: String = if (ikkeFåttJobbenType) type.name else ""
         val meldingJson =
-            """{"type":"${type.aktivitetsplanEventName}","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
+            """{"type":"${type.aktivitetsplanEventName}","detaljer":"$detaljer","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
-        val ikkeFåttJobbenType = type == Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN || type == Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN
 
         when {
-            forespørsel != null && forespørsel.harSvartJa() && ikkeFåttJobbenType -> sendMeldingOgLogg(forespørsel, meldingJson)
-            forespørsel != null && forespørsel.harSvartJa() && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> sendMeldingOgLogg(forespørsel, meldingJson)
+            forespørsel != null && forespørsel.harSvartJa() && ikkeFåttJobbenType -> sendMeldingOgLogg(
+                forespørsel,
+                meldingJson
+            )
+
+            forespørsel != null && forespørsel.harSvartJa() && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> sendMeldingOgLogg(
+                forespørsel,
+                meldingJson
+            )
+
             forespørsel != null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> {
                 sendMeldingOgLogg(forespørsel, meldingJson)
                 log.error(harIkkeSvartJa(aktørId, stillingsId))
             }
-            forespørsel == null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> log.error(forespørselErNull(aktørId, stillingsId))
+
+            forespørsel == null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> log.error(
+                forespørselErNull(
+                    aktørId,
+                    stillingsId
+                )
+            )
+
             else -> {}
         }
     }

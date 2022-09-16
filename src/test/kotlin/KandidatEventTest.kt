@@ -44,7 +44,12 @@ class KandidatEventTest {
     fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
         val eventTidspunkt = publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND, forespørsel, eventTidspunkt, enNavIdent)
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
+            KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND,
+            forespørsel.forespørselId,
+            eventTidspunkt,
+            enNavIdent
+        )
     }
 
     @Test
@@ -54,7 +59,12 @@ class KandidatEventTest {
         val eventTidspunkt = publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
 
         verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND, forespørsel, eventTidspunkt, enNavIdent)
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
+            KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND,
+            forespørsel.forespørselId,
+            eventTidspunkt,
+            enNavIdent
+        )
     }
 
     @Test
@@ -71,22 +81,40 @@ class KandidatEventTest {
     @Test
     fun `Skal behandle melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat svarte ja til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        val eventTidspunkt = publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
+            forespørsel.aktørId,
+            forespørsel.stillingsId,
+            enNavIdent
+        )
         val type = KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(type, forespørsel.forespørselId, eventTidspunkt, enNavIdent, type.toString())
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
+            type,
+            forespørsel.forespørselId,
+            eventTidspunkt,
+            enNavIdent,
+            type.name
+        )
     }
 
     @Test
     fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidaten svarte nei til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
-        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
+            forespørsel.aktørId,
+            forespørsel.stillingsId,
+            enNavIdent
+        )
         assertThat(mockProducer.history().size).isZero
     }
 
     @Test
     fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
         val forespørsel = lagreUbesvartForespørsel()
-        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
+            forespørsel.aktørId,
+            forespørsel.stillingsId,
+            enNavIdent
+        )
         assertThat(mockProducer.history().size).isZero
     }
 
@@ -106,22 +134,40 @@ class KandidatEventTest {
     @Test
     fun `Skal behandle melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat svarte ja til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        val eventTidspunkt = publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
+            forespørsel.aktørId,
+            forespørsel.stillingsId,
+            enNavIdent
+        )
         val type = KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(type, forespørsel.forespørselId, eventTidspunkt, enNavIdent, type.toString())
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
+            type,
+            forespørsel.forespørselId,
+            eventTidspunkt,
+            enNavIdent,
+            type.name
+        )
     }
 
     @Test
     fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidaten svarte nei til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
-        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
+            forespørsel.aktørId,
+            forespørsel.stillingsId,
+            enNavIdent
+        )
         assertThat(mockProducer.history().size).isZero
     }
 
     @Test
     fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
         val forespørsel = lagreUbesvartForespørsel()
-        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
+            forespørsel.aktørId,
+            forespørsel.stillingsId,
+            enNavIdent
+        )
         assertThat(mockProducer.history().size).isZero
     }
 
@@ -163,7 +209,13 @@ class KandidatEventTest {
         utførtAvNavIdent: String = enNavIdent,
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
-        val eventJson = eventJson(KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN, aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
+        val eventJson = eventJson(
+            KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN,
+            aktørId,
+            stillingsId,
+            utførtAvNavIdent,
+            tidspunktForEvent
+        )
         testRapid.sendTestMessage(eventJson)
         return tidspunktForEvent
     }
@@ -174,7 +226,13 @@ class KandidatEventTest {
         utførtAvNavIdent: String = enNavIdent,
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
-        val eventJson = eventJson(KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN, aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
+        val eventJson = eventJson(
+            KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN,
+            aktørId,
+            stillingsId,
+            utførtAvNavIdent,
+            tidspunktForEvent
+        )
         testRapid.sendTestMessage(eventJson)
         return tidspunktForEvent
     }
@@ -185,7 +243,13 @@ class KandidatEventTest {
         utførtAvNavIdent: String = enNavIdent,
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
-        val eventJson = eventJson(KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND, aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
+        val eventJson = eventJson(
+            KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND,
+            aktørId,
+            stillingsId,
+            utførtAvNavIdent,
+            tidspunktForEvent
+        )
         testRapid.sendTestMessage(eventJson)
         return tidspunktForEvent
     }
