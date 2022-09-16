@@ -49,8 +49,10 @@ class KandidatLytter(
         val meldingJson =
             """{"type":"${type.aktivitetsplanEventName}","detaljer":"","utførtAvNavIdent":"$utførtAvNavIdent","tidspunkt":"$tidspunkt"}"""
 
+        val ikkeFåttJobbenType = type == Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN || type == Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN
+
         when {
-            forespørsel != null && forespørsel.harSvartJa() && type == Hendelsestype.FIKK_IKKE_JOBBEN -> sendMeldingOgLogg(forespørsel, meldingJson)
+            forespørsel != null && forespørsel.harSvartJa() && ikkeFåttJobbenType -> sendMeldingOgLogg(forespørsel, meldingJson)
             forespørsel != null && forespørsel.harSvartJa() && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> sendMeldingOgLogg(forespørsel, meldingJson)
             forespørsel != null && type == Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND -> {
                 sendMeldingOgLogg(forespørsel, meldingJson)
@@ -81,7 +83,8 @@ class KandidatLytter(
 
     enum class Hendelsestype(val eventName: String, val aktivitetsplanEventName: String) {
         CV_DELT_VIA_REKRUTTERINGSBISTAND("kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand", "CV_DELT"),
-        FIKK_IKKE_JOBBEN("kandidat.fikk-ikke-jobben", "IKKE_FÅTT_JOBBEN");
+        KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN("kandidatliste-lukket-noen-andre-fikk-jobben", "IKKE_FATT_JOBBEN"),
+        KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN("kandidatliste-lukket-ingen-fikk-jobben", "IKKE_FATT_JOBBEN");
     }
 }
 

@@ -69,64 +69,112 @@ class KandidatEventTest {
     }
 
     @Test
-    fun `Skal behandle melding om fikk-ikke-jobben når kandidat svarte ja til deling av CV`() {
+    fun `Skal behandle melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat svarte ja til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserFikkIkkeJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(KandidatLytter.Hendelsestype.FIKK_IKKE_JOBBEN, forespørsel, eventTidspunkt, enNavIdent)
+        val eventTidspunkt = publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        val type = KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(type, forespørsel.forespørselId, eventTidspunkt, enNavIdent, type.toString())
     }
 
     @Test
-    fun `Skal ignorere melding om fikk-ikke-jobben når kandidaten svarte nei til deling av CV`() {
+    fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidaten svarte nei til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
-        publiserFikkIkkeJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
         assertThat(mockProducer.history().size).isZero
     }
 
     @Test
-    fun `Skal ignorere melding om fikk-ikke-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
+    fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
         val forespørsel = lagreUbesvartForespørsel()
-        publiserFikkIkkeJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
         assertThat(mockProducer.history().size).isZero
     }
 
     @Test
-    fun `Skal ignorere melding om fikk-ikke-jobben når kandidat aldri ble spurt om deling av CV`() {
-        publiserFikkIkkeJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
+    fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
+        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
         assertThat(mockProducer.history().size).isZero
     }
 
     @Test
-    fun `Skal ikke logge feil når vi mottar melding om fikk-ikke-jobben når kandidat aldri ble spurt om deling av CV`() {
-        publiserFikkIkkeJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
+    fun `Skal ikke logge feil når vi mottar melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
+        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
+        assertThat(mockProducer.history().size).isZero
+        verify(log, never()).error(any())
+    }
+
+    @Test
+    fun `Skal behandle melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat svarte ja til deling av CV`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = true)
+        val eventTidspunkt = publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        val type = KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN
+        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(type, forespørsel.forespørselId, eventTidspunkt, enNavIdent, type.toString())
+    }
+
+    @Test
+    fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidaten svarte nei til deling av CV`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = false)
+        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        assertThat(mockProducer.history().size).isZero
+    }
+
+    @Test
+    fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
+        val forespørsel = lagreUbesvartForespørsel()
+        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        assertThat(mockProducer.history().size).isZero
+    }
+
+    @Test
+    fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
+        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
+        assertThat(mockProducer.history().size).isZero
+    }
+
+    @Test
+    fun `Skal ikke logge feil når vi mottar melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
+        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
         assertThat(mockProducer.history().size).isZero
         verify(log, never()).error(any())
     }
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
         type: KandidatLytter.Hendelsestype,
-        forespørsel: Forespørsel,
+        kafkaKey: UUID,
         eventTidspunkt: LocalDateTime,
-        navIdent: String
+        navIdent: String,
+        detaljer: String = ""
     ) {
         val history = mockProducer.history()
         assertThat(history).hasSize(1)
-        assertThat(history.first().key()).isEqualTo(forespørsel.forespørselId.toString())
+        assertThat(history.first().key()).isEqualTo(kafkaKey.toString())
 
         val jsonAsString: String = history.first().value()
         val jsonNode: JsonNode = jacksonObjectMapper().readTree(jsonAsString)!!
         assertThat(jsonNode["type"].asText()).isEqualTo(type.aktivitetsplanEventName)
-        assertThat(jsonNode["detaljer"].asText()).isEmpty()
+        assertThat(jsonNode["detaljer"].asText()).isEqualTo(detaljer)
         assertThat(jsonNode["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
         assertThat(jsonNode["tidspunkt"].asLocalDateTime()).isEqualToIgnoringNanos(eventTidspunkt)
     }
 
-    private fun publiserFikkIkkeJobbenMeldingPåRapid(
+    private fun publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
         aktørId: String,
         stillingsId: UUID,
         utførtAvNavIdent: String = enNavIdent,
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
-        val eventJson = eventJson(KandidatLytter.Hendelsestype.FIKK_IKKE_JOBBEN, aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
+        val eventJson = eventJson(KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN, aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
+        testRapid.sendTestMessage(eventJson)
+        return tidspunktForEvent
+    }
+
+    private fun publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
+        aktørId: String,
+        stillingsId: UUID,
+        utførtAvNavIdent: String = enNavIdent,
+        tidspunktForEvent: LocalDateTime = LocalDateTime.now()
+    ): LocalDateTime {
+        val eventJson = eventJson(KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN, aktørId, stillingsId, utførtAvNavIdent, tidspunktForEvent)
         testRapid.sendTestMessage(eventJson)
         return tidspunktForEvent
     }
