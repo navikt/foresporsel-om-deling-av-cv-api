@@ -94,10 +94,7 @@ class KandidatLytter(
 
     enum class Hendelsestype(val eventName: String, val aktivitetsplanEventName: String) {
         CV_DELT_VIA_REKRUTTERINGSBISTAND("kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand", "CV_DELT"),
-        KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN("kandidatliste-lukket-noen-andre-fikk-jobben", "IKKE_FATT_JOBBEN"),
-        KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN("kandidatliste-lukket-ingen-fikk-jobben", "IKKE_FATT_JOBBEN");
+        KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN("kandidat.kandidatliste-lukket-noen-andre-fikk-jobben", "IKKE_FATT_JOBBEN"),
+        KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN("kandidat.kandidatliste-lukket-ingen-fikk-jobben", "IKKE_FATT_JOBBEN");
     }
 }
-
-
-

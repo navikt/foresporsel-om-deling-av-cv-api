@@ -24,6 +24,12 @@ class KandidatEventTest {
     private val testRapid = TestRapid()
     private val mockProducer = mockProducerJson
     private val log = Mockito.mock(Logger::class.java)
+    private val eventNameKandidatlisteLukketIngenFikkJobben = "kandidat.kandidatliste-lukket-ingen-fikk-jobben"
+    private val eventNameKandidatlisteLukketNoenAndreFikkJobben = "kandidat.kandidatliste-lukket-noen-andre-fikk-jobben"
+    private val eventNameCvDeltViaRekrutteringsbistand = "kandidat.cv-delt-med-arbeidsgiver-via-rekrutteringsbistand"
+    private val typeKandidatlisteLukketIngenFikkJobben = "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
+    private val typeKandidatlisteLukketNoenAndreFikkJobben = "KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN"
+    private val typeCvDeltViaRekrutteringsbistand =  "CV_DELT_VIA_REKRUTTERINGSBISTAND"
 
     var app: App? = null
 
@@ -210,7 +216,8 @@ class KandidatEventTest {
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
         val eventJson = eventJson(
-            KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN,
+            eventNameKandidatlisteLukketIngenFikkJobben,
+            typeKandidatlisteLukketIngenFikkJobben,
             aktørId,
             stillingsId,
             utførtAvNavIdent,
@@ -227,7 +234,8 @@ class KandidatEventTest {
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
         val eventJson = eventJson(
-            KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN,
+            eventNameKandidatlisteLukketNoenAndreFikkJobben,
+            typeKandidatlisteLukketNoenAndreFikkJobben,
             aktørId,
             stillingsId,
             utførtAvNavIdent,
@@ -244,7 +252,8 @@ class KandidatEventTest {
         tidspunktForEvent: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
         val eventJson = eventJson(
-            KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND,
+            eventNameCvDeltViaRekrutteringsbistand,
+            typeCvDeltViaRekrutteringsbistand,
             aktørId,
             stillingsId,
             utførtAvNavIdent,
@@ -285,7 +294,8 @@ class KandidatEventTest {
     }
 
     private fun eventJson(
-        type: KandidatLytter.Hendelsestype,
+        eventName: String,
+        type: String,
         aktørId: String,
         stillingsId: UUID,
         utførtAvNavIdent: String,
@@ -293,7 +303,7 @@ class KandidatEventTest {
     ) =
         """
             {
-                "@event_name": "${type.eventName}",
+                "@event_name": "$eventName",
                 "kandidathendelse": {
                     "type":"$type",
                     "aktørId":"$aktørId",
