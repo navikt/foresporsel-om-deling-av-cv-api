@@ -51,7 +51,7 @@ class KandidatEventTest {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
         val eventTidspunkt = publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
         assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND,
+            "CV_DELT",
             forespørsel.forespørselId,
             eventTidspunkt,
             enNavIdent
@@ -66,7 +66,7 @@ class KandidatEventTest {
 
         verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
         assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            KandidatLytter.Hendelsestype.CV_DELT_VIA_REKRUTTERINGSBISTAND,
+            "CV_DELT",
             forespørsel.forespørselId,
             eventTidspunkt,
             enNavIdent
@@ -92,13 +92,12 @@ class KandidatEventTest {
             forespørsel.stillingsId,
             enNavIdent
         )
-        val type = KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN
         assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            type,
+            "IKKE_FATT_JOBBEN",
             forespørsel.forespørselId,
             eventTidspunkt,
             enNavIdent,
-            type.name
+            "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
         )
     }
 
@@ -145,13 +144,12 @@ class KandidatEventTest {
             forespørsel.stillingsId,
             enNavIdent
         )
-        val type = KandidatLytter.Hendelsestype.KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN
         assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            type,
+            "IKKE_FATT_JOBBEN",
             forespørsel.forespørselId,
             eventTidspunkt,
             enNavIdent,
-            type.name
+            "KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN"
         )
     }
 
@@ -191,7 +189,7 @@ class KandidatEventTest {
     }
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-        type: KandidatLytter.Hendelsestype,
+        aktivitetsplanEventName: String,
         kafkaKey: UUID,
         eventTidspunkt: LocalDateTime,
         navIdent: String,
@@ -203,7 +201,7 @@ class KandidatEventTest {
 
         val jsonAsString: String = history.first().value()
         val jsonNode: JsonNode = jacksonObjectMapper().readTree(jsonAsString)!!
-        assertThat(jsonNode["type"].asText()).isEqualTo(type.aktivitetsplanEventName)
+        assertThat(jsonNode["type"].asText()).isEqualTo(aktivitetsplanEventName)
         assertThat(jsonNode["detaljer"].asText()).isEqualTo(detaljer)
         assertThat(jsonNode["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
         assertThat(jsonNode["tidspunkt"].asLocalDateTime()).isEqualToIgnoringNanos(eventTidspunkt)
