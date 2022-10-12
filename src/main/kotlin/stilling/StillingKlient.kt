@@ -17,15 +17,16 @@ class StillingKlient(private val accessToken: () -> String) {
     }
 
     fun hentStilling(uuid: UUID): Stilling? {
+        val url = "$stillingssokProxyDokumentUrl/$uuid"
         val result = Fuel
-            .get("$stillingssokProxyDokumentUrl/$uuid")
+            .get(url)
             .authentication().bearer(accessToken())
             .responseObject<EsResponse>().third
 
         return when (result) {
             is Result.Success -> result.value.toStilling()
             is Result.Failure -> {
-                log.error("Fant ikke en stilling med id $uuid:", result.error.exception)
+                log.error("Forsøkte å hente stilling fra URL $url", result.error.exception)
                 null
             }
         }
@@ -71,7 +72,7 @@ class StillingKlient(private val accessToken: () -> String) {
             val email: String,
             val phone: String,
             val role: String
-        ){
+        ) {
             fun toKontakt() = Kontakt(
                 navn = name,
                 tittel = title,
