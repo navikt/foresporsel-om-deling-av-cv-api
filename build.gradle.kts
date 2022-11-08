@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version embeddedKotlinVersion
     id("com.github.johnrengelman.shadow") version "7.1.0"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.2.0"
+    id("com.github.ben-manes.versions") version "0.43.0"
     application
 }
 
