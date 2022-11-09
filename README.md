@@ -18,3 +18,12 @@ Bruker kan godta eller avslå at deres CV kan deles med arbeidsgiver. Svaret på
 - Opprett gjerne en issue i Github for alle typer spørsmål
 - IT-utviklerne i Github-teamet https://github.com/orgs/navikt/teams/arbeidsgiver-inkludering
 - IT-avdelingen i [Arbeids- og velferdsdirektoratet](https://www.nav.no/no/NAV+og+samfunn/Kontakt+NAV/Relatert+informasjon/arbeids-og-velferdsdirektoratet-kontorinformasjon)
+
+# For testing av applikasjon i Rekrutteringsbistand
+- Del stilling med arbeidstaker
+- Trykk på “info” på kandidatraden og logg inn på aktivitetsplanen og svar på forespørselen
+- Svaret skal snart bli synlig i Rekrutteringsbistand
+- Del CV-en med arbeidsgiver, Aktivitetsplanen skal vise ny etikett på stillingskortet
+- Marker at noen andre fikk jobben
+- Lukk kandidatlista
+- Sjekk at aktivitetsplanen til han/hun med delt CV og som ikke fikk jobben får en “IKKE FÅTT JOBBEN”-etikett
