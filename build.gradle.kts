@@ -38,7 +38,7 @@ tasks.test {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:4.1.1")
+    implementation("io.javalin:javalin:4.6.7") // Kan ikke oppdateres før https://github.com/wiremock/wiremock/pull/1942 er released
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
@@ -68,6 +68,6 @@ dependencies {
     testImplementation("com.h2database:h2:2.1.214")
     testImplementation("org.assertj:assertj-core:3.23.1")
     testImplementation("no.nav.security:mock-oauth2-server:0.5.6")
-    testImplementation("com.github.tomakehurst:wiremock:2.33.2")
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
