@@ -1,9 +1,11 @@
+import auth.clearTokenValidationHandlerCache
 import com.github.kittinunf.fuel.Fuel
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.medVeilederToken
@@ -17,6 +19,11 @@ class TokenUtilsTest {
     @BeforeAll
     fun init() {
         mockOAuth2Server.start(port = 18300)
+    }
+
+    @BeforeEach
+    fun setup() {
+        clearTokenValidationHandlerCache()
     }
 
     @AfterAll

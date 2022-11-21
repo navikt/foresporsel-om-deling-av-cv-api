@@ -16,7 +16,6 @@ var cache: CachedHandler? = null
 fun hentTokenValidationHandler(
     issuerProperties: List<IssuerProperties>
 ): JwtTokenValidationHandler {
-
     return if (cache != null && cache!!.expires.isAfter(LocalDateTime.now())) {
         cache!!.handler
     } else {
@@ -30,4 +29,8 @@ fun hentTokenValidationHandler(
         cache = CachedHandler(newHandler, expires);
         newHandler
     }
+}
+
+fun clearTokenValidationHandlerCache() {
+    cache = null
 }
