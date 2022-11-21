@@ -50,7 +50,7 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: [ test, snyk-test ]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/oppdatere-dependencies'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cache-public-keys'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

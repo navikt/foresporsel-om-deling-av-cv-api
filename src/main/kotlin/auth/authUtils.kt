@@ -1,3 +1,4 @@
+import auth.hentTokenValidationHandler
 import io.javalin.http.Context
 import io.javalin.http.UnauthorizedResponse
 import no.nav.security.token.support.core.configuration.IssuerProperties
@@ -49,9 +50,7 @@ fun Context.hentNavIdent(): String {
 }
 
 private fun hentValiderteTokens(ctx: Context, issuerProperties: List<IssuerProperties>): TokenValidationContext {
-    val tokenValidationHandler = JwtTokenValidationHandler(
-        MultiIssuerConfiguration(issuerProperties.associateBy { it.cookieName })
-    )
+    val tokenValidationHandler = hentTokenValidationHandler(issuerProperties)
 
     return tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
 }
