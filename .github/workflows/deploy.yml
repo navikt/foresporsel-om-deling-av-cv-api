@@ -69,7 +69,7 @@ jobs:
       - name: Bygg jar med Gradle
         run: ./gradlew shadowJar
       - name: Logg inn til Github
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
             registry: ghcr.io
             username: ${{ github.actor }}
