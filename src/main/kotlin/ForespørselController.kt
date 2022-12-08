@@ -140,8 +140,6 @@ class ForespørselController(
             Pair(false, "Kan ikke resende forespørsel fordi kandidaten allerede har svart ja")
         } else if (sisteForespørselForKandidatOgStilling.venterPåSvar()) {
             Pair(false, "Kan ikke resende forespørsel fordi kandidaten ennå ikke har besvart en aktiv forespørsel")
-        } else if (sisteForespørselForKandidatOgStilling.kanIkkeVarsleBruker()) {
-            Pair(false, "Kan ikke resende forespørsel fordi forrige forespørsel ikke kunne sendes til kandidat")
         } else {
             Pair(true, "")
         }

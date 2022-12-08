@@ -520,6 +520,43 @@ class ForespørselControllerTest {
     }
 
     @Test
+    fun `Kall til POST-endepunkt for resending skal gi 200 hvis siste forespørsel ikke kunne opprettes i Aktivitetsplanen`() {
+        val aktørId = "dummyAktørId"
+        val stillingsId = UUID.randomUUID()
+
+        stubHentStilling(stillingsId)
+        val database = TestDatabase()
+        startWiremockApp().use {
+
+            val kanIkkeVarsleForespørsel = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.KAN_IKKE_VARSLE,
+                svar = null
+            )
+
+            database.lagreBatch(
+                listOf(
+                    kanIkkeVarsleForespørsel
+                )
+            )
+
+            val nyForespørsel = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = omTreDager,
+                navKontor = navKontor
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederToken(mockOAuth2Server, "A123456")
+                .objectBody(nyForespørsel, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(201)
+        }
+    }
+
+    @Test
     fun `Kall til POST-endepunkt for resending skal gi 400 hvis siste forespørsel for kandidat ikke er besvart`() {
         val aktørId = "dummyAktørId"
         val stillingsId = UUID.randomUUID()
