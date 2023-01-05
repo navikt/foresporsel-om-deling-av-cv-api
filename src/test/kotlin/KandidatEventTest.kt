@@ -62,6 +62,7 @@ class KandidatEventTest {
         val forespørsel = lagreForespørsel(svarFraBruker = true)
         publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent, sluttAvHendelseskjede = true)
         assertThat(mockProducer.history().size).isZero
+        assertThat(testRapid.inspektør.size).isZero
         verify(log, never()).error(any())
     }
 
