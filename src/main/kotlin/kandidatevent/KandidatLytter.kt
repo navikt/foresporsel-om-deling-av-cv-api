@@ -21,6 +21,7 @@ class KandidatLytter(
         River(rapidsConnection).apply {
             validate {
                 it.demandAny("@event_name", Hendelsestype.eventNavn())
+                it.rejectValue("@slutt_av_hendelseskjede", true)
                 it.interestedIn("kandidathendelse")
             }
         }.register(this)
@@ -42,6 +43,8 @@ class KandidatLytter(
         } catch (e: HendelsesFeil) {
             e.logFeil(log, aktørId, stillingsId)
         }
+        packet["@slutt_av_hendelseskjede"] = true
+        context.publish(packet.toJson())
     }
 }
 

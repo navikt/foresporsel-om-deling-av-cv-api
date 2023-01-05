@@ -58,6 +58,23 @@ class KandidatEventTest {
     }
 
     @Test
+    fun `Når hendelse med slutt_av_hendelseskjede satt til true skal ikke noe sendes`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = true)
+        publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent, sluttAvHendelseskjede = true)
+        assertThat(mockProducer.history().size).isZero
+        verify(log, never()).error(any())
+    }
+
+    @Test
+    fun `Når kandidathendelse kommer skal hendelse republiseres med slutt_av_hendelseskjede satt til true`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = true)
+        publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
+        assertThat(testRapid.inspektør.size).isEqualTo(1)
+        assertThat(testRapid.inspektør.message(0)["@slutt_av_hendelseskjede"].asBoolean()).isTrue
+        verify(log, never()).error(any())
+    }
+
+    @Test
     fun `CV er delt med arbeidsgiver på tross av at kandidat ikke har svart ja på forespørsel om deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
 
@@ -246,7 +263,8 @@ class KandidatEventTest {
         aktørId: String,
         stillingsId: UUID,
         utførtAvNavIdent: String = enNavIdent,
-        tidspunktForEvent: LocalDateTime = LocalDateTime.now()
+        tidspunktForEvent: LocalDateTime = LocalDateTime.now(),
+        sluttAvHendelseskjede: Boolean? = null
     ): LocalDateTime {
         val eventJson = eventJson(
             eventNameCvDeltViaRekrutteringsbistand,
@@ -254,7 +272,8 @@ class KandidatEventTest {
             aktørId,
             stillingsId,
             utførtAvNavIdent,
-            tidspunktForEvent
+            tidspunktForEvent,
+            sluttAvHendelseskjede
         )
         testRapid.sendTestMessage(eventJson)
         return tidspunktForEvent
@@ -296,7 +315,8 @@ class KandidatEventTest {
         aktørId: String,
         stillingsId: UUID,
         utførtAvNavIdent: String,
-        tidspunkt: LocalDateTime = LocalDateTime.now()
+        tidspunkt: LocalDateTime = LocalDateTime.now(),
+        sluttAvHendelseskjede: Boolean? = null
     ) =
         """
             {
@@ -310,6 +330,7 @@ class KandidatEventTest {
                     "utførtAvNavIdent":"$utførtAvNavIdent",
                     "tidspunkt":"$tidspunkt"
                 }
+                ${if(sluttAvHendelseskjede==null) "" else """, "@slutt_av_hendelseskjede": $sluttAvHendelseskjede"""}
             }
         """.trimIndent()
 }
