@@ -22,9 +22,13 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: false
       claims:
         extra:
           - NAVident
+        groups:
+          - id: {{ ad_gruppe_modia_generell_tilgang }}
+          - id: {{ ad_gruppe_modia_oppfølging }}
   accessPolicy:
     inbound:
       rules:

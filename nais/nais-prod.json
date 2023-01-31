@@ -6,5 +6,7 @@
     "kafka-pool": "nav-prod",
     "gcp-cluster": "prod-gcp",
     "fss-cluster": "prod-fss",
-    "kafka_consumer_group_id": "foresporsel-om-deling-av-cv-api-rapidconsumer-1"
+    "kafka_consumer_group_id": "foresporsel-om-deling-av-cv-api-rapidconsumer-1",
+    "ad_gruppe_modia_generell_tilgang": "ea34edea-1e80-4759-a1d2-fbe696cf1709",
+    "ad_gruppe_modia_oppfølging": "b9bc6348-d25c-450d-85c2-044c0955fbe3"
 }
