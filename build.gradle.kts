@@ -29,7 +29,7 @@ repositories {
         url = uri("https://packages.confluent.io/maven/")
     }
     maven("https://jitpack.io")
-
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
 tasks.test {
@@ -62,7 +62,7 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 
-    implementation("com.github.navikt:rapids-and-rivers:2022110411121667556720.8a951a765583")
+    implementation("no.nav.arbeidsgiver.toi:toi-rapids-and-rivers-fork:1.1")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.1.214")
