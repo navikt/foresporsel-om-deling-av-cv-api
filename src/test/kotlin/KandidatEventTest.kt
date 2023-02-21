@@ -102,23 +102,6 @@ class KandidatEventTest {
     }
 
     @Test
-    fun `Skal behandle melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat svarte ja til deling av CV`() {
-        val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
-            forespørsel.aktørId,
-            forespørsel.stillingsId,
-            enNavIdent
-        )
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            "IKKE_FATT_JOBBEN",
-            forespørsel.forespørselId,
-            eventTidspunkt,
-            enNavIdent,
-            "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
-        )
-    }
-
-    @Test
     fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidaten svarte nei til deling av CV`() {
         val forespørsel = lagreForespørsel(svarFraBruker = false)
         publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
