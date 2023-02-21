@@ -2,13 +2,12 @@ package kandidatevent
 
 import Repository
 import com.fasterxml.jackson.databind.node.ArrayNode
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.*
 import org.apache.kafka.clients.producer.Producer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import utils.objectMapper
 import java.util.*
 
 class KandidatlisteLukketLytter(
@@ -45,6 +44,16 @@ class KandidatlisteLukketLytter(
                 tidspunkt = tidspunkt
             )
         }
+            .map(KandidatlisteLukket::tilMelding)
+            .forEach(statusOppdateringProducer::send)
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        log.error("$problems")
+    }
+
+    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
+        super.onSevere(error, context)
     }
 
     class KandidatlisteLukket(
@@ -60,8 +69,7 @@ class KandidatlisteLukketLytter(
             "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
         }
 
-        fun tilMelding(): Pair<String, String> {
-            TODO("Må implementeres")
-        }
+        fun tilMelding() =
+            ProducerRecord(topic,forespørselId.toString(), objectMapper.writeValueAsString(this))
     }
 }

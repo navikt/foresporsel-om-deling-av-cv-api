@@ -1,6 +1,4 @@
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
@@ -39,9 +37,10 @@ class KandidathendelserTest {
 
     @Test
     fun `Når vi mottar KandidatlisteLukket-melding der ingen fikk jobben skal vi sende meldinger til aktivitetsplanen for kandidater som ikke fikk jobben`() {
-        val forespørsel1 = lagreForespørsel(aktørId = "aktør1", svarFraBruker = true)
-        val forespørsel2 = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true)
-        val kandidatlisteLukketMelding = kandidatlisteLukket(aktørIderFikIkkeJobben = listOf(forespørsel1.aktørId, forespørsel2.aktørId), stillingsId = UUID.randomUUID(), navIdent = "enNavIdent")
+        val stillingsId = UUID.randomUUID()
+        val forespørsel1 = lagreForespørsel(aktørId = "aktør1", svarFraBruker = true, stillingsId = stillingsId)
+        val forespørsel2 = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
+        val kandidatlisteLukketMelding = kandidatlisteLukket(aktørIderFikkIkkeJobben = listOf(forespørsel1.aktørId, forespørsel2.aktørId), stillingsId = forespørsel1.stillingsId, navIdent = "enNavIdent")
 
         testRapid.sendTestMessage(kandidatlisteLukketMelding)
 
@@ -66,11 +65,11 @@ class KandidathendelserTest {
             }
     }
 
-    private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean): Forespørsel {
+    private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID): Forespørsel {
         val forespørsel = enForespørsel(
             aktørId = aktørId,
             deltStatus = DeltStatus.SENDT,
-            stillingsId = UUID.randomUUID(),
+            stillingsId = stillingsId,
             forespørselId = UUID.randomUUID(),
             svar = Svar(
                 harSvartJa = svarFraBruker,
@@ -85,13 +84,13 @@ class KandidathendelserTest {
 
     private fun kandidatlisteLukket(
         aktørIderFikkJobben: List<String> = emptyList(),
-        aktørIderFikIkkeJobben: List<String> = emptyList(),
+        aktørIderFikkIkkeJobben: List<String> = emptyList(),
         stillingsId: UUID,
         navIdent: String
     ) = """
         {
-          "aktørIderFikkJobben": ${aktørIderFikkJobben.joinToString(separator = ", ", prefix = "[", postfix = "]")},
-          "aktørIderFikkIkkeJobben": ${aktørIderFikIkkeJobben.joinToString(separator = ", ", prefix = "[", postfix = "]")},
+          "aktørIderFikkJobben": ${aktørIderFikkJobben.joinToJsonArray()},
+          "aktørIderFikkIkkeJobben": ${aktørIderFikkIkkeJobben.joinToJsonArray()},
           "organisasjonsnummer": "312113341",
           "kandidatlisteId": "f3f4a72b-1388-4a1b-b808-ed6336e2c6a4",
           "tidspunkt": "2023-02-21T08:38:01.053+01:00",
@@ -100,7 +99,9 @@ class KandidathendelserTest {
           "@event_name": "kandidat_v2.LukketKandidatliste",
           "@id": "7fa7ab9a-d016-4ed2-9f9a-d1a1ad7018f1",
           "@opprettet": "2023-02-21T08:39:01.937854240",
-          "system_read_count": 0,
+          "system_read_count": 0
         }
     """.trimIndent()
+
+    private fun List<String>.joinToJsonArray() = joinToString(separator = ", ", prefix = "[", postfix = "]") { "\"$it\"" }
 }
