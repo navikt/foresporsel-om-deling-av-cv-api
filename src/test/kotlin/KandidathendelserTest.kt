@@ -2,6 +2,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -10,6 +11,7 @@ import org.mockito.Mockito
 import org.slf4j.Logger
 import setup.TestDatabase
 import setup.mockProducerJson
+import utils.objectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -43,41 +45,32 @@ class KandidathendelserTest {
 
         testRapid.sendTestMessage(kandidatlisteLukketMelding)
 
-        val inspektør = testRapid.inspektør
+        val inspektør = mockProducer.history()
         assertThat(inspektør.size).isEqualTo(2)
 
+        val kafkaKeys = inspektør.map(ProducerRecord<String, String>::key)
+        assertThat(kafkaKeys).containsExactlyInAnyOrder(
+            forespørsel1.forespørselId.toString(),
+            forespørsel2.forespørselId.toString()
+        )
 
-//        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-//            "IKKE_FATT_JOBBEN",
-//            forespørsel.forespørselId,
-//            eventTidspunkt,
-//            enNavIdent,
-//            "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
-//        )
+        inspektør
+            .map(ProducerRecord<String, String>::value)
+            .map<String?, JsonNode?>(objectMapper::readTree)
+            .map { it!! }
+            .forEach { message ->
+                assertThat(message["type"].asText()).isEqualTo("IKKE_FATT_JOBBEN")
+                assertThat(message["detaljer"].asText()).isEqualTo("KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN")
+                assertThat(message["utførtAvNavIdent"].asText()).isEqualTo("enNavIdent")
+                assertThat(message["tidspunkt"].asText()).isEqualTo("2023-02-21T08:38:01.053+01:00")
+            }
     }
 
 
 
 
-//    private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-//        meldingTilAktivitetsplanen: JsonNode,
-//        eventName: String,
-//        kafkaKey: UUID,
-//        eventTidspunkt: LocalDateTime,
-//        navIdent: String,
-//        detaljer: String = ""
-//    ) {
-//        val history = mockProducer.history()
-//        assertThat(history).hasSize(1)
-//        assertThat(history.first().key()).isEqualTo(kafkaKey.toString())
-//
-//        val jsonAsString: String = history.first().value()
-//        val jsonNode: JsonNode = jacksonObjectMapper().readTree(jsonAsString)!!
-//        assertThat(jsonNode["type"].asText()).isEqualTo(aktivitetsplanEventName)
-//        assertThat(jsonNode["detaljer"].asText()).isEqualTo(detaljer)
-//        assertThat(jsonNode["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
-//        assertThat(jsonNode["tidspunkt"].asLocalDateTime()).isEqualToIgnoringNanos(eventTidspunkt)
-//    }
+
+    //{"type":"IKKE_FATT_JOBBEN","detaljer":"KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN","utførtAvNavIdent":"A100001","tidspunkt":"2023-02-21T14:26:29.775384"}
 
     private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean): Forespørsel {
         val forespørsel = enForespørsel(
