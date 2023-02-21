@@ -38,7 +38,7 @@ class KandidathendelserTest {
     }
 
     @Test
-    fun `Når vi mottar KandidatlisteLukket-melding skal vi sende meldinger til aktivitetsplanen for kandidater som ikke fikk jobben`() {
+    fun `Når vi mottar KandidatlisteLukket-melding der ingen fikk jobben skal vi sende meldinger til aktivitetsplanen for kandidater som ikke fikk jobben`() {
         val forespørsel1 = lagreForespørsel(aktørId = "aktør1", svarFraBruker = true)
         val forespørsel2 = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true)
         val kandidatlisteLukketMelding = kandidatlisteLukket(aktørIderFikIkkeJobben = listOf(forespørsel1.aktørId, forespørsel2.aktørId), stillingsId = UUID.randomUUID(), navIdent = "enNavIdent")
@@ -65,12 +65,6 @@ class KandidathendelserTest {
                 assertThat(message["tidspunkt"].asText()).isEqualTo("2023-02-21T08:38:01.053+01:00")
             }
     }
-
-
-
-
-
-    //{"type":"IKKE_FATT_JOBBEN","detaljer":"KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN","utførtAvNavIdent":"A100001","tidspunkt":"2023-02-21T14:26:29.775384"}
 
     private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean): Forespørsel {
         val forespørsel = enForespørsel(
