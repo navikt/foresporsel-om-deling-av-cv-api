@@ -35,28 +35,39 @@ class DelCvMedArbeidsgiverLytterTest {
 
     @Test
     fun `Når CV-er er delt med arbeidsgiver skal melding sendes til aktivitetsplanen for kandidater som har svart Ja på forespørsel`() {
-        val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val cvDeltMelding = cvDeltMelding(aktørIder = listOf(forespørsel.aktørId), stillingsId = forespørsel.stillingsId, navIdent = enNavIdent)
+        val forespørsel1 = lagreForespørsel(aktørId = "aktørId1", svarFraBruker = true)
+        val forespørsel2 = lagreForespørsel(aktørId = "aktørId2", svarFraBruker = true, stillingsId = forespørsel1.stillingsId)
+        val cvDeltMelding = cvDeltMelding(aktørIder = listOf(forespørsel1.aktørId, forespørsel2.aktørId), stillingsId = forespørsel1.stillingsId, navIdent = enNavIdent)
 
         testRapid.sendTestMessage(cvDeltMelding)
 
         val inspektør = mockProducer.history()
-        assertThat(inspektør.size).isEqualTo(1)
-        val melding = inspektør[0]
-        assertThat(melding.key()).isEqualTo(forespørsel.forespørselId.toString())
-        val meldingBody = objectMapper.readTree(melding.value())
-        assertThat(meldingBody.size()).isEqualTo(4)
-        assertThat(meldingBody["type"].asText()).isEqualTo("CV_DELT")
-        assertThat(meldingBody["detaljer"].asText()).isEqualTo("")
-        assertThat(meldingBody["utførtAvNavIdent"].asText()).isEqualTo(enNavIdent)
-        assertThat(meldingBody["tidspunkt"].asText()).isEqualTo("2023-02-09T09:45:53.649+01:00")
+        assertThat(inspektør.size).isEqualTo(2)
+
+        val førsteMelding = inspektør[0]
+        assertThat(førsteMelding.key()).isEqualTo(forespørsel1.forespørselId.toString())
+        val meldingBody1 = objectMapper.readTree(førsteMelding.value())
+        assertThat(meldingBody1.size()).isEqualTo(4)
+        assertThat(meldingBody1["type"].asText()).isEqualTo("CV_DELT")
+        assertThat(meldingBody1["detaljer"].asText()).isEqualTo("")
+        assertThat(meldingBody1["utførtAvNavIdent"].asText()).isEqualTo(enNavIdent)
+        assertThat(meldingBody1["tidspunkt"].asText()).isEqualTo("2023-02-09T09:45:53.649+01:00")
+
+        val andreMelding = inspektør[1]
+        assertThat(andreMelding.key()).isEqualTo(forespørsel2.forespørselId.toString())
+        val meldingBody2 = objectMapper.readTree(andreMelding.value())
+        assertThat(meldingBody2.size()).isEqualTo(4)
+        assertThat(meldingBody2["type"].asText()).isEqualTo("CV_DELT")
+        assertThat(meldingBody2["detaljer"].asText()).isEqualTo("")
+        assertThat(meldingBody2["utførtAvNavIdent"].asText()).isEqualTo(enNavIdent)
+        assertThat(meldingBody2["tidspunkt"].asText()).isEqualTo("2023-02-09T09:45:53.649+01:00")
     }
 
-    private fun lagreForespørsel(svarFraBruker: Boolean): Forespørsel {
+    private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID = UUID.randomUUID()): Forespørsel {
         val forespørsel = enForespørsel(
-            aktørId = "anyAktørID",
+            aktørId = aktørId,
             deltStatus = DeltStatus.SENDT,
-            stillingsId = UUID.randomUUID(),
+            stillingsId = stillingsId,
             forespørselId = UUID.randomUUID(),
             svar = Svar(
                 harSvartJa = svarFraBruker,
