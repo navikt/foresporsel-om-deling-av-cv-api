@@ -13,7 +13,7 @@ import utils.objectMapper
 import java.time.LocalDateTime
 import java.util.*
 
-class KandidathendelserTest {
+class KandidatlisteLukketLytterTest {
 
     private val database = TestDatabase()
     private val testRapid = TestRapid()
