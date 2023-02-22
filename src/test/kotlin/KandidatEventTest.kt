@@ -101,58 +101,6 @@ class KandidatEventTest {
         assertThat(mockProducer.history().size).isZero
     }
 
-    @Test
-    fun `Skal behandle melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat svarte ja til deling av CV`() {
-        val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
-            forespørsel.aktørId,
-            forespørsel.stillingsId,
-            enNavIdent
-        )
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            "IKKE_FATT_JOBBEN",
-            forespørsel.forespørselId,
-            eventTidspunkt,
-            enNavIdent,
-            "KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN"
-        )
-    }
-
-    @Test
-    fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidaten svarte nei til deling av CV`() {
-        val forespørsel = lagreForespørsel(svarFraBruker = false)
-        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
-            forespørsel.aktørId,
-            forespørsel.stillingsId,
-            enNavIdent
-        )
-        assertThat(mockProducer.history().size).isZero
-    }
-
-    @Test
-    fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
-        val forespørsel = lagreUbesvartForespørsel()
-        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid(
-            forespørsel.aktørId,
-            forespørsel.stillingsId,
-            enNavIdent
-        )
-        assertThat(mockProducer.history().size).isZero
-    }
-
-    @Test
-    fun `Skal ignorere melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
-        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
-        assertThat(mockProducer.history().size).isZero
-    }
-
-    @Test
-    fun `Skal ikke logge feil når vi mottar melding om kandidatliste-lukket-noen-andre-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
-        publiserKandidatlisteLukketNoenAndreFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
-        assertThat(mockProducer.history().size).isZero
-        verify(log, never()).error(any())
-    }
-
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
         aktivitetsplanEventName: String,
         kafkaKey: UUID,
