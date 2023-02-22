@@ -1,6 +1,7 @@
 package kandidatevent
 
 import Repository
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.node.ArrayNode
 import no.nav.helse.rapids_rivers.*
 import org.apache.kafka.clients.producer.Producer
@@ -59,13 +60,14 @@ class KandidatlisteLukketLytter(
 
     class KandidatlisteLukket(
         noenAndreFikkJobben: Boolean,
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
         val forespørselId: UUID,
         val utførtAvNavIdent: String,
         val tidspunkt: String
     ) {
         val type = "IKKE_FATT_JOBBEN"
         val detaljer = if (noenAndreFikkJobben) {
-            "VET_IKKE"
+            "KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN"
         } else {
             "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
         }

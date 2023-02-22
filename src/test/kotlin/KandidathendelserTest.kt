@@ -58,11 +58,38 @@ class KandidathendelserTest {
             .map<String?, JsonNode?>(objectMapper::readTree)
             .map { it!! }
             .forEach { message ->
+                assertThat(message.size()).isEqualTo(4)
                 assertThat(message["type"].asText()).isEqualTo("IKKE_FATT_JOBBEN")
                 assertThat(message["detaljer"].asText()).isEqualTo("KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN")
                 assertThat(message["utførtAvNavIdent"].asText()).isEqualTo("enNavIdent")
                 assertThat(message["tidspunkt"].asText()).isEqualTo("2023-02-21T08:38:01.053+01:00")
             }
+    }
+
+    @Test
+    fun `Når vi mottar KandidatlisteLukket-melding der noen fikk jobben skal vi sende meldinger til aktivitetsplanen for kandidater som ikke fikk jobben`() {
+        val stillingsId = UUID.randomUUID()
+        val forespørselTilKandidatSomFikkJobben = lagreForespørsel(aktørId = "aktør1", svarFraBruker = true, stillingsId = stillingsId)
+        val forespørselTilKandidatSomIkkeFikkJobben = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
+        val kandidatlisteLukketMelding = kandidatlisteLukket(
+            aktørIderFikkIkkeJobben = listOf(forespørselTilKandidatSomIkkeFikkJobben.aktørId),
+            aktørIderFikkJobben = listOf(forespørselTilKandidatSomFikkJobben.aktørId),
+            stillingsId =stillingsId,
+            navIdent = "enNavIdent"
+        )
+
+        testRapid.sendTestMessage(kandidatlisteLukketMelding)
+
+        val inspektør = mockProducer.history()
+        assertThat(inspektør.size).isEqualTo(1)
+        val meldingTilAktivitetsplanen = inspektør[0]
+        assertThat(meldingTilAktivitetsplanen.key()).isEqualTo(forespørselTilKandidatSomIkkeFikkJobben.forespørselId.toString())
+        val meldingBody = objectMapper.readTree(meldingTilAktivitetsplanen.value())
+        assertThat(meldingBody.size()).isEqualTo(4)
+        assertThat(meldingBody["type"].asText()).isEqualTo("IKKE_FATT_JOBBEN")
+        assertThat(meldingBody["detaljer"].asText()).isEqualTo("KANDIDATLISTE_LUKKET_NOEN_ANDRE_FIKK_JOBBEN")
+        assertThat(meldingBody["utførtAvNavIdent"].asText()).isEqualTo("enNavIdent")
+        assertThat(meldingBody["tidspunkt"].asText()).isEqualTo("2023-02-21T08:38:01.053+01:00")
     }
 
     @Test
