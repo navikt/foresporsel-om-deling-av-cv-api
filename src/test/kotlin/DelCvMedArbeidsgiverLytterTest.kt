@@ -3,7 +3,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.startsWith
 import org.mockito.Mockito
+import org.mockito.kotlin.verify
 import org.slf4j.Logger
 import setup.TestDatabase
 import setup.mockProducerJson
@@ -37,7 +39,7 @@ class DelCvMedArbeidsgiverLytterTest {
     fun `Når CV-er er delt med arbeidsgiver skal melding sendes til aktivitetsplanen for kandidater som har svart Ja på forespørsel`() {
         val forespørsel1 = lagreForespørsel(aktørId = "aktørId1", svarFraBruker = true)
         val forespørsel2 = lagreForespørsel(aktørId = "aktørId2", svarFraBruker = true, stillingsId = forespørsel1.stillingsId)
-        val cvDeltMelding = cvDeltMelding(aktørIder = listOf(forespørsel1.aktørId, forespørsel2.aktørId), stillingsId = forespørsel1.stillingsId, navIdent = enNavIdent)
+        val cvDeltMelding = cvDeltMelding(aktørIder = listOf(forespørsel1.aktørId, forespørsel2.aktørId), stillingsId = forespørsel1.stillingsId)
 
         testRapid.sendTestMessage(cvDeltMelding)
 
@@ -63,6 +65,27 @@ class DelCvMedArbeidsgiverLytterTest {
         assertThat(meldingBody2["tidspunkt"].asText()).isEqualTo("2023-02-09T09:45:53.649+01:00")
     }
 
+    @Test
+    fun `Skal sende melding til aktivitetsplanen på tross av at kandidat ikke har svart ja på forespørsel om deling av CV`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = false, aktørId = "aktørId")
+        val melding = cvDeltMelding(aktørIder = listOf(forespørsel.aktørId), stillingsId = forespørsel.stillingsId)
+
+        testRapid.sendTestMessage(melding)
+
+        verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver, men kandidaten svarte nei på deling av CV"))
+        assertThat(mockProducer.history().size).isEqualTo(1)
+    }
+
+    @Test
+    fun `Skal ikke sende melding til aktivitetsplanen når kandidat ikke har blitt forespurt om deling av CV`() {
+        val melding = cvDeltMelding(aktørIder = listOf("aktør1"))
+
+        testRapid.sendTestMessage(melding)
+
+        verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver, men kandidaten har aldri blitt spurt om deling av CV"))
+        assertThat(mockProducer.history().size).isEqualTo(0)
+    }
+
     private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID = UUID.randomUUID()): Forespørsel {
         val forespørsel = enForespørsel(
             aktørId = aktørId,
@@ -82,8 +105,8 @@ class DelCvMedArbeidsgiverLytterTest {
 
     fun cvDeltMelding(
         aktørIder: List<String> = emptyList(),
-        stillingsId: UUID,
-        navIdent: String
+        stillingsId: UUID = UUID.randomUUID(),
+        navIdent: String = enNavIdent
     ) = """
         {
           "stillingstittel": "En fantastisk stilling",

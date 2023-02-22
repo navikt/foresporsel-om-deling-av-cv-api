@@ -45,17 +45,6 @@ class KandidatEventTest {
         app?.close()
     }
 
-    @Test
-    fun `Når CV er delt med arbeidsgiver og kandidaten har svart Ja på forespørsel skal melding sendes til Aktivitetsplanen`() {
-        val forespørsel = lagreForespørsel(svarFraBruker = true)
-        val eventTidspunkt = publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            "CV_DELT",
-            forespørsel.forespørselId,
-            eventTidspunkt,
-            enNavIdent
-        )
-    }
 
     @Test
     fun `Når hendelse med slutt_av_hendelseskjede satt til true skal ikke noe sendes`() {
@@ -73,32 +62,6 @@ class KandidatEventTest {
         assertThat(testRapid.inspektør.size).isEqualTo(1)
         assertThat(testRapid.inspektør.message(0)["@slutt_av_hendelseskjede"].asBoolean()).isTrue
         verify(log, never()).error(any())
-    }
-
-    @Test
-    fun `CV er delt med arbeidsgiver på tross av at kandidat ikke har svart ja på forespørsel om deling av CV`() {
-        val forespørsel = lagreForespørsel(svarFraBruker = false)
-
-        val eventTidspunkt = publiserCvDeltMeldingPåRapid(forespørsel.aktørId, forespørsel.stillingsId, enNavIdent)
-
-        verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
-        assertAtMeldingErSendtPåTopicTilAktivitetsplanen(
-            "CV_DELT",
-            forespørsel.forespørselId,
-            eventTidspunkt,
-            enNavIdent
-        )
-    }
-
-    @Test
-    fun `CV er delt med arbeidsgiver på tross av at kandidat ikke har blitt forespurt om deling av CV`() {
-        val forespørselSomIkkeFinnesIDatabasen = enForespørsel()
-        publiserCvDeltMeldingPåRapid(
-            forespørselSomIkkeFinnesIDatabasen.aktørId,
-            forespørselSomIkkeFinnesIDatabasen.stillingsId
-        )
-        verify(log).error(startsWith("Mottok melding om at CV har blitt delt med arbeidsgiver"))
-        assertThat(mockProducer.history().size).isZero
     }
 
     private fun assertAtMeldingErSendtPåTopicTilAktivitetsplanen(

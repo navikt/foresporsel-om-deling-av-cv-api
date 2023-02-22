@@ -35,7 +35,20 @@ class DelCvMedArbeidsgiverLytter(
 
         packet["kandidater"].fields().asSequence()
             .map(MutableMap.MutableEntry<String, JsonNode>::key)
-            .mapNotNull { repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId)  }
+            .mapNotNull {
+                val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId)
+                if (forespørsel != null) {
+                    forespørsel
+                } else {
+                    log.error("Mottok melding om at CV har blitt delt med arbeidsgiver, men kandidaten har aldri blitt spurt om deling av CV")
+                    null
+                }
+            }
+            .onEach {
+                if (!it.harSvartJa()) {
+                    log.error("Mottok melding om at CV har blitt delt med arbeidsgiver, men kandidaten svarte nei på deling av CV")
+                }
+            }
             .map {
                 DelCvMedArbeidsgiver(
                     forespørselId = it.forespørselId,
