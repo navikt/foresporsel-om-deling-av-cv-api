@@ -66,7 +66,7 @@ class KandidathendelserTest {
     }
 
     @Test
-    fun `Mottak av KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som svarte nei til deling av CV`() {
+    fun `KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som svarte nei til deling av CV`() {
         val stillingsId = UUID.randomUUID()
         val forespørselSvarteNei = lagreForespørsel(aktørId = "aktør1", svarFraBruker = false, stillingsId = stillingsId)
         val forespørselSvarteJa = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
@@ -80,7 +80,7 @@ class KandidathendelserTest {
     }
 
     @Test
-    fun `Mottak av KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som aldri svarte på deling av CV`() {
+    fun `KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som aldri svarte på deling av CV`() {
         val stillingsId = UUID.randomUUID()
         val forespørselSvarteIkke = lagreUbesvartForespørsel(aktørId = "aktør1", stillingsId = stillingsId)
         val forespørselSvarteJa = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
@@ -93,6 +93,19 @@ class KandidathendelserTest {
         assertThat(meldingTilAktivitetsplanen.key() == forespørselSvarteJa.forespørselId.toString())
     }
 
+    @Test
+    fun `KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som aldri ble spurt mo deling av CV`() {
+        val stillingsId = UUID.randomUUID()
+        val aktørIdAldriForespurt = "aktør1"
+        val forespørselSvarteJa = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
+        val kandidatlisteLukketMelding = kandidatlisteLukket(aktørIderFikkIkkeJobben = listOf(aktørIdAldriForespurt, forespørselSvarteJa.aktørId), stillingsId = stillingsId, navIdent = "enNavIdent")
+
+        testRapid.sendTestMessage(kandidatlisteLukketMelding)
+
+        assertThat(mockProducer.history().size).isEqualTo(1)
+        val meldingTilAktivitetsplanen = mockProducer.history()[0]
+        assertThat(meldingTilAktivitetsplanen.key() == forespørselSvarteJa.forespørselId.toString())
+    }
 
     private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID = UUID.randomUUID()): Forespørsel {
         val forespørsel = enForespørsel(
