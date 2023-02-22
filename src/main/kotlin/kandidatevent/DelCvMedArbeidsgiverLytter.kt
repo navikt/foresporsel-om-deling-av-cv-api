@@ -58,6 +58,9 @@ class DelCvMedArbeidsgiverLytter(
             }
             .mapNotNull(DelCvMedArbeidsgiver::tilMelding)
             .forEach(statusOppdateringProducer::send)
+
+        packet["@slutt_av_hendelseskjede"] = true
+        context.publish(packet.toJson())
     }
 
     private class DelCvMedArbeidsgiver(

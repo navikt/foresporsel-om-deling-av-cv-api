@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.startsWith
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.slf4j.Logger
 import setup.TestDatabase
@@ -86,6 +88,30 @@ class DelCvMedArbeidsgiverLytterTest {
         assertThat(mockProducer.history().size).isEqualTo(0)
     }
 
+    @Test
+    fun `Når hendelse med slutt_av_hendelseskjede satt til true skal ikke noe sendes`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = false, aktørId = "aktørId")
+        val melding = cvDeltMelding(aktørIder = listOf(forespørsel.aktørId), stillingsId = forespørsel.stillingsId, sluttAvHendelseskjede = true)
+
+        testRapid.sendTestMessage(melding)
+
+        assertThat(mockProducer.history().size).isZero
+        assertThat(testRapid.inspektør.size).isZero
+        verify(log, never()).error(any())
+    }
+
+    @Test
+    fun `Når kandidathendelse kommer skal hendelse republiseres med slutt_av_hendelseskjede satt til true`() {
+        val forespørsel = lagreForespørsel(svarFraBruker = true, aktørId = "aktørId")
+        val melding = cvDeltMelding(aktørIder = listOf(forespørsel.aktørId), stillingsId = forespørsel.stillingsId)
+
+        testRapid.sendTestMessage(melding)
+
+        assertThat(testRapid.inspektør.size).isEqualTo(1)
+        assertThat(testRapid.inspektør.message(0)["@slutt_av_hendelseskjede"].asBoolean()).isTrue
+        verify(log, never()).error(any())
+    }
+
     private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID = UUID.randomUUID()): Forespørsel {
         val forespørsel = enForespørsel(
             aktørId = aktørId,
@@ -106,7 +132,8 @@ class DelCvMedArbeidsgiverLytterTest {
     fun cvDeltMelding(
         aktørIder: List<String> = emptyList(),
         stillingsId: UUID = UUID.randomUUID(),
-        navIdent: String = enNavIdent
+        navIdent: String = enNavIdent,
+        sluttAvHendelseskjede: Boolean = false
     ) = """
         {
           "stillingstittel": "En fantastisk stilling",
@@ -138,6 +165,7 @@ class DelCvMedArbeidsgiverLytterTest {
           },
           "@event_name": "kandidat_v2.DelCvMedArbeidsgiver",
           "@id": "74b0b8dd-315f-406f-9979-e0bec5bcc5b6",
+          ${if (!sluttAvHendelseskjede) "" else """, "@slutt_av_hendelseskjede": $sluttAvHendelseskjede"""}
           "@opprettet": "2023-02-09T09:46:01.027221527"
         }
     """.trimIndent()

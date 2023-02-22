@@ -48,6 +48,9 @@ class KandidatlisteLukketLytter(
             }
             .mapNotNull(KandidatlisteLukket::tilMelding)
             .forEach(statusOppdateringProducer::send)
+
+        packet["@slutt_av_hendelseskjede"] = true
+        context.publish(packet.toJson())
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
