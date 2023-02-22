@@ -34,17 +34,18 @@ class KandidatlisteLukketLytter(
         val navIdent = packet["utførtAvNavIdent"].asText()
         val tidspunkt = packet["tidspunkt"].asText()
 
-        aktørIderFikkIkkeJobben.map {
-            val sisteForespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId) ?: return
-
-            KandidatlisteLukket(
-                noenAndreFikkJobben = noenFikkJobben,
-                forespørselId = sisteForespørsel.forespørselId,
-                utførtAvNavIdent = navIdent,
-                tidspunkt = tidspunkt
-            )
-        }
-            .map(KandidatlisteLukket::tilMelding)
+        aktørIderFikkIkkeJobben
+            .mapNotNull { repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId)  }
+            .filter { it.harSvartJa() }
+            .map {
+                KandidatlisteLukket(
+                    noenAndreFikkJobben = noenFikkJobben,
+                    forespørselId = it.forespørselId,
+                    utførtAvNavIdent = navIdent,
+                    tidspunkt = tidspunkt
+                )
+            }
+            .mapNotNull(KandidatlisteLukket::tilMelding)
             .forEach(statusOppdateringProducer::send)
     }
 

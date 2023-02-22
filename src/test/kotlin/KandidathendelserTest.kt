@@ -65,7 +65,21 @@ class KandidathendelserTest {
             }
     }
 
-    private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID): Forespørsel {
+    @Test
+    fun `Mottak av KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som svarte nei til deling av CV`() {
+        val stillingsId = UUID.randomUUID()
+        val forespørselSvarteNei = lagreForespørsel(aktørId = "aktør1", svarFraBruker = false, stillingsId = stillingsId)
+        val forespørselSvarteJa = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
+        val kandidatlisteLukketMelding = kandidatlisteLukket(aktørIderFikkIkkeJobben = listOf(forespørselSvarteNei.aktørId, forespørselSvarteJa.aktørId), stillingsId = stillingsId, navIdent = "enNavIdent")
+
+        testRapid.sendTestMessage(kandidatlisteLukketMelding)
+
+        assertThat(mockProducer.history().size).isEqualTo(1)
+        val meldingTilAktivitetsplanen = mockProducer.history()[0]
+        assertThat(meldingTilAktivitetsplanen.key() == forespørselSvarteJa.forespørselId.toString())
+    }
+
+    private fun lagreForespørsel(aktørId: String, svarFraBruker: Boolean, stillingsId: UUID = UUID.randomUUID()): Forespørsel {
         val forespørsel = enForespørsel(
             aktørId = aktørId,
             deltStatus = DeltStatus.SENDT,
