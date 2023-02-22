@@ -1,7 +1,6 @@
 package kandidatevent
 
 import Repository
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.node.ArrayNode
 import no.nav.helse.rapids_rivers.*
 import org.apache.kafka.clients.producer.Producer
@@ -13,9 +12,10 @@ import java.util.*
 
 class KandidatlisteLukketLytter(
     rapidsConnection: RapidsConnection,
+    private val eksterntTopic: String,
     private val statusOppdateringProducer: Producer<String, String>,
     private val repository: Repository,
-    private val log: Logger = LoggerFactory.getLogger(KandidatLytter::class.java)
+    private val log: Logger = LoggerFactory.getLogger(KandidatlisteLukketLytter::class.java)
 ) : River.PacketListener {
 
     init {
@@ -46,7 +46,7 @@ class KandidatlisteLukketLytter(
                     tidspunkt = tidspunkt
                 )
             }
-            .mapNotNull(KandidatlisteLukket::tilMelding)
+            .mapNotNull { it.tilMelding(topic = eksterntTopic)}
             .forEach(statusOppdateringProducer::send)
 
         packet["@slutt_av_hendelseskjede"] = true
@@ -70,7 +70,7 @@ class KandidatlisteLukketLytter(
             "KANDIDATLISTE_LUKKET_INGEN_FIKK_JOBBEN"
         }
 
-        fun tilMelding() =
-            ProducerRecord(topic,forespørselId.toString(), objectMapper.writeValueAsString(this))
+        fun tilMelding(topic: String) =
+            ProducerRecord(topic, forespørselId.toString(), objectMapper.writeValueAsString(this))
     }
 }

@@ -13,9 +13,10 @@ import java.util.*
 
 class DelCvMedArbeidsgiverLytter(
     rapidsConnection: RapidsConnection,
+    private val eksterntTopic: String,
     private val statusOppdateringProducer: Producer<String, String>,
     private val repository: Repository,
-    private val log: Logger = LoggerFactory.getLogger(KandidatLytter::class.java)
+    private val log: Logger = LoggerFactory.getLogger(DelCvMedArbeidsgiverLytter::class.java)
 ) : River.PacketListener {
 
     init {
@@ -56,7 +57,7 @@ class DelCvMedArbeidsgiverLytter(
                     tidspunkt = tidspunkt
                 )
             }
-            .mapNotNull(DelCvMedArbeidsgiver::tilMelding)
+            .mapNotNull { it.tilMelding(eksterntTopic) }
             .forEach(statusOppdateringProducer::send)
 
         packet["@slutt_av_hendelseskjede"] = true
@@ -70,8 +71,7 @@ class DelCvMedArbeidsgiverLytter(
     ) {
         val detaljer = ""
         val type = "CV_DELT"
-        fun tilMelding() =
+        fun tilMelding(topic: String) =
             ProducerRecord(topic, forespørselId.toString(), objectMapper.writeValueAsString(this))
-
     }
 }

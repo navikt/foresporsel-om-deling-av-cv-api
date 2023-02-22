@@ -1,5 +1,4 @@
 import kandidatevent.DelCvMedArbeidsgiverLytter
-import kandidatevent.KandidatLytter
 import kandidatevent.KandidatlisteLukketLytter
 import mottasvar.SvarService
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -57,9 +56,8 @@ fun startLokalApp(
 
     val svarService = SvarService(consumer, repository){true}
 
-    KandidatLytter(testRapid, jsonProducer, repository, log)
-    KandidatlisteLukketLytter(testRapid, jsonProducer, repository, log)
-    DelCvMedArbeidsgiverLytter(testRapid, jsonProducer, repository, log)
+    KandidatlisteLukketLytter(testRapid, "topic", jsonProducer, repository, log)
+    DelCvMedArbeidsgiverLytter(testRapid, "topic", jsonProducer, repository, log)
 
     val app = App(
         forespørselController,
