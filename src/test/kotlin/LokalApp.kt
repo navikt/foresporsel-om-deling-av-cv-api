@@ -1,3 +1,4 @@
+import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatLytter
 import kandidatevent.KandidatlisteLukketLytter
 import mottasvar.SvarService
@@ -58,6 +59,7 @@ fun startLokalApp(
 
     KandidatLytter(testRapid, jsonProducer, repository, log)
     KandidatlisteLukketLytter(testRapid, jsonProducer, repository, log)
+    DelCvMedArbeidsgiverLytter(testRapid, jsonProducer, repository, log)
 
     val app = App(
         forespørselController,

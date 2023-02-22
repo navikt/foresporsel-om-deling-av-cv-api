@@ -54,14 +54,9 @@ class KandidatlisteLukketLytter(
         log.error("$problems")
     }
 
-    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
-        super.onSevere(error, context)
-    }
-
     class KandidatlisteLukket(
         noenAndreFikkJobben: Boolean,
-        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-        val forespørselId: UUID,
+        private val forespørselId: UUID,
         val utførtAvNavIdent: String,
         val tidspunkt: String
     ) {

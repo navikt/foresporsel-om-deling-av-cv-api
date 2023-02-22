@@ -43,7 +43,7 @@ class DelCvMedArbeidsgiverLytterTest {
         val inspektør = mockProducer.history()
         assertThat(inspektør.size).isEqualTo(1)
         val melding = inspektør[0]
-        assertThat(melding.key()).isEqualTo(forespørsel.forespørselId)
+        assertThat(melding.key()).isEqualTo(forespørsel.forespørselId.toString())
         val meldingBody = objectMapper.readTree(melding.value())
         assertThat(meldingBody.size()).isEqualTo(4)
         assertThat(meldingBody["type"].asText()).isEqualTo("CV_DELT")
@@ -104,7 +104,7 @@ class DelCvMedArbeidsgiverLytterTest {
           },
           "@event_name": "kandidat_v2.DelCvMedArbeidsgiver",
           "@id": "74b0b8dd-315f-406f-9979-e0bec5bcc5b6",
-          "@opprettet": "2023-02-09T09:46:01.027221527",
+          "@opprettet": "2023-02-09T09:46:01.027221527"
         }
     """.trimIndent()
 }

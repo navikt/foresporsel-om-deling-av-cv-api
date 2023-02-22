@@ -2,6 +2,7 @@ import auth.azureConfig
 import auth.azureIssuerProperties
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
+import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatLytter
 import kandidatevent.KandidatlisteLukketLytter
 import mottasvar.SvarService
@@ -107,6 +108,7 @@ fun main() {
         val statusoppdateringProducer = KafkaProducer<String, String>(jsonProducerConfig)
         KandidatLytter(rapidsConnection, statusoppdateringProducer, repository)
         KandidatlisteLukketLytter(rapidsConnection, statusoppdateringProducer, repository)
+        DelCvMedArbeidsgiverLytter(rapidsConnection, statusoppdateringProducer, repository)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository, rapidIsAlive)
