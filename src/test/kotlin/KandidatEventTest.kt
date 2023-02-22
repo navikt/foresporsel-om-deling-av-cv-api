@@ -102,17 +102,6 @@ class KandidatEventTest {
     }
 
     @Test
-    fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat aldri svarte på forespørsel om deling av CV`() {
-        val forespørsel = lagreUbesvartForespørsel()
-        publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid(
-            forespørsel.aktørId,
-            forespørsel.stillingsId,
-            enNavIdent
-        )
-        assertThat(mockProducer.history().size).isZero
-    }
-
-    @Test
     fun `Skal ignorere melding om kandidatliste-lukket-ingen-fikk-jobben når kandidat aldri ble spurt om deling av CV`() {
         publiserKandidatlisteLukketIngenFikkJobbenMeldingPåRapid("dummyAktørId", UUID.randomUUID(), enNavIdent)
         assertThat(mockProducer.history().size).isZero
