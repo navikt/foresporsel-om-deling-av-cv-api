@@ -9,11 +9,9 @@ import setup.TestDatabase
 import setup.mockProducerJson
 import utils.objectMapper
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.util.*
 
-class CvDeltMedArbeidsgiverLytterTest {
+class DelCvMedArbeidsgiverLytterTest {
 
     private val database = TestDatabase()
     private val testRapid = TestRapid()
