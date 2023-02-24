@@ -38,7 +38,7 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cache-public-keys'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/nye-eventer'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

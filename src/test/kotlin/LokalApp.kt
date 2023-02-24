@@ -1,4 +1,5 @@
-import kandidatevent.KandidatLytter
+import kandidatevent.DelCvMedArbeidsgiverLytter
+import kandidatevent.KandidatlisteLukketLytter
 import mottasvar.SvarService
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -55,7 +56,8 @@ fun startLokalApp(
 
     val svarService = SvarService(consumer, repository){true}
 
-    KandidatLytter(testRapid, jsonProducer, repository, log)
+    KandidatlisteLukketLytter(testRapid, "topic", jsonProducer, repository, log)
+    DelCvMedArbeidsgiverLytter(testRapid, "topic", jsonProducer, repository, log)
 
     val app = App(
         forespørselController,
