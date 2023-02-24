@@ -141,7 +141,7 @@ class KandidatlisteLukketLytterTest {
     }
 
     @Test
-    fun `KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som aldri ble spurt mo deling av CV`() {
+    fun `KandidatlisteLukket-melding skal ikke føre til melding til aktivitetsplanen for kandidater som aldri ble spurt om deling av CV`() {
         val stillingsId = UUID.randomUUID()
         val aktørIdAldriForespurt = "aktør1"
         val forespørselSvarteJa = lagreForespørsel(aktørId = "aktør2", svarFraBruker = true, stillingsId = stillingsId)
