@@ -31,7 +31,7 @@ spec:
 
         - alert: rekrutteringsbistand-stilling-api
           expr: (100 * sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="rekrutteringsbistand-stilling-api  ",log_level=~"Warning"}[5m])) / sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="rekrutteringsbistand-stilling-api  "}[5m]))) > 5
-          for: 5m
+          for: 3m
           annotations:
             summary: Økning i warnings
             action: "https://logs.adeo.no/app/r/s/YfKw8"
