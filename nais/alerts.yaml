@@ -1,40 +1,40 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: rekrutteringsbistand-stilling-api
+  name: foresporsel-om-deling-av-cv-api
   namespace: arbeidsgiver-inkludering
   labels:
     team: arbeidsgiver-inkludering
 spec:
   groups:
-    - name: rekrutteringsbistand-stilling-api
+    - name: foresporsel-om-deling-av-cv-api
       rules:
-        - alert: rekrutteringsbistand-stilling-api
-          expr: sum(up{app="rekrutteringsbistand-stilling-api", job="nais-system/monitoring-apps-tenant"}) == 0
+        - alert: foresporsel-om-deling-av-cv-api
+          expr: kube_deployment_status_replicas_available{deployment="foresporsel-om-deling-av-cv-api"} == 0
           for: 1s
           annotations:
             summary: Appen er nede
             action: "https://logs.adeo.no/app/r/s/YfKw8"
           labels:
-            namespace: arbeidsgiver-inkludering
+            namespace: toi
             severity: critical
 
-        - alert: rekrutteringsbistand-stilling-api
-          expr: sum(increase(logd_messages_total{log_app="rekrutteringsbistand-stilling-api",log_level="Error"}[10m])) > 0
+        - alert: foresporsel-om-deling-av-cv-api
+          expr: sum(increase(logd_messages_total{log_app="foresporsel-om-deling-av-cv-api",log_level="Error"}[10m])) > 0
           for: 1s
           annotations:
             summary: Appen har logget en error
             action: "https://logs.adeo.no/app/r/s/YfKw8"
           labels:
-            namespace: arbeidsgiver-inkludering
+            namespace: toi
             severity: critical
 
-        - alert: rekrutteringsbistand-stilling-api
-          expr: (100 * sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="rekrutteringsbistand-stilling-api  ",log_level=~"Warning"}[5m])) / sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="rekrutteringsbistand-stilling-api  "}[5m]))) > 5
+        - alert: foresporsel-om-deling-av-cv-api
+          expr: (100 * sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="foresporsel-om-deling-av-cv-api  ",log_level=~"Warning"}[5m])) / sum by (log_app, log_namespace) (rate(logd_messages_total{log_app="foresporsel-om-deling-av-cv-api  "}[5m]))) > 5
           for: 3m
           annotations:
             summary: Økning i warnings
             action: "https://logs.adeo.no/app/r/s/YfKw8"
           labels:
-            namespace: arbeidsgiver-inkludering
+            namespace: toi
             severity: warning
