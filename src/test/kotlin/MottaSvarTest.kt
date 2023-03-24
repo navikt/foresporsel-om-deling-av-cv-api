@@ -1,6 +1,7 @@
 import no.nav.veilarbaktivitet.avro.*
 import no.nav.veilarbaktivitet.avro.Ident
 import no.nav.veilarbaktivitet.avro.Svar
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
@@ -55,6 +56,39 @@ class MottaSvarTest {
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
             assertNull(lagredeForespørsler[upåvirketForespørsel.aktørId]?.svar)
+        }
+    }
+
+    @Test
+    fun `Kan motta svar med svart av veileder og svarTidspunkt langt tilbake i tid`() {
+        val database = TestDatabase()
+        val mockConsumer = mockConsumer()
+
+        startLokalApp(database, consumer = mockConsumer).use {
+            val forespørsel = enForespørsel("123", DeltStatus.SENDT)
+            val aktivitetId = UUID.randomUUID()
+            database.lagreBatch(listOf(forespørsel))
+
+            val svartAv = Ident("Z123456", IdentTypeEnum.NAV_IDENT)
+            val svarTidspunkt = LocalDateTime.now().minusMonths(2);
+
+            val svarKafkamelding = DelingAvCvRespons(
+                forespørsel.forespørselId.toString(),
+                forespørsel.aktørId,
+                aktivitetId.toString(),
+                TilstandEnum.HAR_SVART,
+                Svar(
+                    svarTidspunkt.toInstant(ZoneOffset.UTC),
+                    svartAv,
+                    true
+                ),
+                nullKanIkkeOppretteBegrunnelse
+            )
+
+            mottaSvarKafkamelding(mockConsumer, svarKafkamelding)
+
+            val lagredeForespørsler = database.hentAlleForespørsler()
+            assertThat(lagredeForespørsler.size).isOne
         }
     }
 
