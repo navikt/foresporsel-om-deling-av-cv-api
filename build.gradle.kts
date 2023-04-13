@@ -52,7 +52,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.5.1")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("no.nav:vault-jdbc:1.3.10")
-    implementation("no.nav.security:token-validation-core:3.0.8")
+    implementation("no.nav.security:token-validation-core:3.0.10")
 
     implementation("org.apache.kafka:kafka-clients:3.3.1")
     implementation("io.confluent:kafka-avro-serializer:7.3.0")
