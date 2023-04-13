@@ -11,7 +11,7 @@ import java.util.*
 
 class StillingKlient(private val accessToken: () -> String) {
     private val stillingssokProxyDokumentUrl = when (Miljø.current) {
-        DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.dev.intern.nav.no/stilling/_doc"
+        DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.dev.nav.no/stilling/_doc"
         PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
         LOKAL -> "http://localhost:9089/stilling/_doc"
     }
