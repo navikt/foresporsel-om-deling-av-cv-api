@@ -62,7 +62,7 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 
-    implementation("no.nav.arbeidsgiver.toi:toi-rapids-and-rivers-fork:1.1")
+    implementation("com.github.navikt:rapids-and-rivers:2023041310341681374880.67ced5ad4dda")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.1.214")
