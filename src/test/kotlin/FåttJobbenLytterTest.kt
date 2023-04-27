@@ -147,11 +147,57 @@ class FåttJobbenLytterTest {
     }
 
     @Test
-    fun `Skal ikke sende melding når man har sendt melding for samme kandidat og stilling det siste minuttet`() {
+    fun `Skal ikke sende melding når man har sendt melding for samme kandidat og stilling tidligere`() {
+        val forespørsel = lagreForespørsel(aktørId = "dummyAktørId", svarFraBruker = true)
+        val fåttJobbenMelding = registrertFåttJobbenMelding(
+            stillingsId = forespørsel.stillingsId,
+            aktørId = forespørsel.aktørId
+        )
+
+        testRapid.sendTestMessage(fåttJobbenMelding)
+        testRapid.sendTestMessage(fåttJobbenMelding)
+
+        assertThat(testRapid.inspektør.size).isEqualTo(1)
     }
 
     @Test
-    fun `Skal sende melding når man har sendt melding for samme kandidat og stilling for mer enn ett minutt siden`() {
+    fun `Skal sende melding når man har sendt melding for samme kandidat men for annen stilling`() {
+        val aktørId = "aktør1"
+        val forespørsel = lagreForespørsel(aktørId = aktørId, stillingsId = UUID.randomUUID(), svarFraBruker = true)
+        val forespørselSammeKandidatMenAnnenStilling = lagreForespørsel(aktørId = aktørId, stillingsId = UUID.randomUUID(), svarFraBruker = true)
+        val fåttJobbenMelding1 = registrertFåttJobbenMelding(
+            stillingsId = forespørsel.stillingsId,
+            aktørId = forespørsel.aktørId
+        )
+        val fåttJobbenMelding2 = registrertFåttJobbenMelding(
+            stillingsId = forespørselSammeKandidatMenAnnenStilling.stillingsId,
+            aktørId = forespørselSammeKandidatMenAnnenStilling.aktørId
+        )
+
+        testRapid.sendTestMessage(fåttJobbenMelding1)
+        testRapid.sendTestMessage(fåttJobbenMelding2)
+
+        assertThat(testRapid.inspektør.size).isEqualTo(2)
+    }
+
+    @Test
+    fun `Skal sende melding når man har sendt melding for annen kandidat på samme stilling`() {
+        val stillingsId = UUID.randomUUID()
+        val forespørsel = lagreForespørsel(aktørId = "1", stillingsId = stillingsId, svarFraBruker = true)
+        val forespørselAnnenKandidatPåSammeStilling = lagreForespørsel(aktørId = "2", stillingsId = stillingsId, svarFraBruker = true)
+        val fåttJobbenMelding1 = registrertFåttJobbenMelding(
+            stillingsId = forespørsel.stillingsId,
+            aktørId = forespørsel.aktørId
+        )
+        val fåttJobbenMelding2 = registrertFåttJobbenMelding(
+            stillingsId = forespørselAnnenKandidatPåSammeStilling.stillingsId,
+            aktørId = forespørselAnnenKandidatPåSammeStilling.aktørId
+        )
+
+        testRapid.sendTestMessage(fåttJobbenMelding1)
+        testRapid.sendTestMessage(fåttJobbenMelding2)
+
+        assertThat(testRapid.inspektør.size).isEqualTo(2)
     }
 
     private fun lagreForespørsel(
