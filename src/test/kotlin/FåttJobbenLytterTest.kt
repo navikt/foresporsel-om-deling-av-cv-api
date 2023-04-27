@@ -53,7 +53,7 @@ class FåttJobbenLytterTest {
         assertThat(meldingerTilAktivitetsplanen[0].key()).isEqualTo(forespørsel.forespørselId.toString())
         val meldingBody = objectMapper.readTree(meldingerTilAktivitetsplanen[0].value())
         assertThat(meldingBody.size()).isEqualTo(4)
-        assertThat(meldingBody["type"].asText()).isEqualTo("FÅTT_JOBBEN")
+        assertThat(meldingBody["type"].asText()).isEqualTo("FATT_JOBBEN")
         assertThat(meldingBody["detaljer"].asText()).isEqualTo("")
         assertThat(meldingBody["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
         assertThat(meldingBody["tidspunkt"].asText()).isEqualTo("2020-01-01T08:00:00.000+02:00")

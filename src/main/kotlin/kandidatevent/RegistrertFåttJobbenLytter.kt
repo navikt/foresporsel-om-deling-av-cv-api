@@ -51,7 +51,7 @@ class RegistrertFåttJobbenLytter(
         val tidspunkt: String
     ) {
         val detaljer = ""
-        val type = "FÅTT_JOBBEN"
+        val type = "FATT_JOBBEN"
         fun tilMelding(topic: String) =
             ProducerRecord(topic, forespørselId.toString(), objectMapper.writeValueAsString(this))
     }
