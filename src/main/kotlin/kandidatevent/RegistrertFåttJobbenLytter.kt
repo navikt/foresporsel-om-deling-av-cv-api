@@ -48,7 +48,7 @@ class RegistrertFåttJobbenLytter(
     private class FåttJobben(
         private val forespørselId: UUID,
         val utførtAvNavIdent: String,
-        val tidspunkt: String?
+        val tidspunkt: String
     ) {
         val detaljer = ""
         val type = "FÅTT_JOBBEN"
