@@ -2,6 +2,9 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.slf4j.Logger
 import setup.TestDatabase
 import setup.mockProducerJson
@@ -33,9 +36,9 @@ class FåttJobbenLytterTest {
     }
 
     @Test
-    fun `Når vi mottar RegistrertFåttJobben-melding skal vi sende melding til Aktivitetsplanen`() {
+    fun `Når vi mottar RegistrertFåttJobben-hendelse skal vi sende melding til Aktivitetsplanen`() {
         val forespørsel = lagreForespørsel(aktørId = "dummyAktørId", svarFraBruker = true)
-        val tidspunkt = "2023-04-27T08:57:56.955+02:00"
+        val tidspunkt = "2020-01-01T08:00:00.000+02:00"
         val navIdent = "dummyIdent"
         val fåttJobbenMelding = registrertFåttJobbenMelding(
             stillingsId = forespørsel.stillingsId,
@@ -54,12 +57,28 @@ class FåttJobbenLytterTest {
         assertThat(meldingBody["type"].asText()).isEqualTo("FÅTT_JOBBEN")
         assertThat(meldingBody["detaljer"].asText()).isEqualTo("")
         assertThat(meldingBody["utførtAvNavIdent"].asText()).isEqualTo(navIdent)
-        assertThat(meldingBody["tidspunkt"].asText()).isEqualTo("2023-04-27T08:57:56.955+02:00")
+        assertThat(meldingBody["tidspunkt"].asText()).isEqualTo("2020-01-01T08:00:00.000+02:00")
     }
 
     @Test
     fun `Skal ikke sende melding til Aktivitetsplanen for kandidater som ikke fikk jobben`() {
-        TODO("Implementer")
+        val forespørselTilKandidatSomFikkJobben = lagreForespørsel(aktørId = "aktørId1", svarFraBruker = true)
+        val forespørselTilKandidatsomIkkeFikkJobben =  lagreForespørsel(aktørId = "aktørId2", svarFraBruker = true)
+        val tidspunkt = "2020-01-01T08:00:00.000+02:00"
+        val navIdent = "dummyIdent"
+        val fåttJobbenMelding = registrertFåttJobbenMelding(
+            stillingsId = forespørselTilKandidatSomFikkJobben.stillingsId,
+            aktørId = forespørselTilKandidatSomFikkJobben.aktørId,
+            navIdent = navIdent,
+            tidspunkt = tidspunkt
+        )
+        assertThat(forespørselTilKandidatsomIkkeFikkJobben.forespørselId).isNotEqualTo(forespørselTilKandidatsomIkkeFikkJobben.forespørselId)
+
+        testRapid.sendTestMessage(fåttJobbenMelding)
+
+        val meldingerTilAktivitetsplanen = mockProducer.history()
+        assertThat(meldingerTilAktivitetsplanen.size).isOne
+        assertThat(meldingerTilAktivitetsplanen[0].key()).isEqualTo(forespørselTilKandidatSomFikkJobben.forespørselId.toString())
     }
 
     @Test
@@ -104,13 +123,28 @@ class FåttJobbenLytterTest {
     }
 
     @Test
-    fun `Når hendelse med slutt_av_hendelseskjede satt til true skal ikke noe sendes`() {
-        TODO("Implementer")
+    fun `Skal ikke behandle hendelse med slutt_av_hendelseskjede satt til true`() {
+        val fåttJobbenMelding = registrertFåttJobbenMelding(sluttAvHendelseskjede = true)
+
+        testRapid.sendTestMessage(fåttJobbenMelding)
+
+        assertThat(mockProducer.history().size).isZero
+        assertThat(testRapid.inspektør.size).isZero
+        verify(log, never()).error(any())
     }
 
     @Test
     fun `Når hendelsen kommer skal den republiseres med slutt_av_hendelseskjede satt til true`() {
-        TODO("Implementer")
+        val forespørsel = lagreForespørsel(aktørId = "dummyAktørId", svarFraBruker = false)
+        val fåttJobbenMelding = registrertFåttJobbenMelding(
+            stillingsId = forespørsel.stillingsId,
+            aktørId = forespørsel.aktørId
+        )
+
+        testRapid.sendTestMessage(fåttJobbenMelding)
+
+        assertThat(testRapid.inspektør.size).isEqualTo(1)
+        assertThat(testRapid.inspektør.message(0)["@slutt_av_hendelseskjede"].asBoolean()).isTrue
     }
 
     @Test
@@ -161,10 +195,10 @@ class FåttJobbenLytterTest {
     }
 
     private fun registrertFåttJobbenMelding(
-        stillingsId: UUID,
-        aktørId: String,
+        stillingsId: UUID = UUID.randomUUID(),
+        aktørId: String = "dummy",
         navIdent: String = "dummy",
-        tidspunkt: String = "2023-04-27T08:57:56.955+02:00",
+        tidspunkt: String = "2020-01-01T08:00:00.000+02:00",
         sluttAvHendelseskjede: Boolean = true
     ) = """
         {
