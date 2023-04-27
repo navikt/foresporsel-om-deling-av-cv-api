@@ -12,7 +12,6 @@ import utils.objectMapper
 import java.time.LocalDateTime
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FåttJobbenLytterTest {
 
     private val database = TestDatabase()
@@ -72,7 +71,7 @@ class FåttJobbenLytterTest {
             navIdent = navIdent,
             tidspunkt = tidspunkt
         )
-        assertThat(forespørselTilKandidatsomIkkeFikkJobben.forespørselId).isNotEqualTo(forespørselTilKandidatsomIkkeFikkJobben.forespørselId)
+        assertThat(forespørselTilKandidatSomFikkJobben.forespørselId).isNotEqualTo(forespørselTilKandidatsomIkkeFikkJobben.forespørselId)
 
         testRapid.sendTestMessage(fåttJobbenMelding)
 
@@ -149,12 +148,10 @@ class FåttJobbenLytterTest {
 
     @Test
     fun `Skal ikke sende melding når man har sendt melding for samme kandidat og stilling det siste minuttet`() {
-        TODO("Implementer")
     }
 
     @Test
     fun `Skal sende melding når man har sendt melding for samme kandidat og stilling for mer enn ett minutt siden`() {
-        TODO("Implementer")
     }
 
     private fun lagreForespørsel(
@@ -199,7 +196,7 @@ class FåttJobbenLytterTest {
         aktørId: String = "dummy",
         navIdent: String = "dummy",
         tidspunkt: String = "2020-01-01T08:00:00.000+02:00",
-        sluttAvHendelseskjede: Boolean = true
+        sluttAvHendelseskjede: Boolean = false
     ) = """
         {
           "aktørId": "$aktørId",

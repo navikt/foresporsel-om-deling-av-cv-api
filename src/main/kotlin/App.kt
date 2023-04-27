@@ -4,6 +4,7 @@ import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
+import kandidatevent.RegistrertFåttJobbenLytter
 import mottasvar.SvarService
 import mottasvar.consumerConfig
 import no.nav.foresporselomdelingavcv.avroProducerConfig
@@ -108,6 +109,7 @@ fun main() {
         val ptoTopic = "pto.rekrutteringsbistand-statusoppdatering-v1"
         KandidatlisteLukketLytter(rapidsConnection, ptoTopic, statusoppdateringProducer, repository)
         DelCvMedArbeidsgiverLytter(rapidsConnection, ptoTopic, statusoppdateringProducer, repository)
+        RegistrertFåttJobbenLytter(rapidsConnection, ptoTopic, statusoppdateringProducer, repository)
 
         val svarConsumer = KafkaConsumer<String, DelingAvCvRespons>(consumerConfig)
         val svarService = SvarService(svarConsumer, repository, rapidIsAlive)
