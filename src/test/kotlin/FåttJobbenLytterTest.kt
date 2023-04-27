@@ -157,7 +157,7 @@ class FåttJobbenLytterTest {
         testRapid.sendTestMessage(fåttJobbenMelding)
         testRapid.sendTestMessage(fåttJobbenMelding)
 
-        assertThat(testRapid.inspektør.size).isEqualTo(1)
+        assertThat(mockProducer.history().size).isEqualTo(1)
     }
 
     @Test
@@ -177,7 +177,7 @@ class FåttJobbenLytterTest {
         testRapid.sendTestMessage(fåttJobbenMelding1)
         testRapid.sendTestMessage(fåttJobbenMelding2)
 
-        assertThat(testRapid.inspektør.size).isEqualTo(2)
+        assertThat(mockProducer.history().size).isEqualTo(2)
     }
 
     @Test
@@ -197,7 +197,7 @@ class FåttJobbenLytterTest {
         testRapid.sendTestMessage(fåttJobbenMelding1)
         testRapid.sendTestMessage(fåttJobbenMelding2)
 
-        assertThat(testRapid.inspektør.size).isEqualTo(2)
+        assertThat(mockProducer.history().size).isEqualTo(2)
     }
 
     private fun lagreForespørsel(

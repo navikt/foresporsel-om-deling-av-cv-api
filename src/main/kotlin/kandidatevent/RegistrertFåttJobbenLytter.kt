@@ -16,7 +16,9 @@ class RegistrertFåttJobbenLytter(
     private val eksterntTopic: String,
     private val statusOppdateringProducer: Producer<String, String>,
     private val repository: Repository,
-): River.PacketListener {
+) : River.PacketListener {
+
+    private val sendteMeldinger = hashSetOf<UUID>()
 
     init {
         River(rapidsConnection).apply {
@@ -37,8 +39,13 @@ class RegistrertFåttJobbenLytter(
         val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId, stillingsId)
 
         if (forespørsel?.harSvartJa() == true) {
-            val fåttJobben = FåttJobben(forespørsel.forespørselId, navIdent, tidspunkt)
-            statusOppdateringProducer.send(fåttJobben.tilMelding(eksterntTopic))
+            val harAlleredeSendtMelding = sendteMeldinger.contains(forespørsel.forespørselId)
+
+            if (!harAlleredeSendtMelding) {
+                val fåttJobben = FåttJobben(forespørsel.forespørselId, navIdent, tidspunkt)
+                statusOppdateringProducer.send(fåttJobben.tilMelding(eksterntTopic))
+                sendteMeldinger.add(forespørsel.forespørselId)
+            }
         }
 
         packet["@slutt_av_hendelseskjede"] = true
