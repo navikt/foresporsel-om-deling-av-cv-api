@@ -1,5 +1,6 @@
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
+import kandidatevent.RegistrertFåttJobbenLytter
 import mottasvar.SvarService
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -58,6 +59,7 @@ fun startLokalApp(
 
     KandidatlisteLukketLytter(testRapid, "topic", jsonProducer, repository, log)
     DelCvMedArbeidsgiverLytter(testRapid, "topic", jsonProducer, repository, log)
+    RegistrertFåttJobbenLytter(testRapid, "topic", jsonProducer, repository)
 
     val app = App(
         forespørselController,

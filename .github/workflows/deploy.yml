@@ -29,7 +29,7 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/nye-eventer'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fått-jobben-melding'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
