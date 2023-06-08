@@ -27,4 +27,3 @@ Bruker kan godta eller avslå at deres CV kan deles med arbeidsgiver. Svaret på
 - Marker at noen andre fikk jobben
 - Lukk kandidatlista
 - Sjekk at aktivitetsplanen til han/hun med delt CV og som ikke fikk jobben får en “IKKE FÅTT JOBBEN”-etikett
-- 
