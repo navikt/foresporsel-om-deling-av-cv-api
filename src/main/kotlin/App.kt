@@ -18,7 +18,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
-import stilling.AccessTokenClient
 import stilling.StillingKlient
 import utils.Miljø
 import utils.log
