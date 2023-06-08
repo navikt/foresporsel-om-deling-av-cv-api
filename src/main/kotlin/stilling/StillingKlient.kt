@@ -9,18 +9,25 @@ import utils.Miljø.*
 import utils.log
 import java.util.*
 
-class StillingKlient(private val accessToken: () -> String) {
-    private val stillingssokProxyDokumentUrl = when (Miljø.current) {
-        DEV_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.dev.nav.no/stilling/_doc"
-        PROD_FSS -> "https://rekrutteringsbistand-stillingssok-proxy.intern.nav.no/stilling/_doc"
-        LOKAL -> "http://localhost:9089/stilling/_doc"
+class StillingKlient {
+    private val openSearchParametre = when (Miljø.current) {
+        DEV_FSS, PROD_FSS -> OpenSearchParametre(
+            url = System.getenv("OPEN_SEARCH_URI"),
+            brukernavn = System.getenv("OPEN_SEARCH_USERNAME"),
+            passord = System.getenv("OPEN_SEARCH_PASSWORD")
+        )
+        LOKAL -> OpenSearchParametre(
+            url ="http://localhost:9089/stilling/_doc",
+            brukernavn = "",
+            passord = ""
+        )
     }
 
     fun hentStilling(uuid: UUID): Stilling? {
-        val url = "$stillingssokProxyDokumentUrl/$uuid"
+        val url = "${openSearchParametre.url}/$uuid"
         val result = Fuel
             .get(url)
-            .authentication().bearer(accessToken())
+            .authentication().basic(username = openSearchParametre.brukernavn, password = openSearchParametre.passord)
             .responseObject<EsResponse>().third
 
         return when (result) {
@@ -31,6 +38,12 @@ class StillingKlient(private val accessToken: () -> String) {
             }
         }
     }
+
+    private data class OpenSearchParametre(
+        val url: String,
+        val brukernavn: String,
+        val passord: String
+    )
 
     private data class EsResponse(
         val _source: EsSource

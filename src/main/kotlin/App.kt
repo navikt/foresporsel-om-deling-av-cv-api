@@ -84,8 +84,7 @@ fun main() {
 
         val database = Database()
         val repository = Repository(database.dataSource)
-        val accessTokenClient = AccessTokenClient(azureConfig)
-        val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
+        val stillingKlient = StillingKlient()
 
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(avroProducerConfig)
         val forespørselService = ForespørselService(

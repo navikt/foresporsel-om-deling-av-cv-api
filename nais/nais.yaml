@@ -40,6 +40,9 @@ spec:
           cluster: {{ fss-cluster }}
   kafka:
     pool: {{ kafka-pool }}
+  openSearch:
+    access: read
+    instance: rekrutteringsbistand-stilling
   env:
     - name: KAFKA_RAPID_TOPIC
       value: toi.rapid-1
