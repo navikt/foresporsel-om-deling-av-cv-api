@@ -43,6 +43,7 @@ spec:
   openSearch:
     access: read
     instance: rekrutteringsbistand-stilling
+    namespace: toi
   env:
     - name: KAFKA_RAPID_TOPIC
       value: toi.rapid-1
