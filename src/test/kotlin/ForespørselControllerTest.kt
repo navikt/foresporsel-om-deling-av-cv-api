@@ -41,7 +41,7 @@ class ForespørselControllerTest {
         mockProducer.clear()
     }
 
-    private val stillingKlient = StillingKlient { mockOAuth2Server.issueToken().serialize() }
+    private val stillingKlient = StillingKlient()
     private val mockProducer = mockProducerAvro
 
     private fun startWiremockApp(
