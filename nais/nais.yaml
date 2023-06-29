@@ -35,6 +35,9 @@ spec:
         - application: rekrutteringsbistand-container
           namespace: toi
           cluster: {{ gcp-cluster }}
+        - application: rekrutteringsbistand
+          namespace: toi
+          cluster: {{ gcp-cluster }}
         - application: rekrutteringsbistand-kandidat-api
           namespace: toi
           cluster: {{ fss-cluster }}
