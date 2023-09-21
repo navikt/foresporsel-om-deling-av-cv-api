@@ -1,12 +1,14 @@
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
+import org.slf4j.event.Level
+import org.slf4j.event.Level.*
 import stilling.Stilling
 import utils.hentCallId
 import utils.log
 import utils.toUUID
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
-import java.util.UUID
+import java.util.*
 
 const val stillingsIdParamName = "stillingsId"
 const val aktorIdParamName = "aktørId"
@@ -63,27 +65,29 @@ class ForespørselController(
 
             val stilling = hentStilling(forespørselOmDelingAvCvDto.stillingsId.toUUID())
 
-            val (kanSende, statuskode, feilmelding) = kanSendeForespørsel(
-                stilling,
-                minstEnKandidatHarFåttForespørselFør
-            )
+            when (val resultat = kanSendeForespørsel(stilling, minstEnKandidatHarFåttForespørselFør)) {
+                is Ok -> {
+                    repository.lagreUsendteForespørsler(
+                        aktørIder = forespørselOmDelingAvCvDto.aktorIder,
+                        stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
+                        svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
+                        deltAvNavIdent = ctx.hentNavIdent(),
+                        navKontor = forespørselOmDelingAvCvDto.navKontor,
+                        callId = ctx.hentCallId()
+                    )
+                    ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
+                    ctx.status(201)
+                    sendUsendteForespørsler()
+                }
 
-            if (!kanSende) {
-                loggFeilMedStilling(feilmelding, forespørselOmDelingAvCvDto.stillingsId)
-                ctx.status(statuskode).json(feilmelding)
-            } else {
-                repository.lagreUsendteForespørsler(
-                    aktørIder = forespørselOmDelingAvCvDto.aktorIder,
-                    stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
-                    svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
-                    deltAvNavIdent = ctx.hentNavIdent(),
-                    navKontor = forespørselOmDelingAvCvDto.navKontor,
-                    callId = ctx.hentCallId()
-                )
-
-                ctx.json(hentForespørslerGruppertPåAktørId(forespørselOmDelingAvCvDto.stillingsId))
-                ctx.status(201)
-                sendUsendteForespørsler()
+                is Feil -> {
+                    loggFeilMedStilling(
+                        resultat.feilmelding,
+                        forespørselOmDelingAvCvDto.stillingsId,
+                        resultat.loggLevel
+                    )
+                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
+                }
             }
         }
     }
@@ -91,16 +95,14 @@ class ForespørselController(
     private fun kanSendeForespørsel(
         stilling: Stilling?,
         minstEnKandidatHarFåttForespørselFør: () -> Boolean
-    ): Triple<Boolean, Int, String> =
+    ): Resultat =
         if (stilling == null) {
-            Triple(false, 404, "Stillingen eksisterer ikke")
+            Feil("Stillingen eksisterer ikke", 404, WARN)
         } else if (stilling.kanIkkeDelesMedKandidaten) {
-            Triple(false, 400, "Stillingen kan ikke deles med brukeren pga. stillingskategori.")
+            Feil("Stillingen kan ikke deles med brukeren pga. stillingskategori.", 400, WARN)
         } else if (minstEnKandidatHarFåttForespørselFør()) {
-            Triple(false, 409, "Minst én kandidat har fått forespørselen fra før.")
-        } else {
-            Triple(true, 200, "")
-        }
+            Feil("Minst én kandidat har fått forespørselen fra før.", 409, INFO)
+        } else Ok
 
     val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
         val inboundDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
@@ -111,46 +113,56 @@ class ForespørselController(
             inboundDto.stillingsId.toUUID()
         )
 
-        val (kanSendeNyForespørsel, feilmelding) = kanResendeForespørsel(kandidatensSisteForespørselForStillingen)
+        when (val resultat = kanResendeForespørsel(kandidatensSisteForespørselForStillingen)) {
+            is Ok -> {
+                repository.lagreUsendteForespørsler(
+                    aktørIder = listOf(aktørId),
+                    stillingsId = inboundDto.stillingsId.toUUID(),
+                    svarfrist = inboundDto.svarfrist.toLocalDateTime(),
+                    deltAvNavIdent = ctx.hentNavIdent(),
+                    navKontor = inboundDto.navKontor,
+                    callId = ctx.hentCallId(),
+                )
+                ctx.json(hentForespørslerGruppertPåAktørId(inboundDto.stillingsId))
+                ctx.status(201)
+                sendUsendteForespørsler()
+            }
 
-        if (!kanSendeNyForespørsel) {
-            loggFeilMedStilling(feilmelding, inboundDto.stillingsId)
-            ctx.status(400).json(feilmelding)
-        } else {
-            repository.lagreUsendteForespørsler(
-                aktørIder = listOf(aktørId),
-                stillingsId = inboundDto.stillingsId.toUUID(),
-                svarfrist = inboundDto.svarfrist.toLocalDateTime(),
-                deltAvNavIdent = ctx.hentNavIdent(),
-                navKontor = inboundDto.navKontor,
-                callId = ctx.hentCallId(),
-            )
-
-            ctx.json(hentForespørslerGruppertPåAktørId(inboundDto.stillingsId))
-            ctx.status(201)
-
-            sendUsendteForespørsler()
+            is Feil -> {
+                loggFeilMedStilling(resultat.feilmelding, inboundDto.stillingsId, WARN)
+                ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
+            }
         }
     }
 
-    private fun kanResendeForespørsel(sisteForespørselForKandidatOgStilling: Forespørsel?): Pair<Boolean, String> =
+    private fun kanResendeForespørsel(sisteForespørselForKandidatOgStilling: Forespørsel?): Resultat =
         if (sisteForespørselForKandidatOgStilling == null) {
-            Pair(false, "Kan ikke resende forespørsel fordi kandidaten ikke har fått forespørsel før")
+            Feil("Kan ikke resende forespørsel fordi kandidaten ikke har fått forespørsel før", 400, WARN)
         } else if (sisteForespørselForKandidatOgStilling.harSvartJa()) {
-            Pair(false, "Kan ikke resende forespørsel fordi kandidaten allerede har svart ja")
+            Feil("Kan ikke resende forespørsel fordi kandidaten allerede har svart ja", 400, WARN)
         } else if (sisteForespørselForKandidatOgStilling.venterPåSvar()) {
-            Pair(false, "Kan ikke resende forespørsel fordi kandidaten ennå ikke har besvart en aktiv forespørsel")
-        } else {
-            Pair(true, "")
-        }
+            Feil(
+                "Kan ikke resende forespørsel fordi kandidaten ennå ikke har besvart en aktiv forespørsel",
+                400,
+                WARN
+            )
+        } else Ok
 
     private fun hentForespørslerGruppertPåAktørId(stillingsId: String) =
         repository.hentForespørsler(stillingsId.toUUID())
             .map { it.tilOutboundDto() }
             .groupBy { it.aktørId }
 
-    private fun loggFeilMedStilling(feilmelding: String, stillingsId: String) =
-        log.warn("$feilmelding: Stillingsid: $stillingsId")
+    private fun loggFeilMedStilling(feilmelding: String, stillingsId: String, loggLevel: Level) {
+        val msg = feilmelding.dropLastWhile { it == '.' || it == ':' } + ". StillingsId: $stillingsId"
+        when (loggLevel) {
+            ERROR -> log.error(msg)
+            WARN -> log.warn(msg)
+            INFO -> log.info(msg)
+            DEBUG -> log.debug(msg)
+            TRACE -> log.trace(msg)
+        }
+    }
 }
 
 data class ForespørselInboundDto(
@@ -182,3 +194,7 @@ data class ForespørselOutboundDto(
 )
 
 typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutboundDto>>
+
+private sealed interface Resultat
+private object Ok : Resultat
+private data class Feil(val feilmelding: String, val httpResponsStatusKode: Int, val loggLevel: Level) : Resultat
