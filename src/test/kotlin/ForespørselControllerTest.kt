@@ -125,7 +125,7 @@ class ForespørselControllerTest {
             }
 
             assertThat(aktør1.getSoknadsfrist()).isEqualTo("Snarest")
-            assertThat(aktør1.getStillingstittel()).isEqualTo("En formidling")
+            assertThat(aktør1.getStillingstittel()).isEqualTo("Taksidermist")
             assertThat(aktør1.getStillingsId()).isEqualTo(inboundDto.stillingsId)
             assertThat(aktør1.getSvarfrist()).isEqualTo(inboundDto.svarfrist.toInstant())
         }
@@ -750,7 +750,8 @@ class ForespørselControllerTest {
                                           "email": "",
                                           "phone": "000"
                                         }
-                                      ]
+                                      ],
+						              "styrkEllerTittel": "Taksidermist"
                                     },
                                     "stillingsinfo": $stillingsinfo
                                   }
