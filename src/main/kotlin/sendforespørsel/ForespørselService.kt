@@ -17,6 +17,8 @@ class ForespørselService(
     private val hentStilling: (UUID) -> Stilling?,
 ) {
     fun sendUsendte() {
+        // TODO: Her burde vi heller legge melding på rapid uten tittel, kun med stillingsId, og deretter ha en rapid
+        // lytter som henter beriket stilling og sender melding til aktivitetsplanen. Da slipper vi kall mot ElasticSearch
         val usendteForespørsler = repository.hentUsendteForespørsler()
         if (usendteForespørsler.isNotEmpty()) {
             log.info("Fant ${usendteForespørsler.size} usendte forespørsler")
