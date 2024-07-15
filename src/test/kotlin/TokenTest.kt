@@ -12,7 +12,7 @@ import org.junit.jupiter.api.TestInstance
 import setup.medVeilederToken
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TokenUtilsTest {
+class TokenTest {
 
     private val lokalApp = startLokalApp()
     private val mockOAuth2Server = MockOAuth2Server()

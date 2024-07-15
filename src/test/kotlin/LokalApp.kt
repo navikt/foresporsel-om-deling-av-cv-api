@@ -1,5 +1,4 @@
 import auth.TokenHandler
-import auth.azureConfig
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import auth.obo.SimpleTokenValidationContextHolder
@@ -77,7 +76,7 @@ fun startLokalApp(
         svarService,
         testRapid,
         tokenHandler,
-        KandidatsokApiKlient(OnBehalfOfTokenClient(azureConfig, TokenHandler(SimpleTokenValidationContextHolder(), issuerProperties)))
+        KandidatsokApiKlient(OnBehalfOfTokenClient(testAzureConfig, TokenHandler(SimpleTokenValidationContextHolder(), issuerProperties)))
     )
 
     app.start()
