@@ -50,11 +50,11 @@ class App(
         routes {
             get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
             get("/internal/isReady") { it.status(200) }
-            get("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.hentForespørslerForKandidat)
-            get("/foresporsler/{$stillingsIdParamName}", forespørselController.hentForespørsler)
-            post("/foresporsler", forespørselController.sendForespørselOmDelingAvCv)
-            post("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.resendForespørselOmDelingAvCv)
-            get("/statistikk", svarstatistikkController.hentSvarstatistikk)
+            get("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.hentForespørslerForKandidat) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
+            get("/foresporsler/{$stillingsIdParamName}", forespørselController.hentForespørsler) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
+            post("/foresporsler", forespørselController.sendForespørselOmDelingAvCv) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
+            post("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.resendForespørselOmDelingAvCv) // Kun arbeidsgiverrettet/utvikler
+            get("/statistikk", svarstatistikkController.hentSvarstatistikk) // På forsiden, tilgjengelig for alle
         }
     }
 

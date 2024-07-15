@@ -28,13 +28,12 @@ spec:
           - NAVident
         groups:
           - id: {{ ad_gruppe_modia_generell_tilgang }}
-          - id: {{ ad_gruppe_modia_oppfølging }}
+          - id: {{ ad_gruppe_jobbsokerrettet }}
+          - id: {{ ad_gruppe_arbeidsgiverrettet }}
+          - id: {{ ad_gruppe_utvikler }}
   accessPolicy:
     inbound:
       rules:
-        - application: rekrutteringsbistand-container
-          namespace: toi
-          cluster: {{ gcp-cluster }}
         - application: rekrutteringsbistand
           namespace: toi
           cluster: {{ gcp-cluster }}

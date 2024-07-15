@@ -8,5 +8,7 @@
     "fss-cluster": "prod-fss",
     "kafka_consumer_group_id": "foresporsel-om-deling-av-cv-api-rapidconsumer-1",
     "ad_gruppe_modia_generell_tilgang": "ea34edea-1e80-4759-a1d2-fbe696cf1709",
-    "ad_gruppe_modia_oppfølging": "b9bc6348-d25c-450d-85c2-044c0955fbe3"
+    "ad_gruppe_jobbsokerrettet": "66b70a6a-3d05-47b3-8b5a-47c681dcd1d5",
+    "ad_gruppe_arbeidsgiverrettet": "46c8e3b2-0469-4740-983f-d8cd2b6e4fee",
+    "ad_gruppe_utvikler": "41080368-439f-4128-858a-afbef876431e"
 }
