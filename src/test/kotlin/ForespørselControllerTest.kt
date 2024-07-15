@@ -5,6 +5,8 @@ import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import io.javalin.http.ForbiddenResponse
+import io.javalin.http.UnauthorizedResponse
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.assertj.core.api.Assertions.assertThat
@@ -415,6 +417,42 @@ class ForespørselControllerTest {
                 gjeldendeForespørselForStillingen.tilOutboundDto(),
                 forespørselForEnAnnenStilling.tilOutboundDto()
             )
+        }
+    }
+
+    @Test
+    fun `Kall til GET-endpunkt for kandidat skal feile med 403 dersom navIdent ikke har tilgang til aktørid`() {
+        val database = TestDatabase()
+
+        val mockVerifiserKandidatTilgang: (String, String) -> Unit = { _, _ ->
+            throw ForbiddenResponse("Access Denied")
+        }
+
+        startLokalApp(database, verifiserKandidatTilgang = mockVerifiserKandidatTilgang).use {
+            val navIdent = "X12345"
+            val callId = UUID.randomUUID()
+            val aktørId = "123"
+
+            val stillingUuid = UUID.randomUUID()
+            val gammelForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val gjeldendeForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
+
+            database.lagreBatch(listOf(gammelForespørselForStillingen))
+
+            database.lagreBatch(
+                listOf(
+                    gjeldendeForespørselForStillingen,
+                    forespørselForEnAnnenStilling
+                )
+            )
+
+            val (_, response, _) = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medVeilederToken(mockOAuth2Server, navIdent)
+                .header(foretrukkenCallIdHeaderKey, callId.toString())
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(403)
         }
     }
 
