@@ -49,3 +49,9 @@ spec:
       value: {{ kafka_consumer_group_id }}
     - name: KAFKA_RESET_POLICY
       value: "latest"
+    - name: REKRUTTERINGSBISTAND_JOBBSOKERRETTET
+      value: {{ad_gruppe_jobbsokerrettet}}
+    - name: REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET
+      value: {{ad_gruppe_arbeidsgiverrettet}}
+    - name: REKRUTTERINGSBISTAND_UTVIKLER
+      value: {{ad_gruppe_utvikler}}

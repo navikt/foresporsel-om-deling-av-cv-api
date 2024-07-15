@@ -8,6 +8,7 @@ import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
 import io.javalin.http.Context
 import io.javalin.http.UnauthorizedResponse
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
+import utils.Miljø.*
 import utils.log
 import java.time.LocalDateTime
 
@@ -18,6 +19,7 @@ class TokenHandler(
     private val TOKEN_ISSUER_AZUREAD = "azuread"
     private val endepunktUtenTokenvalidering = listOf("/internal/isAlive", "/internal/isReady")
     private val navIdentClaimKey = "NAVident"
+    private val rolleClaimKey = "groups"
     private val navIdentAttributeKey = "navIdent"
 
     private var cachedHandler: CachedHandler? = null
@@ -66,6 +68,15 @@ class TokenHandler(
         }.first()
     }
 
+    private fun hentRoller(validerteTokens: TokenValidationContext): List<Rolle> {
+        return  issuerProperties.mapNotNull { issuerProperty ->
+            validerteTokens.getClaims(issuerProperty.cookieName)?.getStringClaim(rolleClaimKey)
+        }.
+        mapNotNull { group ->
+            Rolle.fromEnvValue(group)
+        }
+    }
+
     private fun hentTokenValidationHandler(): JwtTokenValidationHandler {
         return if (cachedHandler != null && cachedHandler!!.expires.isAfter(LocalDateTime.now())) {
             cachedHandler!!.handler
@@ -96,4 +107,31 @@ class TokenHandler(
         val handler: JwtTokenValidationHandler,
         var expires: LocalDateTime,
     )
+
+    enum class Rolle {
+        JOBBSØKERRETTET,
+        ARBEIDSGIVERRETTET,
+        UTVIKLER;
+        companion object {
+            val jobbsokerrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
+                ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_JOBBSOKERRETTET' er ikke satt")
+
+            val arbeidsgiverrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET")
+                ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET' er ikke satt")
+
+            val utviklerGruppe: String = System.getenv("REKRUTTERINGSBISTAND_UTVIKLER")
+                ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_UTVIKLER' er ikke satt")
+
+            fun fromEnvValue(value: String): Rolle? {
+                return when (value) {
+                    jobbsokerrettetGruppe -> JOBBSØKERRETTET
+                    arbeidsgiverrettetGruppe -> ARBEIDSGIVERRETTET
+                    utviklerGruppe -> UTVIKLER
+                    else -> null
+                }
+            }
+        }
+
+        fun asString(): String = name.lowercase()
+    }
 }
