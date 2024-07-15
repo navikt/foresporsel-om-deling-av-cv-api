@@ -1,7 +1,6 @@
 package setup
 
 import com.github.kittinunf.fuel.core.Request
-import navIdentClaimKey
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 fun Request.medVeilederToken(mockOAuth2Server: MockOAuth2Server, navIdent: String = "X12345"): Request {
@@ -9,9 +8,10 @@ fun Request.medVeilederToken(mockOAuth2Server: MockOAuth2Server, navIdent: Strin
 }
 
 fun hentToken(navIdent: String, mockOAuth2Server: MockOAuth2Server): String {
+
     return mockOAuth2Server.issueToken(
         claims = mapOf(
-            navIdentClaimKey to navIdent
+            "NAVident" to navIdent
         )
     ).serialize()
 }

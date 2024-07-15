@@ -1,3 +1,4 @@
+import auth.TokenHandler
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
 import org.slf4j.event.Level
@@ -15,9 +16,10 @@ const val aktorIdParamName = "aktørId"
 
 class ForespørselController(
     private val repository: Repository,
-    sendUsendteForespørsler: () -> Unit,
-    hentStilling: (UUID) -> Stilling?,
-    verifiserKandidatTilgang: (String, String) -> Unit
+    private val tokenHandler: TokenHandler,
+    private val sendUsendteForespørsler: () -> Unit,
+    private val hentStilling: (UUID) -> Stilling?,
+    private val verifiserKandidatTilgang: (String, String) -> Unit,
 ) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -38,7 +40,7 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
-            verifiserKandidatTilgang(ctx.hentNavIdent(), aktørId)
+            verifiserKandidatTilgang(tokenHandler.hentNavIdent(ctx), aktørId)
 
             val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
@@ -74,7 +76,7 @@ class ForespørselController(
                         aktørIder = forespørselOmDelingAvCvDto.aktorIder,
                         stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
                         svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
-                        deltAvNavIdent = ctx.hentNavIdent(),
+                        deltAvNavIdent = tokenHandler.hentNavIdent(ctx),
                         navKontor = forespørselOmDelingAvCvDto.navKontor,
                         callId = ctx.hentCallId()
                     )
@@ -122,7 +124,7 @@ class ForespørselController(
                     aktørIder = listOf(aktørId),
                     stillingsId = inboundDto.stillingsId.toUUID(),
                     svarfrist = inboundDto.svarfrist.toLocalDateTime(),
-                    deltAvNavIdent = ctx.hentNavIdent(),
+                    deltAvNavIdent = tokenHandler.hentNavIdent(ctx),
                     navKontor = inboundDto.navKontor,
                     callId = ctx.hentCallId(),
                 )

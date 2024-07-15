@@ -1,4 +1,7 @@
 import auth.*
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
+import auth.obo.SimpleTokenValidationContextHolder
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
@@ -18,7 +21,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import stilling.StillingKlient
-import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import utils.Miljø
 import utils.log
 import utils.objectMapper
@@ -34,7 +36,7 @@ class App(
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
     private val rapidsConnection: RapidsConnection,
-    private val tokenValidationContextHolder: TokenValidationContextHolder,
+    private val tokenHandler: TokenHandler,
     private val kandidatsokApiKlient: KandidatsokApiKlient
 ) : Closeable {
 
@@ -46,7 +48,7 @@ class App(
         config.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
     }.apply {
-        before(validerToken(issuerProperties))
+        before(tokenHandler::validerToken)
         before(settCallId)
         routes {
             get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
@@ -86,9 +88,9 @@ fun main() {
         val database = Database()
         val repository = Repository(database.dataSource)
         val tokenValidationContextHolder = SimpleTokenValidationContextHolder()
-        val tokenService = TokenService(tokenValidationContextHolder)
+        val tokenHandler = TokenHandler(tokenValidationContextHolder, listOf(azureIssuerProperties))
         val accessTokenClient = AccessTokenClient(azureConfig)
-        val oboTokenClient = OnBehalfOfTokenClient(azureConfig.azureClientId, azureConfig.azureClientSecret, azureConfig.tokenEndpoint, tokenService)
+        val oboTokenClient = OnBehalfOfTokenClient(azureConfig, tokenHandler)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
         val kandidatsokApiKlient = KandidatsokApiKlient(oboTokenClient)
 
@@ -101,7 +103,7 @@ fun main() {
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
         val forespørselController =
-            ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, kandidatsokApiKlient::verifiserKandidatTilgang)
+            ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, kandidatsokApiKlient::verifiserKandidatTilgang)
         val svarstatistikkController = SvarstatistikkController(repository)
 
         val env = System.getenv()
@@ -126,7 +128,7 @@ fun main() {
             usendtScheduler,
             svarService,
             rapidsConnection,
-            tokenValidationContextHolder,
+            tokenHandler,
             kandidatsokApiKlient
         ).start()
 

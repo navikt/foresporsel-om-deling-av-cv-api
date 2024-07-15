@@ -1,3 +1,8 @@
+import auth.TokenHandler
+import auth.azureConfig
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
+import auth.obo.SimpleTokenValidationContextHolder
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
 import kandidatevent.RegistrertFåttJobbenLytter
@@ -33,6 +38,7 @@ fun startLokalApp(
     repository: Repository = Repository(database.dataSource),
     avroProducer: Producer<String, ForesporselOmDelingAvCv> = mockProducerAvro,
     hentStilling: (UUID) -> Stilling? = hentStillingMock,
+    verifiserKandidatTilgang: (String, String) -> Unit = verifiserKandidatTilgangMock,
     forespørselService: ForespørselService = ForespørselService(
         avroProducer,
         repository,
@@ -44,7 +50,9 @@ fun startLokalApp(
     log: Logger = LoggerFactory.getLogger("LokalApp")
 ): App {
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-    val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, hentStilling)
+    val tokenHandler = TokenHandler(SimpleTokenValidationContextHolder(), listOf(IssuerProperties(URL("http://localhost:18300/default/.well-known/openid-configuration"), listOf("default"), "azuread")))
+
+    val forespørselController = ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, hentStilling, verifiserKandidatTilgang)
     val svarstatistikkController = SvarstatistikkController(repository)
 
     val issuerProperties = listOf(
@@ -67,7 +75,9 @@ fun startLokalApp(
         issuerProperties,
         usendtScheduler,
         svarService,
-        testRapid
+        testRapid,
+        tokenHandler,
+        KandidatsokApiKlient(OnBehalfOfTokenClient(azureConfig, TokenHandler(SimpleTokenValidationContextHolder(), issuerProperties)))
     )
 
     app.start()

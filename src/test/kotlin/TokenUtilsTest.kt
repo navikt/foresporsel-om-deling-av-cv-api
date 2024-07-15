@@ -1,4 +1,5 @@
-import auth.clearTokenValidationHandlerCache
+import auth.TokenHandler
+import auth.obo.SimpleTokenValidationContextHolder
 import com.github.kittinunf.fuel.Fuel
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -15,6 +16,7 @@ class TokenUtilsTest {
 
     private val lokalApp = startLokalApp()
     private val mockOAuth2Server = MockOAuth2Server()
+    private val tokenHandler = TokenHandler(SimpleTokenValidationContextHolder(), emptyList())
 
     @BeforeAll
     fun init() {
@@ -23,7 +25,7 @@ class TokenUtilsTest {
 
     @BeforeEach
     fun setup() {
-        clearTokenValidationHandlerCache()
+        tokenHandler.clearCache()
     }
 
     @AfterAll

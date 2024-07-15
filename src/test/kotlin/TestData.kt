@@ -24,6 +24,11 @@ val enNavIdent = "A100001"
 
 val hentStillingMock: (UUID) -> Stilling? = { enStilling() }
 
+val verifiserKandidatTilgangMock: (String, String) -> Unit = { navIdent, aktorId ->
+    println("Verifiserer kandidat tilgang for navIdent: $navIdent og aktorId: $aktorId")
+}
+
+
 fun enForespørsel(
     aktørId: String = "aktørId",
     deltStatus: DeltStatus = DeltStatus.SENDT,

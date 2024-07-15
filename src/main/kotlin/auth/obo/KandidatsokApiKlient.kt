@@ -1,4 +1,4 @@
-package auth
+package auth.obo
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.Headers

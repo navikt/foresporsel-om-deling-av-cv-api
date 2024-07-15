@@ -1,4 +1,4 @@
-package auth
+package auth.obo
 
 import no.nav.security.token.support.core.context.TokenValidationContext
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
