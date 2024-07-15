@@ -6,7 +6,7 @@ import com.github.kittinunf.result.Result
 import utils.Miljø
 import java.time.LocalDateTime
 
-class AccessTokenClient(private val config: AzureConfig, private val tokenService: TokenService) {
+class AccessTokenClient(private val config: AzureConfig) {
     private lateinit var cachedAccessToken: CachedAccessToken
 
     fun getAccessToken(): String {
@@ -14,11 +14,6 @@ class AccessTokenClient(private val config: AzureConfig, private val tokenServic
             cachedAccessToken = nyttToken()
         }
         return cachedAccessToken.accessToken
-    }
-
-    fun getOboToken(motScope: String, navIdent: String): String {
-        val azureADKlient = AzureADKlient(config.azureClientId, config.azureClientSecret, config.tokenEndpoint, tokenService)
-        return azureADKlient.onBehalfOfToken(motScope, navIdent)
     }
 
     private fun nyttToken(): CachedAccessToken {

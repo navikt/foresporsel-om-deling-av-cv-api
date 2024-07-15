@@ -5,7 +5,7 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
 import utils.log
 
-class AzureADKlient(
+class OnBehalfOfTokenClient(
     private val clientId: String,
     private val clientSecret: String,
     private val tokenEndpoint: String,
@@ -19,7 +19,7 @@ class AzureADKlient(
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
-    fun onBehalfOfToken(motScope: String, navIdent: String): String {
+    fun getOboToken(motScope: String, navIdent: String): String {
         val cachedToken = azureCache.hentOBOToken(motScope, navIdent)
         if (cachedToken != null) return cachedToken
 

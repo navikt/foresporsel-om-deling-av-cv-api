@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import utils.Miljø
 import utils.Miljø.*
 
-class KandidatsokApiKlient(private val accessTokenClient: AccessTokenClient) {
+class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenClient) {
 
     private val logger = LoggerFactory.getLogger(KandidatsokApiKlient::class.java)
 
@@ -31,7 +31,7 @@ class KandidatsokApiKlient(private val accessTokenClient: AccessTokenClient) {
     fun verifiserKandidatTilgang(navIdent: String,  aktorid: String) {
         val url = "$kandidatsokUrl/api/brukertilgang"
         val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
-        val token = accessTokenClient.getOboToken(kandidatsokScope, navIdent)
+        val token = onBehalfOfTokenClient.getOboToken(kandidatsokScope, navIdent)
 
         try {
             val (_, response, result) = Fuel.post(url)

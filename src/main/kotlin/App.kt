@@ -87,9 +87,10 @@ fun main() {
         val repository = Repository(database.dataSource)
         val tokenValidationContextHolder = SimpleTokenValidationContextHolder()
         val tokenService = TokenService(tokenValidationContextHolder)
-        val accessTokenClient = AccessTokenClient(azureConfig, tokenService)
+        val accessTokenClient = AccessTokenClient(azureConfig)
+        val oboTokenClient = OnBehalfOfTokenClient(azureConfig.azureClientId, azureConfig.azureClientSecret, azureConfig.tokenEndpoint, tokenService)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
-        val kandidatsokApiKlient = KandidatsokApiKlient(accessTokenClient)
+        val kandidatsokApiKlient = KandidatsokApiKlient(oboTokenClient)
 
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(avroProducerConfig)
         val forespørselService = ForespørselService(
