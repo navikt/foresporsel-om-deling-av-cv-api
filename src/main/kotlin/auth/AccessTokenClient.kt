@@ -6,17 +6,21 @@ import com.github.kittinunf.result.Result
 import utils.Miljø
 import java.time.LocalDateTime
 
-class AccessTokenClient(private val config: AzureConfig) {
-    private lateinit var cachedAccessToken: CachedAccessToken
+class AccessTokenClient(private val config: AzureConfig, private val tokenCache: TokenCache) {
+    private val cacheKey = "access_token"
 
     fun getAccessToken(): String {
-        if (!this::cachedAccessToken.isInitialized || cachedAccessToken.erUtgått()) {
-            cachedAccessToken = nyttToken()
+        val cachedToken = tokenCache.getToken(cacheKey)
+        if (cachedToken != null) {
+            return cachedToken
         }
-        return cachedAccessToken.accessToken
+
+        val newToken = fetchNewToken()
+        tokenCache.putToken(cacheKey, newToken.accessToken, newToken.expiresIn.toLong())
+        return newToken.accessToken
     }
 
-    private fun nyttToken(): CachedAccessToken {
+    private fun fetchNewToken(): AccessToken {
         val scope = when (Miljø.current) {
             Miljø.DEV_FSS -> "dev-gcp"
             Miljø.PROD_FSS -> "prod-gcp"
@@ -34,17 +38,9 @@ class AccessTokenClient(private val config: AzureConfig) {
             .responseObject<AccessToken>().third
 
         return when (result) {
-            is Result.Success -> result.get().somCachedToken()
+            is Result.Success -> result.get()
             is Result.Failure -> throw RuntimeException("Noe feil skjedde ved henting av access_token: ", result.getException())
         }
-    }
-
-    private class CachedAccessToken(
-        val accessToken: String,
-        private val utgår: LocalDateTime,
-    ) {
-        private val utløpsmarginSekunder = 30L
-        fun erUtgått() = utgår.minusSeconds(utløpsmarginSekunder).isBefore(LocalDateTime.now())
     }
 
     private data class AccessToken(
@@ -53,6 +49,7 @@ class AccessTokenClient(private val config: AzureConfig) {
         val ext_expires_in: Int,
         val access_token: String
     ) {
-        fun somCachedToken() = CachedAccessToken(access_token, LocalDateTime.now().plusSeconds(expires_in.toLong()))
+        val accessToken: String get() = access_token
+        val expiresIn: Int get() = expires_in
     }
 }

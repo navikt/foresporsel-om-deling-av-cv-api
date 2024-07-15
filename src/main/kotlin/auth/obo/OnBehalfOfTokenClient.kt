@@ -1,14 +1,14 @@
 package auth.obo
 
 import auth.AzureConfig
+import auth.TokenCache
 import auth.TokenHandler
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
 import utils.log
 
-class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHandler: TokenHandler) {
-    private val azureCache = AzureCache()
+class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHandler: TokenHandler, private val tokenCache: TokenCache) {
     private val objectMapper = jacksonObjectMapper()
 
     companion object {
@@ -17,9 +17,18 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
     }
 
     fun getOboToken(motScope: String, navIdent: String): String {
-        val cachedToken = azureCache.hentOBOToken(motScope, navIdent)
-        if (cachedToken != null) return cachedToken
+        val cacheKey = "$motScope-$navIdent"
+        val cachedToken = tokenCache.getToken(cacheKey)
+        if (cachedToken != null) {
+            return cachedToken
+        }
 
+        val newToken = fetchNewOboToken(motScope)
+        tokenCache.putToken(cacheKey, newToken.access_token, newToken.expires_in.toLong())
+        return newToken.access_token
+    }
+
+    private fun fetchNewOboToken(motScope: String): TokenResponse {
         val innkommendeToken = tokenHandler.hentTokenSomString()
 
         val formData = listOf(
@@ -39,14 +48,7 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
         return when (result) {
             is Result.Success -> {
                 val responseBody = response.body().asString("application/json")
-                try {
-                    val tokenResponse = objectMapper.readValue(responseBody, TokenResponse::class.java)
-                    azureCache.lagreOBOToken(motScope, navIdent, tokenResponse.access_token)
-                    tokenResponse.access_token
-                } catch (e: Exception) {
-                    log.error("Feil ved parsing av JSON-respons: ", e)
-                    throw RuntimeException("Feil ved parsing av JSON-respons", e)
-                }
+                objectMapper.readValue(responseBody, TokenResponse::class.java)
             }
             is Result.Failure -> {
                 log.error("Feil ved henting av OBO-token: ", result.getException())
@@ -59,18 +61,4 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
         val access_token: String,
         val expires_in: Int
     )
-}
-
-class AzureCache {
-    private val cache = mutableMapOf<String, String>()
-
-    fun hentOBOToken(motScope: String, navIdent: String): String? {
-        val key = "$motScope-$navIdent"
-        return cache[key]
-    }
-
-    fun lagreOBOToken(motScope: String, navIdent: String, token: String) {
-        val key = "$motScope-$navIdent"
-        cache[key] = token
-    }
 }

@@ -1,3 +1,4 @@
+import auth.TokenCache
 import auth.TokenHandler
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
@@ -48,6 +49,7 @@ fun startLokalApp(
     jsonProducer: Producer<String, String> = mockProducerJson,
     log: Logger = LoggerFactory.getLogger("LokalApp")
 ): App {
+    val tokenCache = TokenCache(30L)
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
     val tokenHandler = TokenHandler(SimpleTokenValidationContextHolder(), listOf(IssuerProperties(URL("http://localhost:18300/default/.well-known/openid-configuration"), listOf("default"), "azuread")))
 
@@ -76,7 +78,7 @@ fun startLokalApp(
         svarService,
         testRapid,
         tokenHandler,
-        KandidatsokApiKlient(OnBehalfOfTokenClient(testAzureConfig, TokenHandler(SimpleTokenValidationContextHolder(), issuerProperties)))
+        KandidatsokApiKlient(OnBehalfOfTokenClient(testAzureConfig, TokenHandler(SimpleTokenValidationContextHolder(), issuerProperties), tokenCache))
     )
 
     app.start()
