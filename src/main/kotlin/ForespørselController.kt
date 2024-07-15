@@ -16,7 +16,8 @@ const val aktorIdParamName = "aktørId"
 class ForespørselController(
     private val repository: Repository,
     sendUsendteForespørsler: () -> Unit,
-    hentStilling: (UUID) -> Stilling?
+    hentStilling: (UUID) -> Stilling?,
+    verifiserKandidatTilgang: (String, String) -> Unit
 ) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -37,6 +38,8 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
+            verifiserKandidatTilgang(ctx.hentNavIdent(), aktørId)
+
             val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
 

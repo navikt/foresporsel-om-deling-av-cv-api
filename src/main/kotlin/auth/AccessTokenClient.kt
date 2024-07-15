@@ -1,16 +1,13 @@
-package stilling
+package auth
 
-import auth.AzureConfig
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.responseObject
-import java.time.LocalDateTime
 import com.github.kittinunf.result.Result
 import utils.Miljø
-import utils.Miljø.*
+import java.time.LocalDateTime
 
-
-class AccessTokenClient(private val config: AzureConfig) {
-    private lateinit var cachedAccessToken : CachedAccessToken
+class AccessTokenClient(private val config: AzureConfig, private val tokenService: TokenService) {
+    private lateinit var cachedAccessToken: CachedAccessToken
 
     fun getAccessToken(): String {
         if (!this::cachedAccessToken.isInitialized || cachedAccessToken.erUtgått()) {
@@ -19,11 +16,16 @@ class AccessTokenClient(private val config: AzureConfig) {
         return cachedAccessToken.accessToken
     }
 
+    fun getOboToken(motScope: String, navIdent: String): String {
+        val azureADKlient = AzureADKlient(config.azureClientId, config.azureClientSecret, config.tokenEndpoint, tokenService)
+        return azureADKlient.onBehalfOfToken(motScope, navIdent)
+    }
+
     private fun nyttToken(): CachedAccessToken {
-        val scope = when(Miljø.current) {
-            DEV_FSS -> "dev-gcp"
-            PROD_FSS -> "prod-gcp"
-            LOKAL -> "lokal"
+        val scope = when (Miljø.current) {
+            Miljø.DEV_FSS -> "dev-gcp"
+            Miljø.PROD_FSS -> "prod-gcp"
+            Miljø.LOKAL -> "lokal"
         }.let { cluster -> "api://${cluster}.toi.rekrutteringsbistand-stillingssok-proxy/.default" }
 
         val formData = listOf(
@@ -33,12 +35,11 @@ class AccessTokenClient(private val config: AzureConfig) {
             "scope" to scope
         )
 
-        val result = Fuel
-            .post(config.tokenEndpoint, formData)
+        val result = Fuel.post(config.tokenEndpoint, formData)
             .responseObject<AccessToken>().third
 
-        when (result) {
-            is Result.Success -> return result.get().somCachedToken()
+        return when (result) {
+            is Result.Success -> result.get().somCachedToken()
             is Result.Failure -> throw RuntimeException("Noe feil skjedde ved henting av access_token: ", result.getException())
         }
     }

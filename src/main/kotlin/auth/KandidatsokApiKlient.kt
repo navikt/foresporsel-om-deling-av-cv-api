@@ -1,32 +1,42 @@
-package tilgang
+package auth
 
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.Headers
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.result.Result
+import io.javalin.http.ContentType
 import io.javalin.http.HttpResponseException
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 import utils.Miljø
 import utils.Miljø.*
 
-class KandidatsokApiKlient(private val accessToken: () -> String) { // TODO: Bytt ut med obo token
+class KandidatsokApiKlient(private val accessTokenClient: AccessTokenClient) {
 
     private val logger = LoggerFactory.getLogger(KandidatsokApiKlient::class.java)
 
     private val kandidatsokUrl = when (Miljø.current) {
         DEV_FSS -> "https://rekrutteringsbistand-kandidatsok-api.intern.dev.nav.no"
         PROD_FSS -> "https://rekrutteringsbistand-kandidatsok-api.intern.nav.no"
-        LOKAL -> "http://localhost:9090" //TODO: Sett opp wiremock for å teste lokalt
+        LOKAL -> "http://localhost:9090"
     }
 
-    fun verifiserTilgang(fodselsnummer: String?, aktorid: String?, kandidatnr: String?) {
+    private val kandidatsokScope = when (Miljø.current) {
+        PROD_FSS -> "api://prod-gcp.toi.rekrutteringsbistand-kandidatsok-api/.default"
+        DEV_FSS -> "api://dev-gcp.toi.rekrutteringsbistand-kandidatsok-api/.default"
+        LOKAL -> ""
+    }
+
+    fun verifiserKandidatTilgang(navIdent: String,  aktorid: String) {
         val url = "$kandidatsokUrl/api/brukertilgang"
-        val body = BrukertilgangRequestDto(fodselsnummer = fodselsnummer, aktorid = aktorid, kandidatnr = kandidatnr)
+        val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
+        val token = accessTokenClient.getOboToken(kandidatsokScope, navIdent)
 
         try {
-            val (request, response, result) = Fuel.post(url)
-                .authentication().bearer(accessToken())
+            val (_, response, result) = Fuel.post(url)
+                .header(Headers.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
+                .authentication().bearer(token)
                 .jsonBody(body.toJson())
                 .response()
 

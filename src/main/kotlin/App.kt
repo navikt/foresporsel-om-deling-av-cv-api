@@ -1,5 +1,4 @@
-import auth.azureConfig
-import auth.azureIssuerProperties
+import auth.*
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
@@ -18,8 +17,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
-import stilling.AccessTokenClient
 import stilling.StillingKlient
+import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import utils.Miljø
 import utils.log
 import utils.objectMapper
@@ -34,7 +33,9 @@ class App(
     private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
-    private val rapidsConnection: RapidsConnection
+    private val rapidsConnection: RapidsConnection,
+    private val tokenValidationContextHolder: TokenValidationContextHolder,
+    private val kandidatsokApiKlient: KandidatsokApiKlient
 ) : Closeable {
 
     init {
@@ -84,8 +85,11 @@ fun main() {
 
         val database = Database()
         val repository = Repository(database.dataSource)
-        val accessTokenClient = AccessTokenClient(azureConfig)
+        val tokenValidationContextHolder = SimpleTokenValidationContextHolder()
+        val tokenService = TokenService(tokenValidationContextHolder)
+        val accessTokenClient = AccessTokenClient(azureConfig, tokenService)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
+        val kandidatsokApiKlient = KandidatsokApiKlient(accessTokenClient)
 
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(avroProducerConfig)
         val forespørselService = ForespørselService(
@@ -96,7 +100,7 @@ fun main() {
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
         val forespørselController =
-            ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling)
+            ForespørselController(repository, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, kandidatsokApiKlient::verifiserKandidatTilgang)
         val svarstatistikkController = SvarstatistikkController(repository)
 
         val env = System.getenv()
@@ -120,7 +124,9 @@ fun main() {
             listOf(azureIssuerProperties),
             usendtScheduler,
             svarService,
-            rapidsConnection
+            rapidsConnection,
+            tokenValidationContextHolder,
+            kandidatsokApiKlient
         ).start()
 
     } catch (exception: Exception) {
