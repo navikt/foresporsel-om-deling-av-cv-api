@@ -6,7 +6,7 @@ import no.nav.security.mock.oauth2.MockOAuth2Server
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import setup.TestDatabase
-import setup.medVeilederToken
+import setup.medToken
 import setup.mockProducerAvro
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
@@ -60,7 +60,7 @@ class SvarstatistikkControllerTest {
             val tilOgMed="2020-04-03"
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}&navKontor=${navKontor}")
-                .medVeilederToken(mockOAuth2Server, navIdent)
+                .medToken(mockOAuth2Server, navIdent, listOf())
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<Svarstatistikk>(mapper = objectMapper).third.get()
 
@@ -94,7 +94,7 @@ class SvarstatistikkControllerTest {
             val tilOgMed="2020-04-04"
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}&navKontor=${navKontor}")
-                .medVeilederToken(mockOAuth2Server, navIdent)
+                .medToken(mockOAuth2Server, navIdent, listOf())
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<Svarstatistikk>(mapper = objectMapper).third.get()
 
@@ -128,7 +128,7 @@ class SvarstatistikkControllerTest {
             val tilOgMed="2020-04-02"
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}&navKontor=${navKontor}")
-                .medVeilederToken(mockOAuth2Server, navIdent)
+                .medToken(mockOAuth2Server, navIdent, listOf())
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .responseObject<Svarstatistikk>(mapper = objectMapper).third.get()
 
@@ -165,7 +165,7 @@ class SvarstatistikkControllerTest {
             val tilOgMed="2020-04-04"
 
             val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}&navKontor=${navKontor}")
-                .medVeilederToken(mockOAuth2Server, navIdent)
+                .medToken(mockOAuth2Server, navIdent, listOf())
                 .responseObject<Svarstatistikk>(mapper = objectMapper).third.get()
 
             assertThat(lagredeForespørslerForKandidat.antallSvartJa).isEqualTo(1)
@@ -182,7 +182,7 @@ class SvarstatistikkControllerTest {
 
         startLokalApp(database = TestDatabase()).use {
             val (_, response) = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}")
-                .medVeilederToken(mockOAuth2Server, "X12345").response()
+                .medToken(mockOAuth2Server, "X12345", listOf()).response()
 
             assertThat(response.statusCode).isEqualTo(400)
         }

@@ -28,7 +28,7 @@ fun main() {
         this.start(port = 18300)
     }
 
-    println("Token for lokal testing: ${hentToken("A123456", mockOAuth2Server)}")
+    println("Token for lokal testing: ${hentToken("A123456", listOf(), mockOAuth2Server)}")
 
     startLokalApp()
 }

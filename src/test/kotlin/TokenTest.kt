@@ -10,10 +10,10 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import setup.medVeilederToken
 import utils.log
 import auth.AzureConfig
 import auth.TokenClient.TokenResponse
+import setup.medToken
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TokenTest {
@@ -65,7 +65,7 @@ class TokenTest {
     @Test
     fun `Sikrede endepunkter skal returnere noe annet enn 401 hvis requesten inneholder et gyldig token`() {
         val (_, response, _) = Fuel.post("http://localhost:8333/foresporsler")
-            .medVeilederToken(mockOAuth2Server)
+            .medToken(mockOAuth2Server, "X12345", listOf())
             .response()
 
         assertThat(response.statusCode).isNotEqualTo(401)

@@ -1,5 +1,6 @@
 import auth.Autorisasjon
 import auth.TokenHandler
+import auth.TokenHandler.Rolle.*
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
 import org.slf4j.event.Level
@@ -41,14 +42,17 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
-                //autorisasjon.verifiserRoller(tokenHandler.hentRoller(ctx), listOf(Rolle.UTVIKLER,Rolle.JOBBSØKERRETTET, Rolle.ARBEIDSGIVERRETTET))
-                autorisasjon.verifiserKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
-                val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
-                val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
+            autorisasjon.verifiserRoller(
+                tokenHandler.hentRoller(ctx),
+                listOf(UTVIKLER, JOBBSØKERRETTET, ARBEIDSGIVERRETTET)
+            )
+            autorisasjon.verifiserKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
+            val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
+            val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
 
-                val outboundDto = gjeldendeForespørslerForKandidat.map(Forespørsel::tilOutboundDto)
-                ctx.json(outboundDto)
-                ctx.status(200)
+            val outboundDto = gjeldendeForespørslerForKandidat.map(Forespørsel::tilOutboundDto)
+            ctx.json(outboundDto)
+            ctx.status(200)
         }
     }
 
