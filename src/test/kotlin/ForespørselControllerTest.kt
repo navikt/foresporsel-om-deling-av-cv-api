@@ -4,9 +4,8 @@ import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.javalin.http.ForbiddenResponse
-import io.javalin.http.UnauthorizedResponse
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.assertj.core.api.Assertions.assertThat
@@ -386,6 +385,7 @@ class ForespørselControllerTest {
 
     @Test
     fun `Kall til GET-endpunkt for kandidat skal hente gjeldende forespørsler på aktørId`() {
+        stubKandidatsøk(200)
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -422,6 +422,7 @@ class ForespørselControllerTest {
 
     @Test
     fun `Kall til GET-endpunkt for kandidat skal feile med 403 dersom navIdent ikke har tilgang til aktørid`() {
+        stubKandidatsøk(403)
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -672,6 +673,7 @@ class ForespørselControllerTest {
         }
     }
 
+
     private fun stubHentStilling(
         stillingsReferanse: UUID?,
         kategori: String? = null,
@@ -807,6 +809,30 @@ class ForespørselControllerTest {
                 "stillingskategori":   ${kategori?.let { """"$it"""" }}
             }
         """.trimIndent()
+
+    private fun stubKandidatsøkOk() {
+        wireMock.stubFor(
+            post(WireMock.urlPathEqualTo("/api/brukertilgang"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("")
+                        .withStatus(200)
+                )
+        )
+    }
+
+    private fun stubKandidatsøk(status: Int) {
+        wireMock.stubFor(
+            post(WireMock.urlPathEqualTo("/api/brukertilgang"))
+                .willReturn(
+                    WireMock.aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("")
+                        .withStatus(status)
+                )
+        )
+    }
 }
 
 val omTreDager = ZonedDateTime.of(LocalDate.now().plusDays(3).atStartOfDay(), ZoneId.of("Europe/Oslo"))

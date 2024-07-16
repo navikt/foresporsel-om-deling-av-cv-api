@@ -1,9 +1,7 @@
 import auth.Autorisasjon
 import auth.TokenHandler
-import auth.TokenHandler.Rolle
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
-import io.javalin.http.HttpResponseException
 import org.slf4j.event.Level
 import org.slf4j.event.Level.*
 import stilling.Stilling
@@ -43,7 +41,7 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
-            //autorisasjon.verifiserRoller(tokenHandler.hentRoller(ctx), listOf(Rolle.UTVIKLER,Rolle.JOBBSØKERRETTET, Rolle.ARBEIDSGIVERRETTET))
+                //autorisasjon.verifiserRoller(tokenHandler.hentRoller(ctx), listOf(Rolle.UTVIKLER,Rolle.JOBBSØKERRETTET, Rolle.ARBEIDSGIVERRETTET))
                 autorisasjon.verifiserKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
                 val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
                 val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values

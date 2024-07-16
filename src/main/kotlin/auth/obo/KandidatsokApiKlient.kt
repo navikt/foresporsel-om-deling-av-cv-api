@@ -20,7 +20,7 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
     private val kandidatsokUrl = when (Miljø.current) {
         DEV_FSS -> "https://rekrutteringsbistand-kandidatsok-api.intern.dev.nav.no"
         PROD_FSS -> "https://rekrutteringsbistand-kandidatsok-api.intern.nav.no"
-        LOKAL -> "http://localhost:9090"
+        LOKAL -> "http://localhost:9089"
     }
 
     private val kandidatsokScope = when (Miljø.current) {
@@ -34,20 +34,15 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
         val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
         val token = onBehalfOfTokenClient.getOboToken(ctx, kandidatsokScope, navIdent)
 
-        try {
-            val (_, response, result) = Fuel.post(url)
-                .header(Headers.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
-                .authentication().bearer(token)
-                .jsonBody(body.toJson())
-                .response()
+        val (_, response, result) = Fuel.post(url)
+            .header(Headers.CONTENT_TYPE, ContentType.APPLICATION_JSON.mimeType)
+            .authentication().bearer(token)
+            .jsonBody(body.toJson())
+            .response()
 
-            when (result) {
-                is Result.Success -> logger.info("Tilgang verifisert: ${response.body().asString("application/json")}")
-                is Result.Failure -> handleFailure(response)
-            }
-        } catch (ex: Exception) {
-            logger.error("Kan ikke verifisere tilgang mot bruker, får http 500 fra kandidatsøket", ex)
-            throw HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, "Feil ved verifisering av tilgang")
+        when (result) {
+            is Result.Success -> logger.info("Tilgang verifisert: ${response.body().asString("application/json")}")
+            is Result.Failure -> handleFailure(response)
         }
     }
 
@@ -57,10 +52,12 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
                 logger.info("Kan ikke verifisere tilgang mot bruker, får http 404 fra kandidatsøket")
                 throw HttpResponseException(HttpStatus.NOT_FOUND_404, "Ikke funnet")
             }
+
             403 -> {
                 logger.info("403 Mangler tilgang til persondata")
                 throw HttpResponseException(HttpStatus.FORBIDDEN_403, "Ikke tilgang")
             }
+
             else -> {
                 logger.error("Kan ikke verifisere tilgang mot bruker, får http ${response.statusCode} fra kandidatsøket")
                 throw HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, "Feil ved verifisering av tilgang")
