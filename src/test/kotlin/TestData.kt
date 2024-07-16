@@ -28,7 +28,7 @@ val hentStillingMock: (UUID) -> Stilling? = { enStilling() }
 val testAzureConfig = AzureConfig(
     azureClientSecret = "test-secret",
     azureClientId = "test-client-id",
-    tokenEndpoint = "http://localhost:18300/test-token-endpoint"
+    tokenEndpoint = "http://localhost:18300/azuread/oauth2/v2.0/token"
 )
 
 
