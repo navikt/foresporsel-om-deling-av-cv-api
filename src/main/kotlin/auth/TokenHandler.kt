@@ -1,20 +1,21 @@
 package auth
 
+import Rollekeys
+import io.javalin.http.Context
+import io.javalin.http.UnauthorizedResponse
 import no.nav.security.token.support.core.configuration.IssuerProperties
+import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import no.nav.security.token.support.core.context.TokenValidationContext
 import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
-import io.javalin.http.Context
-import io.javalin.http.UnauthorizedResponse
-import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
-import utils.Miljø.*
 import utils.log
 import java.time.LocalDateTime
 
 class TokenHandler(
     private val tokenValidationContextHolder: TokenValidationContextHolder,
-    private val issuerProperties: List<IssuerProperties>
+    private val issuerProperties: List<IssuerProperties>,
+    rolleKeys: Rollekeys
 ) {
     private val TOKEN_ISSUER_AZUREAD = "azuread"
     private val endepunktUtenTokenvalidering = listOf("/internal/isAlive", "/internal/isReady")
@@ -23,6 +24,10 @@ class TokenHandler(
     private val navIdentAttributeKey = "navIdent"
 
     private var cachedHandler: CachedHandler? = null
+
+    init {
+        Rolle.setRolleKeys(rolleKeys)
+    }
 
     fun hentTokenSomString(): String {
         return tokenValidationContextHolder.tokenValidationContext.getJwtToken(TOKEN_ISSUER_AZUREAD)?.tokenAsString
@@ -68,12 +73,14 @@ class TokenHandler(
         }.first()
     }
 
-    private fun hentRoller(validerteTokens: TokenValidationContext): List<Rolle> {
-        return  issuerProperties.mapNotNull { issuerProperty ->
-            validerteTokens.getClaims(issuerProperty.cookieName)?.getStringClaim(rolleClaimKey)
-        }.
-        mapNotNull { group ->
-            Rolle.fromEnvValue(group)
+    fun hentRoller(ctx: Context): List<Rolle> {
+
+        return issuerProperties.flatMap { issuerProperty ->
+            hentValiderteTokens(ctx)
+                .getClaims(issuerProperty.cookieName)
+                ?.getAsList(rolleClaimKey)
+                ?.mapNotNull { Rolle.fromClaim(it) }
+                ?: emptyList()
         }
     }
 
@@ -112,21 +119,19 @@ class TokenHandler(
         JOBBSØKERRETTET,
         ARBEIDSGIVERRETTET,
         UTVIKLER;
+
         companion object {
-            val jobbsokerrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
-                ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_JOBBSOKERRETTET' er ikke satt")
+            private lateinit var rollekeys: Rollekeys
 
-            val arbeidsgiverrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET")
-                ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET' er ikke satt")
+            fun setRolleKeys(rolleKeys: Rollekeys) {
+                rollekeys = rolleKeys
+            }
 
-            val utviklerGruppe: String = System.getenv("REKRUTTERINGSBISTAND_UTVIKLER")
-                ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_UTVIKLER' er ikke satt")
-
-            fun fromEnvValue(value: String): Rolle? {
+            fun fromClaim(value: String): Rolle? {
                 return when (value) {
-                    jobbsokerrettetGruppe -> JOBBSØKERRETTET
-                    arbeidsgiverrettetGruppe -> ARBEIDSGIVERRETTET
-                    utviklerGruppe -> UTVIKLER
+                    rollekeys.jobbsokerrettetGruppe -> JOBBSØKERRETTET
+                    rollekeys.arbeidsgiverrettetGruppe -> ARBEIDSGIVERRETTET
+                    rollekeys.utviklerGruppe -> UTVIKLER
                     else -> null
                 }
             }

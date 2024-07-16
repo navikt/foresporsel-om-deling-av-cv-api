@@ -424,11 +424,7 @@ class ForespørselControllerTest {
     fun `Kall til GET-endpunkt for kandidat skal feile med 403 dersom navIdent ikke har tilgang til aktørid`() {
         val database = TestDatabase()
 
-        val mockVerifiserKandidatTilgang: (String, String) -> Unit = { _, _ ->
-            throw ForbiddenResponse("Access Denied")
-        }
-
-        startLokalApp(database, verifiserKandidatTilgang = mockVerifiserKandidatTilgang).use {
+        startLokalApp(database).use {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
             val aktørId = "123"

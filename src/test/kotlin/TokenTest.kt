@@ -16,7 +16,9 @@ class TokenTest {
 
     private val lokalApp = startLokalApp()
     private val mockOAuth2Server = MockOAuth2Server()
-    private val tokenHandler = TokenHandler(SimpleTokenValidationContextHolder(), emptyList())
+    private val tokenHandler = TokenHandler(SimpleTokenValidationContextHolder(),
+        emptyList(),
+        Rollekeys("jobbsokerrettetGruppe", "arbeidsgiverrettetGruppe", "utviklerGruppe"))
 
     @BeforeAll
     fun init() {

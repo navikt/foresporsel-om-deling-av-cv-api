@@ -58,7 +58,7 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
             }
             403 -> {
                 logger.info("403 Mangler tilgang til persondata")
-                throw HttpResponseException(HttpStatus.FORBIDDEN_403, "Forbudt")
+                throw HttpResponseException(HttpStatus.FORBIDDEN_403, "Ikke tilgang")
             }
             else -> {
                 logger.error("Kan ikke verifisere tilgang mot bruker, får http ${response.statusCode} fra kandidatsøket")

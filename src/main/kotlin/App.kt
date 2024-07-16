@@ -13,7 +13,6 @@ import no.nav.foresporselomdelingavcv.avroProducerConfig
 import no.nav.foresporselomdelingavcv.jsonProducerConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -32,12 +31,10 @@ import kotlin.concurrent.thread
 class App(
     private val forespørselController: ForespørselController,
     private val svarstatistikkController: SvarstatistikkController,
-    private val issuerProperties: List<IssuerProperties>,
     private val scheduler: UsendtScheduler,
     private val svarService: SvarService,
     private val rapidsConnection: RapidsConnection,
     private val tokenHandler: TokenHandler,
-    private val kandidatsokApiKlient: KandidatsokApiKlient
 ) : Closeable {
 
     init {
@@ -84,16 +81,18 @@ fun main() {
 
     try {
         log("main").info("Starter app i cluster ${Miljø.current.asString()}")
+        val rollekeys = initierRollekeys()
 
         val database = Database()
         val repository = Repository(database.dataSource)
         val tokenValidationContextHolder = SimpleTokenValidationContextHolder()
-        val tokenHandler = TokenHandler(tokenValidationContextHolder, listOf(azureIssuerProperties))
+        val tokenHandler = TokenHandler(tokenValidationContextHolder, listOf(azureIssuerProperties), rollekeys)
         val tokenCache = TokenCache()
         val accessTokenClient = AccessTokenClient(azureConfig, tokenCache)
         val oboTokenClient = OnBehalfOfTokenClient(azureConfig, tokenHandler, tokenCache)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
         val kandidatsokApiKlient = KandidatsokApiKlient(oboTokenClient)
+        val autorisasjon = Autorisasjon(kandidatsokApiKlient)
 
         val forespørselProducer = KafkaProducer<String, ForesporselOmDelingAvCv>(avroProducerConfig)
         val forespørselService = ForespørselService(
@@ -104,12 +103,11 @@ fun main() {
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
         val forespørselController =
-            ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, kandidatsokApiKlient::verifiserKandidatTilgang)
+            ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, autorisasjon)
         val svarstatistikkController = SvarstatistikkController(repository)
 
-        val env = System.getenv()
         lateinit var rapidIsAlive: () -> Boolean
-        val rapidsConnection = RapidApplication.create(env, configure = { _, kafkarapid ->
+        val rapidsConnection = RapidApplication.create(System.getenv(), configure = { _, kafkarapid ->
             rapidIsAlive = kafkarapid::isRunning
         })
 
@@ -125,15 +123,37 @@ fun main() {
         App(
             forespørselController,
             svarstatistikkController,
-            listOf(azureIssuerProperties),
             usendtScheduler,
             svarService,
             rapidsConnection,
-            tokenHandler,
-            kandidatsokApiKlient
+            tokenHandler
         ).start()
 
     } catch (exception: Exception) {
         log("main()").error("Noe galt skjedde", exception)
     }
+}
+
+
+data class Rollekeys(
+    val jobbsokerrettetGruppe: String,
+    val arbeidsgiverrettetGruppe: String,
+    val utviklerGruppe: String
+)
+
+fun initierRollekeys() : Rollekeys {
+    val jobbsokerrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
+        ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_JOBBSOKERRETTET' er ikke satt")
+
+    val arbeidsgiverrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET")
+        ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET' er ikke satt")
+
+    val utviklerGruppe: String = System.getenv("REKRUTTERINGSBISTAND_UTVIKLER")
+        ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_UTVIKLER' er ikke satt")
+
+    return Rollekeys(
+        jobbsokerrettetGruppe = jobbsokerrettetGruppe,
+        arbeidsgiverrettetGruppe = arbeidsgiverrettetGruppe,
+        utviklerGruppe = utviklerGruppe
+    )
 }

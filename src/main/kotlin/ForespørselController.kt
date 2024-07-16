@@ -1,4 +1,6 @@
+import auth.Autorisasjon
 import auth.TokenHandler
+import auth.TokenHandler.Rolle
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
 import org.slf4j.event.Level
@@ -19,7 +21,7 @@ class ForespørselController(
     private val tokenHandler: TokenHandler,
     private val sendUsendteForespørsler: () -> Unit,
     private val hentStilling: (UUID) -> Stilling?,
-    private val verifiserKandidatTilgang: (String, String) -> Unit,
+    private val autorisasjon: Autorisasjon
 ) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -40,7 +42,8 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
-            verifiserKandidatTilgang(tokenHandler.hentNavIdent(ctx), aktørId)
+            //autorisasjon.verifiserRoller(tokenHandler.hentRoller(ctx), listOf(Rolle.UTVIKLER,Rolle.JOBBSØKERRETTET, Rolle.ARBEIDSGIVERRETTET))
+            autorisasjon.verifiserKandidatTilgang(tokenHandler.hentNavIdent(ctx), aktørId)
 
             val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
