@@ -12,7 +12,7 @@ class Autorisasjon(private val kandidatsokApiKlient: KandidatsokApiKlient) {
         }
     }
 
-    fun verifiserKandidatTilgang(ctx: Context, navIdent: String,  aktorid: String) {
+    fun verifiserKandidatTilgang(ctx: Context, navIdent: String, aktorid: String) {
         kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navIdent, aktorid)
     }
 

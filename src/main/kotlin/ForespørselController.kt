@@ -30,6 +30,10 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { stillingsId ->
+            autorisasjon.verifiserRoller(
+                tokenHandler.hentRoller(ctx),
+                listOf(UTVIKLER, ARBEIDSGIVERRETTET)
+            )
             ctx.json(hentForespørslerGruppertPåAktørId(stillingsId))
             ctx.status(200)
         }
@@ -57,6 +61,12 @@ class ForespørselController(
     }
 
     val sendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
+        autorisasjon.verifiserRoller(
+            tokenHandler.hentRoller(ctx),
+            listOf(UTVIKLER, ARBEIDSGIVERRETTET)
+        )
+
+
         val forespørselOmDelingAvCvDto = try {
             ctx.bodyAsClass(ForespørselInboundDto::class.java)
         } catch (e: MissingKotlinParameterException) {
@@ -115,6 +125,11 @@ class ForespørselController(
         } else Ok
 
     val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
+        autorisasjon.verifiserRoller(
+            tokenHandler.hentRoller(ctx),
+            listOf(UTVIKLER, ARBEIDSGIVERRETTET)
+        )
+
         val inboundDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
         val aktørId = ctx.pathParam(aktorIdParamName)
 

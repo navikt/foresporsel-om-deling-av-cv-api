@@ -1,4 +1,3 @@
-import auth.TokenHandler
 import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.extensions.jsonBody
@@ -18,7 +17,10 @@ import setup.mockProducerAvro
 import stilling.StillingKlient
 import utils.foretrukkenCallIdHeaderKey
 import utils.objectMapper
-import java.time.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -73,7 +75,7 @@ class ForespørselControllerTest {
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
@@ -154,7 +156,7 @@ class ForespørselControllerTest {
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
@@ -184,7 +186,7 @@ class ForespørselControllerTest {
             val navIdent = "X12345"
 
             Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .header(foretrukkenCallIdHeaderKey, callId)
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
@@ -214,7 +216,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -243,7 +245,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -262,7 +264,7 @@ class ForespørselControllerTest {
             }"""
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .jsonBody(inboundDto)
                 .response()
 
@@ -288,7 +290,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -314,7 +316,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -340,7 +342,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -447,7 +449,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response, _) = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .header(foretrukkenCallIdHeaderKey, callId.toString())
                 .response()
 
@@ -472,7 +474,7 @@ class ForespørselControllerTest {
             )
 
             val returverdi = Fuel.post("http://localhost:8333/foresporsler/")
-                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper).third.get()
 
@@ -502,7 +504,7 @@ class ForespørselControllerTest {
 
         startWiremockApp().use {
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medToken(mockOAuth2Server, "A123456", listOf())
+                .medToken(mockOAuth2Server, "A123456", listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
@@ -543,7 +545,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response, result) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medToken(mockOAuth2Server, "A123456", listOf())
+                .medToken(mockOAuth2Server, "A123456", listOf(ARBEIDSGIVERRETTET))
                 .objectBody(inboundDto, mapper = objectMapper)
                 .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
 
@@ -585,7 +587,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medToken(mockOAuth2Server, "A123456", listOf())
+                .medToken(mockOAuth2Server, "A123456", listOf(ARBEIDSGIVERRETTET))
                 .objectBody(nyForespørsel, mapper = objectMapper)
                 .response()
 
@@ -626,7 +628,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medToken(mockOAuth2Server, "A123456", listOf())
+                .medToken(mockOAuth2Server, "A123456", listOf(ARBEIDSGIVERRETTET))
                 .objectBody(nyForespørsel, mapper = objectMapper)
                 .response()
 
@@ -667,7 +669,7 @@ class ForespørselControllerTest {
             )
 
             val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
-                .medToken(mockOAuth2Server, "A123456", listOf())
+                .medToken(mockOAuth2Server, "A123456", listOf(ARBEIDSGIVERRETTET))
                 .objectBody(nyForespørsel, mapper = objectMapper)
                 .response()
 

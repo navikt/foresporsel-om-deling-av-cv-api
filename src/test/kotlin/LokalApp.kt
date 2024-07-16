@@ -1,6 +1,7 @@
 import auth.Autorisasjon
 import auth.TokenCache
 import auth.TokenHandler
+import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import kandidatevent.DelCvMedArbeidsgiverLytter
@@ -28,7 +29,7 @@ fun main() {
         this.start(port = 18300)
     }
 
-    println("Token for lokal testing: ${hentToken("A123456", listOf(), mockOAuth2Server)}")
+    println("Token for lokal testing: ${hentToken("A123456", listOf(ARBEIDSGIVERRETTET), mockOAuth2Server)}")
 
     startLokalApp()
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestInstance
 import utils.log
 import auth.AzureConfig
 import auth.TokenClient.TokenResponse
+import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
 import setup.medToken
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -65,7 +66,7 @@ class TokenTest {
     @Test
     fun `Sikrede endepunkter skal returnere noe annet enn 401 hvis requesten inneholder et gyldig token`() {
         val (_, response, _) = Fuel.post("http://localhost:8333/foresporsler")
-            .medToken(mockOAuth2Server, "X12345", listOf())
+            .medToken(mockOAuth2Server, "X12345", listOf(ARBEIDSGIVERRETTET))
             .response()
 
         assertThat(response.statusCode).isNotEqualTo(401)
@@ -85,7 +86,7 @@ class TokenTest {
     }
 
     private fun fetchNewToken(formData: List<Pair<String, String>>): TokenResponse {
-        val (request, response, result) = Fuel.post(config.tokenEndpoint)
+        val (_, response, result) = Fuel.post(config.tokenEndpoint)
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(formData.joinToString("&") { "${it.first}=${it.second}" })
             .response()
