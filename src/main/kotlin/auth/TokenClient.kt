@@ -34,6 +34,7 @@ abstract class TokenClient(
                 val responseBody = response.body().asString("application/json")
                 objectMapper.readValue(responseBody, TokenResponse::class.java)
             }
+
             is Result.Failure -> {
                 log.error("Feil ved henting av token: ", result.getException())
                 throw RuntimeException("Feil ved henting av token", result.getException())

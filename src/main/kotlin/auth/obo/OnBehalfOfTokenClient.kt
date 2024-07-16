@@ -4,6 +4,7 @@ import auth.AzureConfig
 import auth.TokenCache
 import auth.TokenClient
 import auth.TokenHandler
+import io.javalin.http.Context
 
 class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHandler: TokenHandler, tokenCache: TokenCache) : TokenClient(config, tokenCache) {
 
@@ -12,9 +13,9 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
         const val REQUESTED_TOKEN_USE = "on_behalf_of"
     }
 
-    fun getOboToken(motScope: String, navIdent: String): String {
+    fun getOboToken(ctx: Context, motScope: String, navIdent: String): String {
         val cacheKey = "$motScope-$navIdent"
-        val innkommendeToken = tokenHandler.hentTokenSomString()
+        val innkommendeToken = tokenHandler.hentTokenSomString(ctx)
 
         val formData = listOf(
             "grant_type" to AZURE_ON_BEHALF_OF_GRANT_TYPE,

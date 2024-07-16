@@ -13,7 +13,6 @@ import utils.log
 import java.time.LocalDateTime
 
 class TokenHandler(
-    private val tokenValidationContextHolder: TokenValidationContextHolder,
     private val issuerProperties: List<IssuerProperties>,
     rolleKeys: Rollekeys
 ) {
@@ -29,8 +28,8 @@ class TokenHandler(
         Rolle.setRolleKeys(rolleKeys)
     }
 
-    fun hentTokenSomString(): String {
-        return tokenValidationContextHolder.tokenValidationContext.getJwtToken(TOKEN_ISSUER_AZUREAD)?.tokenAsString
+    fun hentTokenSomString(ctx: Context): String {
+        return hentValiderteTokens(ctx).getJwtToken(TOKEN_ISSUER_AZUREAD).tokenAsString
             ?: throw RuntimeException("Ingen gyldig token funnet for issuer: $TOKEN_ISSUER_AZUREAD")
     }
 

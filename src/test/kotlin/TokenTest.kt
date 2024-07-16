@@ -1,5 +1,4 @@
 import auth.TokenHandler
-import auth.obo.SimpleTokenValidationContextHolder
 import com.github.kittinunf.fuel.Fuel
 import com.nimbusds.jwt.SignedJWT
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -16,7 +15,7 @@ class TokenTest {
 
     private val lokalApp = startLokalApp()
     private val mockOAuth2Server = MockOAuth2Server()
-    private val tokenHandler = TokenHandler(SimpleTokenValidationContextHolder(),
+    private val tokenHandler = TokenHandler(
         emptyList(),
         Rollekeys("jobbsokerrettetGruppe", "arbeidsgiverrettetGruppe", "utviklerGruppe"))
 

@@ -1,7 +1,6 @@
 import auth.*
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
-import auth.obo.SimpleTokenValidationContextHolder
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
@@ -85,8 +84,7 @@ fun main() {
 
         val database = Database()
         val repository = Repository(database.dataSource)
-        val tokenValidationContextHolder = SimpleTokenValidationContextHolder()
-        val tokenHandler = TokenHandler(tokenValidationContextHolder, listOf(azureIssuerProperties), rollekeys)
+        val tokenHandler = TokenHandler(listOf(azureIssuerProperties), rollekeys)
         val tokenCache = TokenCache()
         val accessTokenClient = AccessTokenClient(azureConfig, tokenCache)
         val oboTokenClient = OnBehalfOfTokenClient(azureConfig, tokenHandler, tokenCache)

@@ -3,7 +3,6 @@ import auth.TokenCache
 import auth.TokenHandler
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
-import auth.obo.SimpleTokenValidationContextHolder
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
 import kandidatevent.RegistrertFåttJobbenLytter
@@ -54,7 +53,6 @@ fun startLokalApp(
     val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
 
     val tokenHandler = TokenHandler(
-        SimpleTokenValidationContextHolder(),
         listOf(
             IssuerProperties(
                 URL("http://localhost:18300/default/.well-known/openid-configuration"),
@@ -75,7 +73,6 @@ fun startLokalApp(
         OnBehalfOfTokenClient(
             testAzureConfig,
             TokenHandler(
-                SimpleTokenValidationContextHolder(),
                 issuerProperties,
                 Rollekeys("jobbsokerrettetGruppe", "arbeidsgiverrettetGruppe", "utviklerGruppe")
             ),

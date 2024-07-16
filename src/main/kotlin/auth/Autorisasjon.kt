@@ -1,6 +1,7 @@
 package auth
 
 import auth.obo.KandidatsokApiKlient
+import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import org.eclipse.jetty.http.HttpStatus
 
@@ -11,8 +12,8 @@ class Autorisasjon(private val kandidatsokApiKlient: KandidatsokApiKlient) {
         }
     }
 
-    fun verifiserKandidatTilgang(navIdent: String,  aktorid: String) {
-        kandidatsokApiKlient.verifiserKandidatTilgang(navIdent, aktorid)
+    fun verifiserKandidatTilgang(ctx: Context, navIdent: String,  aktorid: String) {
+        kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navIdent, aktorid)
     }
 
 }

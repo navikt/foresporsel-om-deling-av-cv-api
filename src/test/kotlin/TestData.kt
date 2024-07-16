@@ -25,10 +25,6 @@ val enNavIdent = "A100001"
 
 val hentStillingMock: (UUID) -> Stilling? = { enStilling() }
 
-val verifiserKandidatTilgangMock: (String, String) -> Unit = { navIdent, aktorId ->
-    println("Verifiserer kandidat tilgang for navIdent: $navIdent og aktorId: $aktorId")
-}
-
 val testAzureConfig = AzureConfig(
     azureClientSecret = "test-secret",
     azureClientId = "test-client-id",

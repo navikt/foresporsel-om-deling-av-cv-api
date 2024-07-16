@@ -6,6 +6,7 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.result.Result
 import io.javalin.http.ContentType
+import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
@@ -28,10 +29,10 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
         LOKAL -> ""
     }
 
-    fun verifiserKandidatTilgang(navIdent: String,  aktorid: String) {
+    fun verifiserKandidatTilgang(ctx: Context, navIdent: String, aktorid: String) {
         val url = "$kandidatsokUrl/api/brukertilgang"
         val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
-        val token = onBehalfOfTokenClient.getOboToken(kandidatsokScope, navIdent)
+        val token = onBehalfOfTokenClient.getOboToken(ctx, kandidatsokScope, navIdent)
 
         try {
             val (_, response, result) = Fuel.post(url)

@@ -43,7 +43,7 @@ class ForespørselController(
             null
         }?.let { aktørId ->
             //autorisasjon.verifiserRoller(tokenHandler.hentRoller(ctx), listOf(Rolle.UTVIKLER,Rolle.JOBBSØKERRETTET, Rolle.ARBEIDSGIVERRETTET))
-            autorisasjon.verifiserKandidatTilgang(tokenHandler.hentNavIdent(ctx), aktørId)
+            autorisasjon.verifiserKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
 
             val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
