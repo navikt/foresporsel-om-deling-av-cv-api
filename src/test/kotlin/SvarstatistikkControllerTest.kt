@@ -40,7 +40,7 @@ class SvarstatistikkControllerTest {
     private val mockProducer = mockProducerAvro
 
     @Test
-    fun `GET mot statistikk skal ha svar ja om det er svar ja i basen innenfor tidsperiode`() {
+    fun `GET mot statistikk uten rolle skal ha svar ja om det er svar ja i basen innenfor tidsperiode`() {
         val database = TestDatabase()
 
         startLokalApp(database).use {
@@ -70,7 +70,7 @@ class SvarstatistikkControllerTest {
 
             val lagredeForespørslerForKandidat =
                 Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}&navKontor=${navKontor}")
-                    .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
+                    .medToken(mockOAuth2Server, navIdent, emptyList())
                     .header(foretrukkenCallIdHeaderKey, callId.toString())
                     .responseObject<Svarstatistikk>(mapper = objectMapper).third.get()
 

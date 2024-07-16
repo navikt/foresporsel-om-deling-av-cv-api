@@ -1,4 +1,5 @@
 import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
+import auth.TokenHandler.Rolle.JOBBSØKERRETTET
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.jackson.objectBody
@@ -351,7 +352,7 @@ class ForespørselControllerTest {
     }
 
     @Test
-    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId gruppert på aktørId`() {
+    fun `Kall til GET-endpunkt skal hente lagrede forespørsler på stillingsId gruppert på aktørId for ARBEIDSGIVERRETTET`() {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
         stubHentStilling(stillingsReferanse)
@@ -388,7 +389,40 @@ class ForespørselControllerTest {
     }
 
     @Test
-    fun `Kall til GET-endpunkt for kandidat skal hente gjeldende forespørsler på aktørId`() {
+    fun `Kall til GET-endpunkt skal IKKE hente lagrede forespørsler på stillingsId gruppert på aktørId for JOBBSØKERRETTET`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse)
+
+        startWiremockApp(database).use {
+            val navIdent = "X12345"
+            val callId = UUID.randomUUID()
+            val aktørId = "aktørId"
+            val annenAktørId = "annenAktørId"
+
+            val forespørslerGruppertPåKandidat = hashMapOf(
+                aktørId to listOf(
+                    enForespørsel(aktørId = aktørId, stillingsId = stillingsReferanse),
+                ),
+                annenAktørId to listOf(
+                    enForespørsel(aktørId = annenAktørId, stillingsId = stillingsReferanse),
+                    enForespørsel(aktørId = annenAktørId, stillingsId = stillingsReferanse),
+                )
+            )
+            val alleForespørsler = forespørslerGruppertPåKandidat.flatMap { it.value }
+            database.lagreBatch(alleForespørsler)
+
+            val (_, response) = Fuel.get("http://localhost:8333/foresporsler/$stillingsReferanse")
+                .medToken(mockOAuth2Server, navIdent, listOf(JOBBSØKERRETTET))
+                .header(foretrukkenCallIdHeaderKey, callId.toString())
+                .responseObject<ForespørslerGruppertPåAktørId>(mapper = objectMapper)
+
+            assertThat(response.statusCode).isEqualTo(403)
+        }
+    }
+
+    @Test
+    fun `Kall til GET-endpunkt for kandidat skal hente gjeldende forespørsler på aktørId for ARBEIDSGIVERRETTET`() {
         stubKandidatsøk(200)
         val database = TestDatabase()
 
@@ -421,6 +455,76 @@ class ForespørselControllerTest {
                 gjeldendeForespørselForStillingen.tilOutboundDto(),
                 forespørselForEnAnnenStilling.tilOutboundDto()
             )
+        }
+    }
+
+    @Test
+    fun `Kall til GET-endpunkt for kandidat skal hente gjeldende forespørsler på aktørId for JOBBSØKERRETTET`() {
+        stubKandidatsøk(200)
+        val database = TestDatabase()
+
+        startLokalApp(database).use {
+            val navIdent = "X12345"
+            val callId = UUID.randomUUID()
+            val aktørId = "123"
+
+            val stillingUuid = UUID.randomUUID()
+            val gammelForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val gjeldendeForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
+
+            database.lagreBatch(listOf(gammelForespørselForStillingen))
+
+            database.lagreBatch(
+                listOf(
+                    gjeldendeForespørselForStillingen,
+                    forespørselForEnAnnenStilling
+                )
+            )
+
+            val lagredeForespørslerForKandidat = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
+                .header(foretrukkenCallIdHeaderKey, callId.toString())
+                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper).third.get()
+
+            assertThat(lagredeForespørslerForKandidat.size).isEqualTo(2)
+            assertThat(lagredeForespørslerForKandidat).containsExactlyInAnyOrder(
+                gjeldendeForespørselForStillingen.tilOutboundDto(),
+                forespørselForEnAnnenStilling.tilOutboundDto()
+            )
+        }
+    }
+
+    @Test
+    fun `Kall til GET-endpunkt for kandidat skal som skal hente gjeldende forespørsler på aktørId feiler om man ikke har rolle`() {
+        stubKandidatsøk(200)
+        val database = TestDatabase()
+
+        startLokalApp(database).use {
+            val navIdent = "X12345"
+            val callId = UUID.randomUUID()
+            val aktørId = "123"
+
+            val stillingUuid = UUID.randomUUID()
+            val gammelForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val gjeldendeForespørselForStillingen = enForespørsel(aktørId = aktørId, stillingsId = stillingUuid)
+            val forespørselForEnAnnenStilling = enForespørsel(aktørId = aktørId)
+
+            database.lagreBatch(listOf(gammelForespørselForStillingen))
+
+            database.lagreBatch(
+                listOf(
+                    gjeldendeForespørselForStillingen,
+                    forespørselForEnAnnenStilling
+                )
+            )
+
+            val (_, response, _) = Fuel.get("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medToken(mockOAuth2Server, navIdent, emptyList())
+                .header(foretrukkenCallIdHeaderKey, callId.toString())
+                .responseObject<List<ForespørselOutboundDto>>(mapper = objectMapper)
+
+            assertThat(response.statusCode).isEqualTo(403)
         }
     }
 
@@ -458,7 +562,7 @@ class ForespørselControllerTest {
     }
 
     @Test
-    fun `Kall til POST-endepunkt skal returnere lagrede forespørsler på stillingsId`() {
+    fun `Kall til POST-endepunkt for ARBEIDSGIVERRETTET skal returnere lagrede forespørsler på stillingsId`() {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
         stubHentStilling(stillingsReferanse)
@@ -490,6 +594,32 @@ class ForespørselControllerTest {
                 assertThat(forespørsel.svar).isNull()
                 assertThat(forespørsel.svarfrist).isEqualTo(inboundDto.svarfrist)
             }
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for JOBBSØKERRETTET skal IKKE returnere lagrede forespørsler på stillingsId`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse)
+
+        startWiremockApp(database).use {
+            val navIdent = "X12345"
+
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = omTreDager,
+                aktorIder = listOf("234", "345"),
+                navKontor = navKontor
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/")
+                .medToken(mockOAuth2Server, navIdent, listOf(JOBBSØKERRETTET))
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+
+            assertThat(response.statusCode).isEqualTo(403)
         }
     }
 
@@ -559,7 +689,7 @@ class ForespørselControllerTest {
     }
 
     @Test
-    fun `Kall til POST-endepunkt for resending skal gi 200 hvis siste forespørsel ikke kunne opprettes i Aktivitetsplanen`() {
+    fun `Kall til POST-endepunkt for ARBEIDSGIVERRETET for resending skal gi 201 hvis siste forespørsel ikke kunne opprettes i Aktivitetsplanen`() {
         val aktørId = "dummyAktørId"
         val stillingsId = UUID.randomUUID()
 
@@ -592,6 +722,43 @@ class ForespørselControllerTest {
                 .response()
 
             assertThat(response.statusCode).isEqualTo(201)
+        }
+    }
+
+    @Test
+    fun `Kall til POST-endepunkt for JOBBSØKERRETTET for resending skal gi 403`() {
+        val aktørId = "dummyAktørId"
+        val stillingsId = UUID.randomUUID()
+
+        stubHentStilling(stillingsId)
+        val database = TestDatabase()
+        startWiremockApp().use {
+
+            val kanIkkeVarsleForespørsel = enForespørsel(
+                aktørId = aktørId,
+                stillingsId = stillingsId,
+                tilstand = Tilstand.KAN_IKKE_VARSLE,
+                svar = null
+            )
+
+            database.lagreBatch(
+                listOf(
+                    kanIkkeVarsleForespørsel
+                )
+            )
+
+            val nyForespørsel = ResendForespørselInboundDto(
+                stillingsId = stillingsId.toString(),
+                svarfrist = omTreDager,
+                navKontor = navKontor
+            )
+
+            val (_, response) = Fuel.post("http://localhost:8333/foresporsler/kandidat/$aktørId")
+                .medToken(mockOAuth2Server, "A123456", listOf(JOBBSØKERRETTET))
+                .objectBody(nyForespørsel, mapper = objectMapper)
+                .response()
+
+            assertThat(response.statusCode).isEqualTo(403)
         }
     }
 
@@ -813,18 +980,6 @@ class ForespørselControllerTest {
                 "stillingskategori":   ${kategori?.let { """"$it"""" }}
             }
         """.trimIndent()
-
-    private fun stubKandidatsøkOk() {
-        wireMock.stubFor(
-            post(WireMock.urlPathEqualTo("/api/brukertilgang"))
-                .willReturn(
-                    WireMock.aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("")
-                        .withStatus(200)
-                )
-        )
-    }
 
     private fun stubKandidatsøk(status: Int) {
         wireMock.stubFor(
