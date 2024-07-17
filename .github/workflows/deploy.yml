@@ -29,7 +29,7 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'styrk-som-tittel-i-stilling'
+    if: github.ref == 'refs/heads/main' || github.ref == 'tilgangsstyring'
     permissions:
       packages: write
     runs-on: ubuntu-latest
