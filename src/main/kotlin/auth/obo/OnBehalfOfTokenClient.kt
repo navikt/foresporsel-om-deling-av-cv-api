@@ -12,13 +12,10 @@ import utils.log
 class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHandler: TokenHandler, tokenCache: TokenCache) : TokenClient(config, tokenCache) {
 
 
-    private val issuer = when (Miljø.current) {
-        DEV_FSS -> "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0"
-        PROD_FSS -> "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0"
+    private val issuernavn = when (Miljø.current) {
+        DEV_FSS, PROD_FSS -> "https://login.microsoftonline.com/${System.getenv("AZURE_OPENID_CONFIG_ISSUER")}/v2.0"
         LOKAL -> "azuread"
     }
-
-
 
     companion object {
         const val AZURE_ON_BEHALF_OF_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
@@ -27,15 +24,11 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
 
     fun hentTokenSomString(ctx: Context): String {
         val validerteTokens = tokenHandler.hentValiderteTokens(ctx)
-        log.info("validertetokenissuers: ${validerteTokens.issuers}") // TODO fjern før produksjon
-        log.info("url:" + System.getenv("AZURE_APP_WELL_KNOWN_URL"))
-        log.info("klientid:" + System.getenv("AZURE_APP_CLIENT_ID"))
-        log.info("issuer:" + System.getenv("AZURE_OPENID_CONFIG_ISSUER"))
 
 
         // Filtrer ut riktig issuer før vi velger firstOrNull
-        val issuerUrl = validerteTokens.issuers.firstOrNull { it == issuer }
-            ?: throw RuntimeException("Ingen issuer funnet som matcher: $issuer")
+        val issuerUrl = validerteTokens.issuers.firstOrNull { it == issuernavn }
+            ?: throw RuntimeException("Ingen issuer funnet som matcher: $issuernavn")
 
         return validerteTokens.getJwtToken(issuerUrl)?.tokenAsString
             ?: throw RuntimeException("Ingen gyldig token funnet for issuer: $issuerUrl")
