@@ -15,7 +15,6 @@ class TokenHandler(
     private val issuerProperties: List<IssuerProperties>,
     rolleKeys: Rollekeys
 ) {
-    private val TOKEN_ISSUER_AZUREAD = "azuread"
     private val endepunktUtenTokenvalidering = listOf("/internal/isAlive", "/internal/isReady")
     private val navIdentClaimKey = "NAVident"
     private val rolleClaimKey = "groups"
@@ -29,10 +28,14 @@ class TokenHandler(
 
     fun hentTokenSomString(ctx: Context): String {
         val validerteTokens = hentValiderteTokens(ctx)
-        log.info("validertetokens: $validerteTokens") // TODO fjern før prod
-        val token = validerteTokens.getJwtToken(TOKEN_ISSUER_AZUREAD)?.tokenAsString
+        log.info("validertetokens: $validerteTokens") // TODO fjern før produksjon
+
+        val issuerUrl = validerteTokens.issuers.firstOrNull()
+            ?: throw RuntimeException("Ingen issuer funnet i validerte tokens")
+
+        val token = validerteTokens.getJwtToken(issuerUrl)?.tokenAsString
         if (token == null) {
-            throw RuntimeException("Ingen gyldig token funnet for issuer: $TOKEN_ISSUER_AZUREAD")
+            throw RuntimeException("Ingen gyldig token funnet for issuer: $issuerUrl")
         }
         return token
     }
@@ -146,4 +149,3 @@ class TokenHandler(
         fun asString(): String = name.lowercase()
     }
 }
-
