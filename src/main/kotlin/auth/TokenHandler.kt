@@ -29,6 +29,7 @@ class TokenHandler(
 
     fun hentTokenSomString(ctx: Context): String {
         val validerteTokens = hentValiderteTokens(ctx)
+        log.info("validertetokens: $validerteTokens") // TODO fjern før prod
         val token = validerteTokens.getJwtToken(TOKEN_ISSUER_AZUREAD)?.tokenAsString
         if (token == null) {
             throw RuntimeException("Ingen gyldig token funnet for issuer: $TOKEN_ISSUER_AZUREAD")
