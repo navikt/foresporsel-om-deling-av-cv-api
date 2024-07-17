@@ -13,7 +13,7 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
 
 
     private val issuernavn = when (Miljø.current) {
-        DEV_FSS, PROD_FSS -> "https://login.microsoftonline.com/${System.getenv("AZURE_OPENID_CONFIG_ISSUER")}/v2.0"
+        DEV_FSS, PROD_FSS -> System.getenv("AZURE_OPENID_CONFIG_ISSUER")
         LOKAL -> "azuread"
     }
 
