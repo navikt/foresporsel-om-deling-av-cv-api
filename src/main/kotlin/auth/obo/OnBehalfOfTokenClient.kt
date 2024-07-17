@@ -28,6 +28,9 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
     fun hentTokenSomString(ctx: Context): String {
         val validerteTokens = tokenHandler.hentValiderteTokens(ctx)
         log.info("validertetokenissuers: ${validerteTokens.issuers}") // TODO fjern før produksjon
+        log.info("url:" + System.getenv("AZURE_APP_WELL_KNOWN_URL"))
+        log.info("klientid:" + System.getenv("AZURE_APP_CLIENT_ID"))
+        log.info("issuer:" + System.getenv("AZURE_OPENID_CONFIG_ISSUER"))
 
 
         // Filtrer ut riktig issuer før vi velger firstOrNull
