@@ -15,7 +15,7 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
     private val issuer = when (Miljø.current) {
         DEV_FSS -> "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0"
         PROD_FSS -> "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0"
-        LOKAL -> "http://localhost:9089"
+        LOKAL -> "azuread"
     }
 
 
@@ -28,6 +28,7 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
     fun hentTokenSomString(ctx: Context): String {
         val validerteTokens = tokenHandler.hentValiderteTokens(ctx)
         log.info("validertetokenissuers: ${validerteTokens.issuers}") // TODO fjern før produksjon
+
 
         // Filtrer ut riktig issuer før vi velger firstOrNull
         val issuerUrl = validerteTokens.issuers.firstOrNull { it == issuer }
