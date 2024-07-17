@@ -28,9 +28,9 @@ class TokenHandler(
 
     fun hentTokenSomString(ctx: Context): String {
         val validerteTokens = hentValiderteTokens(ctx)
-        log.info("validertetokens: $validerteTokens") // TODO fjern før produksjon
+        //log.info("validertetokens: $validerteTokens") // TODO fjern før produksjon
 
-        val issuerUrl = validerteTokens.issuers.firstOrNull()
+        val issuerUrl = validerteTokens.issuers.firstOrNull() // TODO: Hardkod riktig issuer(azuread?)
             ?: throw RuntimeException("Ingen issuer funnet i validerte tokens")
 
         val token = validerteTokens.getJwtToken(issuerUrl)?.tokenAsString
