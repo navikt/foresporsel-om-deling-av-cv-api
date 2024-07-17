@@ -26,21 +26,7 @@ class TokenHandler(
         Rolle.setRolleKeys(rolleKeys)
     }
 
-    fun hentTokenSomString(ctx: Context): String {
-        val validerteTokens = hentValiderteTokens(ctx)
-        log.info("validertetokenissuers: ${validerteTokens.issuers}") // TODO fjern før produksjon
-
-        val issuerUrl = validerteTokens.issuers.firstOrNull() // TODO: Hardkod riktig issuer(azuread?)
-            ?: throw RuntimeException("Ingen issuer funnet i validerte tokens")
-
-        val token = validerteTokens.getJwtToken(issuerUrl)?.tokenAsString
-        if (token == null) {
-            throw RuntimeException("Ingen gyldig token funnet for issuer: $issuerUrl")
-        }
-        return token
-    }
-
-    fun validerToken(ctx: Context) {
+    fun validerToken(ctx: Context) { // TODO: FJERN
         val url = ctx.req.requestURL.toString()
         if (skalValideres(url)) {
             val validerteTokens = hentValiderteTokens(ctx)
@@ -68,7 +54,7 @@ class TokenHandler(
 
     private fun skalValideres(url: String) = endepunktUtenTokenvalidering.none { url.contains(it) }
 
-    private fun hentValiderteTokens(ctx: Context): TokenValidationContext {
+    fun hentValiderteTokens(ctx: Context): TokenValidationContext {
         val tokenValidationHandler = hentTokenValidationHandler()
         val validatedTokens = tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
         if (validatedTokens == null) {

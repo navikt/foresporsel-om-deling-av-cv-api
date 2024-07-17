@@ -24,6 +24,7 @@ import utils.log
 import utils.objectMapper
 import utils.settCallId
 import java.io.Closeable
+import java.net.URL
 import java.util.*
 import kotlin.concurrent.thread
 
@@ -80,6 +81,9 @@ fun main() {
 
     try {
         log("main").info("Starter app i cluster ${Miljø.current.asString()}")
+        log("main").info("AZURE_APP_WELL_KNOWN_URL:" + URL(System.getenv("AZURE_APP_WELL_KNOWN_URL")))
+        log("main").info("AZURE_APP_CLIENT_ID:" + URL(System.getenv("AZURE_APP_CLIENT_ID")))
+        log("main").info("AZURE_OPENID_CONFIG_ISSUER:" + URL(System.getenv("AZURE_OPENID_CONFIG_ISSUER")))
         val rollekeys = initierRollekeys()
 
         val database = Database()
