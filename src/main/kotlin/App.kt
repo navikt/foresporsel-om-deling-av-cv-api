@@ -81,9 +81,9 @@ fun main() {
 
     try {
         log("main").info("Starter app i cluster ${Miljø.current.asString()}")
-        log("main").info("AZURE_APP_WELL_KNOWN_URL:" + System.getenv("AZURE_APP_WELL_KNOWN_URL"))
-        log("main").info("AZURE_APP_CLIENT_ID:" + System.getenv("AZURE_APP_CLIENT_ID"))
-        log("main").info("AZURE_OPENID_CONFIG_ISSUER:" + System.getenv("AZURE_OPENID_CONFIG_ISSUER"))
+        log("main").info("url:" + System.getenv("AZURE_APP_WELL_KNOWN_URL"))
+        log("main").info("klientid:" + System.getenv("AZURE_APP_CLIENT_ID"))
+        log("main").info("issuer:" + System.getenv("AZURE_OPENID_CONFIG_ISSUER"))
         val rollekeys = initierRollekeys()
 
         val database = Database()
