@@ -6,7 +6,6 @@ import io.javalin.http.UnauthorizedResponse
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import no.nav.security.token.support.core.context.TokenValidationContext
-import no.nav.security.token.support.core.context.TokenValidationContextHolder
 import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
 import utils.log
@@ -29,8 +28,12 @@ class TokenHandler(
     }
 
     fun hentTokenSomString(ctx: Context): String {
-        return hentValiderteTokens(ctx).getJwtToken(TOKEN_ISSUER_AZUREAD).tokenAsString
-            ?: throw RuntimeException("Ingen gyldig token funnet for issuer: $TOKEN_ISSUER_AZUREAD")
+        val validerteTokens = hentValiderteTokens(ctx)
+        val token = validerteTokens.getJwtToken(TOKEN_ISSUER_AZUREAD)?.tokenAsString
+        if (token == null) {
+            throw RuntimeException("Ingen gyldig token funnet for issuer: $TOKEN_ISSUER_AZUREAD")
+        }
+        return token
     }
 
     fun validerToken(ctx: Context) {
@@ -63,7 +66,11 @@ class TokenHandler(
 
     private fun hentValiderteTokens(ctx: Context): TokenValidationContext {
         val tokenValidationHandler = hentTokenValidationHandler()
-        return tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
+        val validatedTokens = tokenValidationHandler.getValidatedTokens(getHttpRequest(ctx))
+        if (validatedTokens == null) {
+            throw RuntimeException("Token validation failed")
+        }
+        return validatedTokens
     }
 
     private fun hentNavIdent(validerteTokens: TokenValidationContext): String {
@@ -73,7 +80,6 @@ class TokenHandler(
     }
 
     fun hentRoller(ctx: Context): List<Rolle> {
-
         return issuerProperties.flatMap { issuerProperty ->
             hentValiderteTokens(ctx)
                 .getClaims(issuerProperty.cookieName)
@@ -88,7 +94,7 @@ class TokenHandler(
             cachedHandler!!.handler
         } else {
             val expires = LocalDateTime.now().plusHours(1)
-            log("hentTokenValidationHandler").info("Henter og cacher nye public keys til $expires")
+            log.info("Henter og cacher nye public keys til $expires")
 
             val newHandler = JwtTokenValidationHandler(
                 MultiIssuerConfiguration(issuerProperties.associateBy { it.cookieName })
@@ -139,3 +145,4 @@ class TokenHandler(
         fun asString(): String = name.lowercase()
     }
 }
+
