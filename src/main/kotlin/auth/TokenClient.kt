@@ -4,7 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.result.Result
+import org.ehcache.Cache
+import org.ehcache.CacheManager
+import org.ehcache.config.builders.CacheConfigurationBuilder
+import org.ehcache.config.builders.CacheManagerBuilder
+import org.ehcache.config.builders.ExpiryPolicyBuilder
+import org.ehcache.config.builders.ResourcePoolsBuilder
 import utils.log
+import java.time.Duration
 import java.time.LocalDateTime
 
 abstract class TokenClient(
@@ -25,11 +32,10 @@ abstract class TokenClient(
     }
 
     private fun fetchNewToken(formData: List<Pair<String, String>>): TokenResponse {
-        val (request, response, result) = Fuel.post(config.tokenEndpoint)
+        val (_, response, result) = Fuel.post(config.tokenEndpoint)
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(formData.joinToString("&") { "${it.first}=${it.second}" })
             .response()
-
 
         return when (result) {
             is Result.Success -> {
@@ -51,10 +57,17 @@ abstract class TokenClient(
 }
 
 class TokenCache(private val expiryMarginSeconds: Long = 30L) {
-    private val cache = mutableMapOf<String, CachedToken>()
+    private val cacheManager: CacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true)
+    private val cache: Cache<String, CachedToken> = cacheManager.createCache("tokenCache",
+        CacheConfigurationBuilder.newCacheConfigurationBuilder(
+            String::class.java, CachedToken::class.java,
+            ResourcePoolsBuilder.heap(5000)
+        ).withExpiry(ExpiryPolicyBuilder.timeToIdleExpiration(Duration.ofSeconds(expiryMarginSeconds)))
+            .build()
+    )
 
     fun getToken(key: String): String? {
-        val cachedToken = cache[key]
+        val cachedToken = cache.get(key)
         return if (cachedToken != null && !cachedToken.isExpired(expiryMarginSeconds)) {
             cachedToken.token
         } else {
@@ -64,7 +77,7 @@ class TokenCache(private val expiryMarginSeconds: Long = 30L) {
 
     fun putToken(key: String, token: String, expiresInSeconds: Long) {
         val expiryTime = LocalDateTime.now().plusSeconds(expiresInSeconds)
-        cache[key] = CachedToken(token, expiryTime)
+        cache.put(key, CachedToken(token, expiryTime))
     }
 
     private data class CachedToken(val token: String, val expiryTime: LocalDateTime) {

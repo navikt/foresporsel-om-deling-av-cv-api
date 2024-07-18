@@ -6,13 +6,13 @@ import io.javalin.http.HttpResponseException
 import org.eclipse.jetty.http.HttpStatus
 
 class Autorisasjon(private val kandidatsokApiKlient: KandidatsokApiKlient) {
-    fun verifiserRoller(rollerIToken: List<TokenHandler.Rolle>, nødvendigeRoller: List<TokenHandler.Rolle>) {
+    fun validerRoller(rollerIToken: List<TokenHandler.Rolle>, nødvendigeRoller: List<TokenHandler.Rolle>) {
         if (rollerIToken.none { it in nødvendigeRoller }) {
             throw HttpResponseException(HttpStatus.FORBIDDEN_403, "Ikke tilgang")
         }
     }
 
-    fun verifiserKandidatTilgang(ctx: Context, navIdent: String, aktorid: String) {
+    fun validerKandidatTilgang(ctx: Context, navIdent: String, aktorid: String) {
         kandidatsokApiKlient.verifiserKandidatTilgang(ctx, navIdent, aktorid)
     }
 

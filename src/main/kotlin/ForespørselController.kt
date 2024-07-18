@@ -30,7 +30,7 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { stillingsId ->
-            autorisasjon.verifiserRoller(
+            autorisasjon.validerRoller(
                 tokenHandler.hentRoller(ctx),
                 listOf(UTVIKLER, ARBEIDSGIVERRETTET)
             )
@@ -46,11 +46,11 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
-            autorisasjon.verifiserRoller(
+            autorisasjon.validerRoller(
                 tokenHandler.hentRoller(ctx),
                 listOf(UTVIKLER, JOBBSØKERRETTET, ARBEIDSGIVERRETTET)
             )
-            autorisasjon.verifiserKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
+            autorisasjon.validerKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
             val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
 
@@ -61,7 +61,7 @@ class ForespørselController(
     }
 
     val sendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
-        autorisasjon.verifiserRoller(
+        autorisasjon.validerRoller(
             tokenHandler.hentRoller(ctx),
             listOf(UTVIKLER, ARBEIDSGIVERRETTET)
         )
@@ -125,7 +125,7 @@ class ForespørselController(
         } else Ok
 
     val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
-        autorisasjon.verifiserRoller(
+        autorisasjon.validerRoller(
             tokenHandler.hentRoller(ctx),
             listOf(UTVIKLER, ARBEIDSGIVERRETTET)
         )

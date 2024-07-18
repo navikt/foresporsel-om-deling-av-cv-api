@@ -74,9 +74,7 @@ class TokenHandler(
     }
 
     private fun hentTokenValidationHandler(): JwtTokenValidationHandler {
-        return if (cachedHandler != null && cachedHandler!!.expires.isAfter(LocalDateTime.now())) {
-            cachedHandler!!.handler
-        } else {
+        return if (cachedHandler == null || cachedHandler!!.erUtgått()) {
             val expires = LocalDateTime.now().plusHours(1)
             log.info("Henter og cacher nye public keys til $expires")
 
@@ -86,6 +84,8 @@ class TokenHandler(
 
             cachedHandler = CachedHandler(newHandler, expires)
             newHandler
+        } else {
+            cachedHandler!!.handler
         }
     }
 
@@ -99,10 +99,12 @@ class TokenHandler(
         }.toTypedArray()
     }
 
-    data class CachedHandler(
+    class CachedHandler(
         val handler: JwtTokenValidationHandler,
-        var expires: LocalDateTime,
-    )
+        val expires: LocalDateTime) {
+
+        fun erUtgått() = expires.isBefore(LocalDateTime.now())
+    }
 
     enum class Rolle {
         JOBBSØKERRETTET,

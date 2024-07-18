@@ -62,6 +62,8 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 
+    implementation("org.ehcache:ehcache:3.10.8")
+
     implementation("com.github.navikt:rapids-and-rivers:2023041310341681374880.67ced5ad4dda")
 
     testImplementation(kotlin("test"))
