@@ -1,5 +1,6 @@
 package auth.obo
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.Headers
 import com.github.kittinunf.fuel.core.extensions.authentication
@@ -35,7 +36,7 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
         val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
         val token = onBehalfOfTokenClient.getOboToken(ctx, kandidatsokScope, navIdent)
 
-        log.info("sender forespørsel til kandidatsøket: POST aktørid: $aktorid $url ${body.toJson()}")
+        log.info("sender forespørsel til : POST aktørid: $aktorid $url ${body.toJson()}")
 
         val (_, response, result) = Fuel.post(url)
             .header(Headers.CONTENT_TYPE,  "application/json")
@@ -70,17 +71,13 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
         }
     }
 
-    private fun BrukertilgangRequestDto.toJson(): String {
-        return """{
-            "fodselsnummer": "$fodselsnummer",
-            "aktorid": "$aktorid",
-            "kandidatnr": "$kandidatnr"
-        }"""
-    }
-
     private data class BrukertilgangRequestDto(
         val fodselsnummer: String?,
         val aktorid: String?,
         val kandidatnr: String?
-    )
+    ) {
+
+        fun toJson() =
+            jacksonObjectMapper().writeValueAsString(this)
+    }
 }
