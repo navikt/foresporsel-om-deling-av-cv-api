@@ -26,9 +26,9 @@ class TokenHandler(
         Rolle.setRolleKeys(rolleKeys)
     }
 
-    fun validerToken(ctx: Context) { // TODO: FJERN
+    fun validerToken(ctx: Context) {
         val url = ctx.req.requestURL.toString()
-        if (skalValideres(url)) {
+        if (endepunktUtenTokenvalidering.none { url.contains(it) }) {
             val validerteTokens = hentValiderteTokens(ctx)
 
             if (validerteTokens.hasValidToken()) {
@@ -47,12 +47,6 @@ class TokenHandler(
     fun clearCache() {
         cachedHandler = null
     }
-
-    fun setCacheExpires(expires: LocalDateTime) {
-        cachedHandler?.expires = expires
-    }
-
-    private fun skalValideres(url: String) = endepunktUtenTokenvalidering.none { url.contains(it) }
 
     fun hentValiderteTokens(ctx: Context): TokenValidationContext {
         val tokenValidationHandler = hentTokenValidationHandler()
