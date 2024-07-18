@@ -36,15 +36,11 @@ class KandidatsokApiKlient(private val onBehalfOfTokenClient: OnBehalfOfTokenCli
         val body = BrukertilgangRequestDto(fodselsnummer = null, aktorid = aktorid, kandidatnr = null)
         val token = onBehalfOfTokenClient.getOboToken(ctx, kandidatsokScope, navIdent)
 
-        log.info("sender forespørsel til : POST aktørid: $aktorid $url ${body.toJson()}")
-
         val (_, response, result) = Fuel.post(url)
             .header(Headers.CONTENT_TYPE,  "application/json")
             .authentication().bearer(token)
             .jsonBody(body.toJson())
             .response()
-
-        log.info("mottar svar fra kandidatsøket for aktørid: $aktorid ${response.statusCode}")
 
         when (result) {
             is Result.Success -> logger.info("Tilgang verifisert: ${response.body().asString("application/json")}")
