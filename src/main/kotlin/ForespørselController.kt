@@ -1,3 +1,6 @@
+import auth.Autorisasjon
+import auth.TokenHandler
+import auth.TokenHandler.Rolle.*
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
 import org.slf4j.event.Level
@@ -15,8 +18,10 @@ const val aktorIdParamName = "aktørId"
 
 class ForespørselController(
     private val repository: Repository,
-    sendUsendteForespørsler: () -> Unit,
-    hentStilling: (UUID) -> Stilling?
+    private val tokenHandler: TokenHandler,
+    private val sendUsendteForespørsler: () -> Unit,
+    private val hentStilling: (UUID) -> Stilling?,
+    private val autorisasjon: Autorisasjon
 ) {
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
@@ -25,6 +30,10 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { stillingsId ->
+            autorisasjon.validerRoller(
+                tokenHandler.hentRoller(ctx),
+                listOf(UTVIKLER, ARBEIDSGIVERRETTET)
+            )
             ctx.json(hentForespørslerGruppertPåAktørId(stillingsId))
             ctx.status(200)
         }
@@ -37,6 +46,11 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { aktørId ->
+            autorisasjon.validerRoller(
+                tokenHandler.hentRoller(ctx),
+                listOf(UTVIKLER, JOBBSØKERRETTET, ARBEIDSGIVERRETTET)
+            )
+            autorisasjon.validerKandidatTilgang(ctx, tokenHandler.hentNavIdent(ctx), aktørId)
             val alleForespørslerForKandidat = repository.hentForespørslerForKandidat(aktørId)
             val gjeldendeForespørslerForKandidat = alleForespørslerForKandidat.associateBy { it.stillingsId }.values
 
@@ -47,6 +61,12 @@ class ForespørselController(
     }
 
     val sendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
+        autorisasjon.validerRoller(
+            tokenHandler.hentRoller(ctx),
+            listOf(UTVIKLER, ARBEIDSGIVERRETTET)
+        )
+
+
         val forespørselOmDelingAvCvDto = try {
             ctx.bodyAsClass(ForespørselInboundDto::class.java)
         } catch (e: MissingKotlinParameterException) {
@@ -71,7 +91,7 @@ class ForespørselController(
                         aktørIder = forespørselOmDelingAvCvDto.aktorIder,
                         stillingsId = forespørselOmDelingAvCvDto.stillingsId.toUUID(),
                         svarfrist = forespørselOmDelingAvCvDto.svarfrist.toLocalDateTime(),
-                        deltAvNavIdent = ctx.hentNavIdent(),
+                        deltAvNavIdent = tokenHandler.hentNavIdent(ctx),
                         navKontor = forespørselOmDelingAvCvDto.navKontor,
                         callId = ctx.hentCallId()
                     )
@@ -105,6 +125,11 @@ class ForespørselController(
         } else Ok
 
     val resendForespørselOmDelingAvCv: (Context) -> Unit = { ctx ->
+        autorisasjon.validerRoller(
+            tokenHandler.hentRoller(ctx),
+            listOf(UTVIKLER, ARBEIDSGIVERRETTET)
+        )
+
         val inboundDto = ctx.bodyAsClass(ResendForespørselInboundDto::class.java)
         val aktørId = ctx.pathParam(aktorIdParamName)
 
@@ -119,7 +144,7 @@ class ForespørselController(
                     aktørIder = listOf(aktørId),
                     stillingsId = inboundDto.stillingsId.toUUID(),
                     svarfrist = inboundDto.svarfrist.toLocalDateTime(),
-                    deltAvNavIdent = ctx.hentNavIdent(),
+                    deltAvNavIdent = tokenHandler.hentNavIdent(ctx),
                     navKontor = inboundDto.navKontor,
                     callId = ctx.hentCallId(),
                 )

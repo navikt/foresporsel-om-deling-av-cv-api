@@ -1,3 +1,4 @@
+import auth.AzureConfig
 import stilling.Arbeidssted
 import stilling.Kontakt
 import stilling.Stilling
@@ -23,6 +24,13 @@ fun enStilling() = Stilling(
 val enNavIdent = "A100001"
 
 val hentStillingMock: (UUID) -> Stilling? = { enStilling() }
+
+val testAzureConfig = AzureConfig(
+    azureClientSecret = "test-secret",
+    azureClientId = "test-client-id",
+    tokenEndpoint = "http://localhost:18300/azuread/oauth2/v2.0/token"
+)
+
 
 fun enForespørsel(
     aktørId: String = "aktørId",

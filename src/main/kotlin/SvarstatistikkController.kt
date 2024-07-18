@@ -3,6 +3,9 @@ import java.time.LocalDate
 
 class SvarstatistikkController(private val repository: Repository) {
     val hentSvarstatistikk: (Context) -> Unit = { ctx ->
+
+        // Ingen rollestyring, alle kan hente svarstatistikk
+
         val fraOgMed = ctx.queryParam("fraOgMed")
         val tilOgMed = ctx.queryParam("tilOgMed")
         val navKontor = ctx.queryParam("navKontor")

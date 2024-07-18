@@ -1,3 +1,9 @@
+import auth.Autorisasjon
+import auth.TokenCache
+import auth.TokenHandler
+import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
+import auth.obo.KandidatsokApiKlient
+import auth.obo.OnBehalfOfTokenClient
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
 import kandidatevent.RegistrertFåttJobbenLytter
@@ -23,7 +29,7 @@ fun main() {
         this.start(port = 18300)
     }
 
-    println("Token for lokal testing: ${hentToken("A123456", mockOAuth2Server)}")
+    println("Token for lokal testing: ${hentToken("A123456", listOf(ARBEIDSGIVERRETTET), mockOAuth2Server)}")
 
     startLokalApp()
 }
@@ -43,10 +49,20 @@ fun startLokalApp(
     jsonProducer: Producer<String, String> = mockProducerJson,
     log: Logger = LoggerFactory.getLogger("LokalApp")
 ): App {
-    val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
-    val forespørselController = ForespørselController(repository, usendtScheduler::kjørEnGang, hentStilling)
-    val svarstatistikkController = SvarstatistikkController(repository)
 
+    val tokenCache = TokenCache(30L)
+    val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
+
+    val tokenHandler = TokenHandler(
+        listOf(
+            IssuerProperties(
+                URL("http://localhost:18300/default/.well-known/openid-configuration"),
+                listOf("default"),
+                "azuread"
+            )
+        ),
+        Rollekeys("jobbsokerrettetGruppe", "arbeidsgiverrettetGruppe", "utviklerGruppe")
+    )
     val issuerProperties = listOf(
         IssuerProperties(
             URL("http://localhost:18300/default/.well-known/openid-configuration"),
@@ -54,8 +70,24 @@ fun startLokalApp(
             "azuread"
         )
     )
+    val kandidatsokApiKlient = KandidatsokApiKlient(
+        OnBehalfOfTokenClient(
+            testAzureConfig,
+            TokenHandler(
+                issuerProperties,
+                Rollekeys("jobbsokerrettetGruppe", "arbeidsgiverrettetGruppe", "utviklerGruppe")
+            ),
+            tokenCache
+        )
+    )
+    val autorisasjon = Autorisasjon(kandidatsokApiKlient)
 
-    val svarService = SvarService(consumer, repository){true}
+    val forespørselController =
+        ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, hentStilling, autorisasjon)
+    val svarstatistikkController = SvarstatistikkController(repository)
+
+
+    val svarService = SvarService(consumer, repository) { true }
 
     KandidatlisteLukketLytter(testRapid, "topic", jsonProducer, repository, log)
     DelCvMedArbeidsgiverLytter(testRapid, "topic", jsonProducer, repository, log)
@@ -64,10 +96,10 @@ fun startLokalApp(
     val app = App(
         forespørselController,
         svarstatistikkController,
-        issuerProperties,
         usendtScheduler,
         svarService,
-        testRapid
+        testRapid,
+        tokenHandler
     )
 
     app.start()
