@@ -50,7 +50,7 @@ class SendForespørselTest {
                 assertThat(actual.getAktorId()).isEqualTo(expected.aktørId)
                 assertThat(actual.getStillingsId()).isEqualTo(expected.stillingsId.toString())
                 assertThat(
-                    LocalDateTime.ofInstant(actual.getOpprettet(), ZoneId.of("UTC"))
+                    LocalDateTime.ofInstant(actual.getOpprettet(), ZoneId.of("Europe/Oslo"))
                 ).isEqualToIgnoringNanos(
                     expected.deltTidspunkt
                 )

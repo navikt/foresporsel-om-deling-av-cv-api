@@ -71,7 +71,7 @@ data class Forespørsel(
         aktørId,
         stillingsId.toString(),
         deltAv,
-        deltTidspunkt.toInstant(ZoneOffset.UTC),
+        ZonedDateTime.of(deltTidspunkt, ZoneId.of("Europe/Oslo")).toInstant(),
         svarfrist.toInstant(),
         callId,
         stilling.stillingtittel,
