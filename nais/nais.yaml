@@ -37,7 +37,7 @@ spec:
         - application: rekrutteringsbistand
           namespace: toi
           cluster: {{ gcp-cluster }}
-        - application: rekrutteringsbistand-next
+        - application: rekrutteringsbistand-frontend
           namespace: toi
           cluster: {{ gcp-cluster }}
         - application: rekrutteringsbistand-kandidat-api
