@@ -6,17 +6,19 @@ import utils.Miljø
 import utils.Miljø.*
 import javax.sql.DataSource
 
+private const val databasenavn = "foresporsel-om-deling-av-cv-pg15"
+
 class Database {
     val dataSource: DataSource
 
     private val config: DbConf = when (Miljø.current) {
         DEV_FSS -> DbConf(
             mountPath = "postgresql/preprod-fss",
-            jdbcUrl = "jdbc:postgresql://b27dbvl024.preprod.local:5432/foresporsel-om-deling-av-cv"
+            jdbcUrl = "jdbc:postgresql://b27dbvl035.preprod.local:5432/$databasenavn"
         )
         PROD_FSS -> DbConf(
             mountPath = "postgresql/prod-fss",
-            jdbcUrl = "jdbc:postgresql://A01DBVL022.adeo.no:5432/foresporsel-om-deling-av-cv"
+            jdbcUrl = "jdbc:postgresql://A01DBVL037.adeo.no:5432/$databasenavn"
         )
         LOKAL -> throw TODO()
     }
@@ -37,14 +39,14 @@ class Database {
         return HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
             hikariConfig,
             config.mountPath,
-            "foresporsel-om-deling-av-cv-$role"
+            "$databasenavn-$role"
         )
     }
 
     private fun kjørFlywayMigreringer() {
         Flyway.configure()
             .dataSource(opprettDataSource(role = "admin"))
-            .initSql("SET ROLE \"foresporsel-om-deling-av-cv-admin\"")
+            .initSql("SET ROLE \"$databasenavn-admin\"")
             .load()
             .migrate()
     }
