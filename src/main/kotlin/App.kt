@@ -80,7 +80,6 @@ class App(
 fun main() {
 
     try {
-        throw Exception("Mens vi legger ut ny database.. denne meldingen skal ikke komme pga 0 replicas")
         log("main").info("Starter app i cluster ${Miljø.current.asString()}")
         val rollekeys = initierRollekeys()
 
