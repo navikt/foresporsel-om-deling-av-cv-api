@@ -18,6 +18,9 @@ spec:
     path: /internal/isAlive
   readiness:
     path: /internal/isReady
+  replicas:
+    min: 0
+    max: 0
   webproxy: true
   azure:
     application:
