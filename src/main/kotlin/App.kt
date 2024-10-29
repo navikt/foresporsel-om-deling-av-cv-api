@@ -80,6 +80,7 @@ class App(
 fun main() {
 
     try {
+        throw Exception("Skal ikke vises siden app ikke skal startes uansett mens database migreres")
         log("main").info("Starter app i cluster ${Miljø.current.asString()}")
         val rollekeys = initierRollekeys()
 
