@@ -138,6 +138,45 @@ class ForespørselControllerTest {
     }
 
     @Test
+    fun `Kall til POST-endepunkt skal lagre tittel fra tittelfeltet om det finnes`() {
+        val database = TestDatabase()
+        val stillingsReferanse = UUID.randomUUID()
+        stubHentStilling(stillingsReferanse, tittel = "Statsminister")
+        val aktørid1 = "234"
+        val aktørid2 = "345"
+        val aktørid3 = "456"
+
+        startWiremockApp(database).use {
+            val inboundDto = ForespørselInboundDto(
+                stillingsId = stillingsReferanse.toString(),
+                svarfrist = omTreDager,
+                aktorIder = listOf(aktørid1, aktørid2, aktørid3),
+                navKontor = navKontor
+            )
+
+            val callId = UUID.randomUUID().toString()
+
+            val navIdent = "X12345"
+
+            Fuel.post("http://localhost:8333/foresporsler")
+                .medToken(mockOAuth2Server, navIdent, listOf(ARBEIDSGIVERRETTET))
+                .header(foretrukkenCallIdHeaderKey, callId)
+                .objectBody(inboundDto, mapper = objectMapper)
+                .response()
+
+            val lagredeForespørsler = database.hentAlleForespørsler()
+
+            assertThat(lagredeForespørsler.size).isEqualTo(inboundDto.aktorIder.size)
+
+            val actualMeldinger: Map<String, ForesporselOmDelingAvCv> =
+                mockProducer.history().map { it.value() }.associateBy { it.getAktorId() }
+
+            val aktør1: ForesporselOmDelingAvCv = actualMeldinger[aktørid1] ?: fail("Vi fant ikke aktørid1")
+            assertThat(aktør1.getStillingstittel()).isEqualTo("Statsminister")
+        }
+    }
+
+    @Test
     fun `Kall til POST-endepunkt, med stilling med søknadsfrist, skal sende den videre på kafka`() {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
@@ -849,7 +888,8 @@ class ForespørselControllerTest {
         stillingsReferanse: UUID?,
         kategori: String? = null,
         stillingsinfo: String? = stillingsinfo(kategori),
-        soknadsFrist: String? = "Snarest"
+        soknadsFrist: String? = "Snarest",
+        tittel: String? = null
     ) {
         wireMock.stubFor(
             WireMock.get(WireMock.urlPathEqualTo("/stilling/_doc/${stillingsReferanse}"))
@@ -869,6 +909,7 @@ class ForespørselControllerTest {
                                   "_source": {
                                     "stilling": {
                                       "title": "En formidling",
+                                      ${tittel?.let{ """"tittel":"$it","""}?:""}
                                       "uuid": "3f294b41-9fd6-4a83-b838-5036da69d83c",
                                       "annonsenr": "610647",
                                       "status": "ACTIVE",
