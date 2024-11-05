@@ -61,13 +61,13 @@ jobs:
             context: .
             push: true
             tags: ${{ env.IMAGE }}
-      #- uses: nais/deploy/actions/deploy@v1
-      #  env:
-      #    APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-      #    CLUSTER: dev-fss
-      #    VAR: image=${{ env.IMAGE }}
-      #    RESOURCE: nais/nais.yaml
-      #    VARS: nais/nais-dev.json
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-fss
+          VAR: image=${{ env.IMAGE }}
+          RESOURCE: nais/nais.yaml
+          VARS: nais/nais-dev.json
 
   deploy-to-prod:
     name: Deploy til prod
