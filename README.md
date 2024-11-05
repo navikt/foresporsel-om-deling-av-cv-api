@@ -21,7 +21,7 @@ Bruker kan godta eller avslå at deres CV kan deles med arbeidsgiver. Svaret på
 * Dette Git-repositoriet eies
   av [team Toi i produktområde Arbeidsgiver](https://teamkatalog.nav.no/team/76f378c5-eb35-42db-9f4d-0e8197be0131).
 * Slack-kanaler:
-  * [#arbeidsgiver-toi-dev](https://nav-it.slack.com/archives/C02HTU8DBSR) 
+  * [#arbeidsgiver-toi-dev](https://nav-it.slack.com/archives/C02HTU8DBSR)
   * [#rekrutteringsbistand-værsågod](https://nav-it.slack.com/archives/C02HWV01P54)
 
 ## For folk utenfor Nav 
