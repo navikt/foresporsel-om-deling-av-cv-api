@@ -2,9 +2,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: foresporsel-om-deling-av-cv-api
-  namespace: arbeidsgiver-inkludering
+  namespace: toi
   labels:
-    team: arbeidsgiver-inkludering
+    team: toi
 spec:
   groups:
     - name: foresporsel-om-deling-av-cv-api

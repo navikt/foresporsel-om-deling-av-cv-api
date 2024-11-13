@@ -29,9 +29,10 @@ jobs:
   deploy-to-dev:
     name: Deploy til dev
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/nytt_janzz_felt'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/bytt-namespace-til-toi'
     permissions:
       packages: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -61,9 +62,8 @@ jobs:
             context: .
             push: true
             tags: ${{ env.IMAGE }}
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-fss
           VAR: image=${{ env.IMAGE }}
           RESOURCE: nais/nais.yaml
@@ -76,9 +76,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-fss
           VAR: image=${{ env.IMAGE }}
           RESOURCE: nais/nais.yaml,nais/alerts.yaml
