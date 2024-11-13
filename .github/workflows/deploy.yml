@@ -73,6 +73,9 @@ jobs:
     name: Deploy til prod
     needs: deploy-to-dev
     if: github.ref == 'refs/heads/main'
+    permissions:
+      packages: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
