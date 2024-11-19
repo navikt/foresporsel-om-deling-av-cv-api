@@ -24,7 +24,6 @@ import utils.log
 import utils.objectMapper
 import utils.settCallId
 import java.io.Closeable
-import java.net.URL
 import java.util.*
 import kotlin.concurrent.thread
 

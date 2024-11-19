@@ -49,7 +49,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Bygg jar med Gradle
-        run: ./gradlew shadowJar
+        run: ./gradlew build
       - name: Logg inn til Github
         uses: docker/login-action@v2
         with:
