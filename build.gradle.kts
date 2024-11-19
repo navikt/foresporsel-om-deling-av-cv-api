@@ -1,6 +1,6 @@
 plugins {
     // Bruk samme Kotlin-version som gradlew. gradlew oppdateres med å kjøre denne kommandoen to (2) ganger etterhverandre:
-    // ./gradlew wrapper --gradle-version <x.y.z> --distribution-type all
+    // ./gradlew wrapper --gradle-version latest --distribution-type all
     kotlin("jvm") version embeddedKotlinVersion
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.5.0"
@@ -17,7 +17,7 @@ application {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
