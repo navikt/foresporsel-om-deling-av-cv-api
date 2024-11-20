@@ -45,7 +45,7 @@ jobs:
         env:
           CLUSTER: prod-fss
           VAR: image=${{ needs.call-build-java-gradlew.outputs.image }}
-          RESOURCE: nais/nais.yaml,nais/alerts.yml
+          RESOURCE: nais/nais.yaml,nais/alerts.yaml
           VARS: nais/nais-prod.json
 
   call-trivy-security-scan:
