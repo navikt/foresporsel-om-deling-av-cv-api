@@ -2,9 +2,6 @@ name: Bygg og deploy
 
 on: [ push, workflow_dispatch ]
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}/foresporsel-om-deling-av-cv-api:${{ github.sha }}
-
 jobs:
   call-build-java-gradlew:
     uses: navikt/toi-github-actions-workflows/.github/workflows/build-java-gradlew.yaml@main
@@ -20,6 +17,9 @@ jobs:
     needs: call-build-java-gradlew
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/trivy'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v2
@@ -36,6 +36,9 @@ jobs:
       - call-build-java-gradlew
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v2
