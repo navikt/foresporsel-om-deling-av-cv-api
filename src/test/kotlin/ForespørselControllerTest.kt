@@ -58,7 +58,7 @@ class ForespørselControllerTest {
     fun `Kall til POST-endepunkt skal lagre informasjon om forespørselen i database`() {
         val database = TestDatabase()
         val stillingsReferanse = UUID.randomUUID()
-        stubHentStilling(stillingsReferanse)
+        stubHentStilling(stillingsReferanse, tittel="Taksidermist")
         val aktørid1 = "234"
         val aktørid2 = "345"
         val aktørid3 = "456"
@@ -998,8 +998,7 @@ class ForespørselControllerTest {
                                           "email": "",
                                           "phone": "000"
                                         }
-                                      ],
-						              "styrkEllerTittel": "Taksidermist"
+                                      ]
                                     },
                                     "stillingsinfo": $stillingsinfo
                                   }
