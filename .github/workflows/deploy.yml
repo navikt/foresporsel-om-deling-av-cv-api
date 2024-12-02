@@ -29,6 +29,7 @@ jobs:
 
   deploy-to-dev:
     name: Deploy to dev
+
     needs: build-and-publish
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/revert-saa-funker-i-dev'
     runs-on: ubuntu-latest

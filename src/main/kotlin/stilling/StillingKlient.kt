@@ -36,7 +36,7 @@ class StillingKlient(private val accessToken: () -> String) {
         val _source: EsSource
     ) {
         fun toStilling(): Stilling = Stilling(
-            stillingtittel = _source.stilling.tittel ?: _source.stilling.styrkEllerTittel,
+            stillingtittel = _source.stilling.tittel ?: "Stilling uten valgt jobbtittel",
             søknadsfrist = _source.stilling.properties.applicationdue,
             arbeidsgiver = _source.stilling.employer.name,
             arbeidssteder = _source.stilling.locations.map(EsArbeidssted::toArbeidssted),
@@ -50,7 +50,6 @@ class StillingKlient(private val accessToken: () -> String) {
         )
 
         private data class EsStilling(
-            val styrkEllerTittel: String,
             val tittel: String?,
             val properties: Properties,
             val employer: Employer,
