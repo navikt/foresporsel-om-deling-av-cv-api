@@ -7,6 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.docker.outputs.image }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
