@@ -62,7 +62,8 @@ dependencies {
 
     implementation("org.ehcache:ehcache:3.10.8")
 
-    implementation("com.github.navikt:rapids-and-rivers:2023041310341681374880.67ced5ad4dda")
+    implementation("com.github.navikt:rapids-and-rivers:2025010715371736260653.d465d681c420")
+    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:2025.01.10-08.49-9e6f64ad")
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.1.214")

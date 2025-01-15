@@ -1,6 +1,7 @@
 import auth.*
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.javalin.Javalin
 import io.javalin.plugin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
@@ -11,7 +12,6 @@ import mottasvar.consumerConfig
 import no.nav.foresporselomdelingavcv.avroProducerConfig
 import no.nav.foresporselomdelingavcv.jsonProducerConfig
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.KafkaConsumer

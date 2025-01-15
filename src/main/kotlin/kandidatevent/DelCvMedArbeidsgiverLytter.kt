@@ -2,6 +2,12 @@ package kandidatevent
 
 import Repository
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.rapids_rivers.*
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -29,7 +35,12 @@ class DelCvMedArbeidsgiverLytter(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry
+    ) {
         val stillingsId = packet["stillingsId"].asText().toUUID()
         val navIdent = packet["utførtAvNavIdent"].asText()
         val tidspunkt = packet["tidspunkt"].asText()
@@ -37,7 +48,8 @@ class DelCvMedArbeidsgiverLytter(
         packet["kandidater"].fields().asSequence()
             .map(MutableMap.MutableEntry<String, JsonNode>::key)
             .mapNotNull {
-                val forespørsel = repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId)
+                val forespørsel =
+                    repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId)
                 if (forespørsel != null) {
                     forespørsel
                 } else {
