@@ -2,6 +2,13 @@ package kandidatevent
 
 import Repository
 import com.fasterxml.jackson.databind.node.ArrayNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.rapids_rivers.*
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -23,12 +30,23 @@ class KandidatlisteLukketLytter(
             validate {
                 it.demandValue("@event_name", "kandidat_v2.LukketKandidatliste")
                 it.rejectValue("@slutt_av_hendelseskjede", true)
-                it.requireKey("aktørIderFikkJobben", "aktørIderFikkIkkeJobben", "stillingsId", "utførtAvNavIdent", "tidspunkt")
+                it.requireKey(
+                    "aktørIderFikkJobben",
+                    "aktørIderFikkIkkeJobben",
+                    "stillingsId",
+                    "utførtAvNavIdent",
+                    "tidspunkt"
+                )
             }
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry
+    ) {
         val noenFikkJobben = !(packet["aktørIderFikkJobben"] as ArrayNode).isEmpty
         val aktørIderFikkIkkeJobben = packet["aktørIderFikkIkkeJobben"].map { it.asText() }
         val stillingsId = UUID.fromString(packet["stillingsId"].asText())
@@ -36,7 +54,12 @@ class KandidatlisteLukketLytter(
         val tidspunkt = packet["tidspunkt"].asText()
 
         aktørIderFikkIkkeJobben
-            .mapNotNull { repository.hentSisteForespørselForKandidatOgStilling(aktørId = it, stillingsId = stillingsId)  }
+            .mapNotNull {
+                repository.hentSisteForespørselForKandidatOgStilling(
+                    aktørId = it,
+                    stillingsId = stillingsId
+                )
+            }
             .filter { it.harSvartJa() }
             .map {
                 KandidatlisteLukket(
@@ -46,15 +69,16 @@ class KandidatlisteLukketLytter(
                     tidspunkt = tidspunkt
                 )
             }
-            .mapNotNull { it.tilMelding(topic = eksterntTopic)}
+            .mapNotNull { it.tilMelding(topic = eksterntTopic) }
             .forEach(statusOppdateringProducer::send)
 
         packet["@slutt_av_hendelseskjede"] = true
         context.publish(packet.toJson())
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext) {
+    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
         log.error("$problems")
+        super.onError(problems, context, metadata)
     }
 
     class KandidatlisteLukket(

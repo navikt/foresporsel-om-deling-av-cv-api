@@ -4,11 +4,11 @@ import auth.TokenHandler
 import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
 import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
 import kandidatevent.RegistrertFåttJobbenLytter
 import mottasvar.SvarService
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
