@@ -24,9 +24,11 @@ class RegistrertFåttJobbenLytter(
 
     init {
         River(rapidsConnection).apply {
+            precondition{
+                it.requireValue("@event_name", "kandidat_v2.RegistrertFåttJobben")
+                it.forbidValue("@slutt_av_hendelseskjede", true)
+            }
             validate {
-                it.demandValue("@event_name", "kandidat_v2.RegistrertFåttJobben")
-                it.rejectValue("@slutt_av_hendelseskjede", true)
                 it.requireKey("stillingsId", "utførtAvNavIdent", "tidspunkt", "aktørId")
             }
         }.register(this)

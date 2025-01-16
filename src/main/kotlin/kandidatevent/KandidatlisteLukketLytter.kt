@@ -27,9 +27,12 @@ class KandidatlisteLukketLytter(
 
     init {
         River(rapidsConnection).apply {
+            precondition{
+                it.requireValue("@event_name", "kandidat_v2.LukketKandidatliste")
+                it.forbidValue("@slutt_av_hendelseskjede", true)
+            }
             validate {
-                it.demandValue("@event_name", "kandidat_v2.LukketKandidatliste")
-                it.rejectValue("@slutt_av_hendelseskjede", true)
+
                 it.requireKey(
                     "aktørIderFikkJobben",
                     "aktørIderFikkIkkeJobben",

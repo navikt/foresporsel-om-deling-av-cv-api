@@ -27,9 +27,11 @@ class DelCvMedArbeidsgiverLytter(
 
     init {
         River(rapidsConnection).apply {
+            precondition{
+                it.requireValue("@event_name", "kandidat_v2.DelCvMedArbeidsgiver")
+                it.forbidValue("@slutt_av_hendelseskjede", true)
+            }
             validate {
-                it.demandValue("@event_name", "kandidat_v2.DelCvMedArbeidsgiver")
-                it.rejectValue("@slutt_av_hendelseskjede", true)
                 it.requireKey("kandidater", "stillingsId", "utførtAvNavIdent", "tidspunkt")
             }
         }.register(this)
