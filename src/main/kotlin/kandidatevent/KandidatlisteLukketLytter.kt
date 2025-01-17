@@ -81,7 +81,6 @@ class KandidatlisteLukketLytter(
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
         log.error("$problems")
-        super.onError(problems, context, metadata)
     }
 
     class KandidatlisteLukket(
