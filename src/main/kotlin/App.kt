@@ -3,7 +3,7 @@ import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.javalin.Javalin
-import io.javalin.plugin.json.JavalinJackson
+import io.javalin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
 import kandidatevent.RegistrertFåttJobbenLytter
@@ -41,20 +41,30 @@ class App(
     }
 
     private val webServer = Javalin.create { config ->
-        config.defaultContentType = "application/json"
+        config.http.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
     }.apply {
         before(tokenHandler::validerToken)
         before(settCallId)
-        routes {
-            get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
-            get("/internal/isReady") { it.status(200) }
-            get("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.hentForespørslerForKandidat) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
-            get("/foresporsler/{$stillingsIdParamName}", forespørselController.hentForespørsler) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
-            post("/foresporsler", forespørselController.sendForespørselOmDelingAvCv) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
-            post("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.resendForespørselOmDelingAvCv) // Kun arbeidsgiverrettet/utvikler
-            get("/statistikk", svarstatistikkController.hentSvarstatistikk) // På forsiden, tilgjengelig for alle
-        }
+        get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
+        get("/internal/isReady") { it.status(200) }
+        get(
+            "/foresporsler/kandidat/{$aktorIdParamName}",
+            forespørselController.hentForespørslerForKandidat
+        ) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
+        get(
+            "/foresporsler/{$stillingsIdParamName}",
+            forespørselController.hentForespørsler
+        ) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
+        post(
+            "/foresporsler",
+            forespørselController.sendForespørselOmDelingAvCv
+        ) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
+        post(
+            "/foresporsler/kandidat/{$aktorIdParamName}",
+            forespørselController.resendForespørselOmDelingAvCv
+        ) // Kun arbeidsgiverrettet/utvikler
+        get("/statistikk", svarstatistikkController.hentSvarstatistikk) // På forsiden, tilgjengelig for alle
     }
 
     fun start() {
@@ -101,7 +111,13 @@ fun main() {
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
         val forespørselController =
-            ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, autorisasjon)
+            ForespørselController(
+                repository,
+                tokenHandler,
+                usendtScheduler::kjørEnGang,
+                stillingKlient::hentStilling,
+                autorisasjon
+            )
         val svarstatistikkController = SvarstatistikkController(repository)
 
         lateinit var rapidIsAlive: () -> Boolean
@@ -139,7 +155,7 @@ data class Rollekeys(
     val utviklerGruppe: String
 )
 
-fun initierRollekeys() : Rollekeys {
+fun initierRollekeys(): Rollekeys {
     val jobbsokerrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
         ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_JOBBSOKERRETTET' er ikke satt")
 
