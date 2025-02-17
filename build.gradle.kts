@@ -35,7 +35,9 @@ tasks.test {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:4.6.7") // Kan ikke oppdateres før https://github.com/wiremock/wiremock/pull/1942 er released
+    implementation("io.javalin:javalin:5.0.0")
+//    implementation("io.javalin:javalin:6.4.0")
+
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
