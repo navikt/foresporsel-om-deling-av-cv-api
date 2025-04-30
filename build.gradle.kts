@@ -35,17 +35,11 @@ tasks.test {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:5.0.0")
-//    implementation("io.javalin:javalin:6.6.0")
-
-    val jettyVersion = "11.0.12"
-    implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion"))
-    implementation("org.eclipse.jetty:jetty-server")
-    implementation("org.eclipse.jetty:jetty-servlet")
-    implementation("org.eclipse.jetty:jetty-util")
+    implementation("io.javalin:javalin:6.6.0")
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
+
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
 
@@ -54,8 +48,10 @@ dependencies {
 
     implementation("org.flywaydb:flyway-core:10.22.0")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:10.22.0")
+
     implementation("org.postgresql:postgresql:42.5.1")
     implementation("com.zaxxer:HikariCP:5.0.1")
+
     implementation("no.nav:vault-jdbc:1.3.10")
     implementation("no.nav.security:token-validation-core:3.0.10")
 
