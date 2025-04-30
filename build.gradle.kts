@@ -36,8 +36,13 @@ tasks.test {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.javalin:javalin:5.0.0")
-//    implementation("io.javalin:javalin:6.4.0")
+//    implementation("io.javalin:javalin:6.6.0")
 
+    val jettyVersion = "11.0.12"
+    implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion"))
+    implementation("org.eclipse.jetty:jetty-server")
+    implementation("org.eclipse.jetty:jetty-servlet")
+    implementation("org.eclipse.jetty:jetty-util")
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
@@ -71,6 +76,6 @@ dependencies {
     testImplementation("com.h2database:h2:2.1.214")
     testImplementation("org.assertj:assertj-core:3.23.1")
     testImplementation("no.nav.security:mock-oauth2-server:0.5.6")
-    testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0")
+    testImplementation("org.wiremock:wiremock:3.13.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
