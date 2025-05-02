@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version embeddedKotlinVersion
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
-    id("com.github.ben-manes.versions") version "0.52.0"
+    id("com.github.ben-manes.versions") version "0.52.0" // Gir kommando (Gradle task) for å se dependecies som kan oppgraderes: ./gradlew dependencyUpdates
     application
 }
 
@@ -40,26 +40,26 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
 
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.19.0")
 
-    implementation("ch.qos.logback:logback-classic:1.4.4")
-    implementation("net.logstash.logback:logstash-logback-encoder:7.2")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 
-    implementation("org.flywaydb:flyway-core:10.22.0")
+    implementation("org.flywaydb:flyway-core:11.8.0")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:10.22.0")
 
-    implementation("org.postgresql:postgresql:42.5.1")
-    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.postgresql:postgresql:42.7.5")
+    implementation("com.zaxxer:HikariCP:6.3.0")
 
     implementation("no.nav:vault-jdbc:1.3.10")
     implementation("no.nav.security:token-validation-core:3.0.10")
 
-    implementation("org.apache.kafka:kafka-clients:3.3.1")
-    implementation("io.confluent:kafka-avro-serializer:7.3.0")
-    implementation("org.apache.avro:avro:1.11.1")
+    implementation("org.apache.kafka:kafka-clients:4.0.0")
+    implementation("io.confluent:kafka-avro-serializer:7.9.0")
+    implementation("org.apache.avro:avro:1.12.0")
 
-    val shedlockVersion = "4.42.0"
+    val shedlockVersion = "6.5.0"
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 
@@ -69,9 +69,32 @@ dependencies {
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:2025.01.10-08.49-9e6f64ad")
 
     testImplementation(kotlin("test"))
-    testImplementation("com.h2database:h2:2.1.214")
-    testImplementation("org.assertj:assertj-core:3.23.1")
+    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("no.nav.security:mock-oauth2-server:0.5.6")
     testImplementation("org.wiremock:wiremock:3.13.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+}
+
+tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class) {
+    rejectVersionIf {
+        val excludedSuffixes = listOf(
+            "-Beta1",
+            "-Beta2",
+            "-M1",
+            "-beta.2",
+            "-beta.1",
+            "-ce",
+            "-ccs",
+            "-RC",
+            "-RC1",
+            "-RC2",
+            "-alpha1",
+            "-alpha01",
+            "-alpha02",
+            "-alpha03",
+            "-alpha04"
+        )
+        excludedSuffixes.any { candidate.version.endsWith(it) }
+    }
 }
