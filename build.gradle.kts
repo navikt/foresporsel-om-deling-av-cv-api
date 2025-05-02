@@ -46,8 +46,9 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 
-    implementation("org.flywaydb:flyway-core:11.8.0")
-    runtimeOnly("org.flywaydb:flyway-database-postgresql:10.22.0")
+    val flywayVersion = "11.8.0"
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.zaxxer:HikariCP:6.3.0")
