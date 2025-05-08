@@ -19,13 +19,12 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import stilling.StillingKlient
-import utils.Miljø
-import utils.log
-import utils.objectMapper
-import utils.settCallId
+import utils.*
 import java.io.Closeable
 import java.util.*
 import kotlin.concurrent.thread
+
+private val log = noClassLogger()
 
 class App(
     private val forespørselController: ForespørselController,
@@ -89,7 +88,7 @@ class App(
 fun main() {
 
     try {
-        log("main").info("Starter app i cluster ${Miljø.current.asString()}")
+        log.info("Starter app i cluster ${Miljø.current.asString()}")
         val rollekeys = initierRollekeys()
 
         val database = Database()
@@ -143,8 +142,8 @@ fun main() {
             tokenHandler
         ).start()
 
-    } catch (exception: Exception) {
-        log("main()").error("Noe galt skjedde", exception)
+    } catch (e: Exception) {
+        log.error("Noe galt skjedde: $e", e)
     }
 }
 
