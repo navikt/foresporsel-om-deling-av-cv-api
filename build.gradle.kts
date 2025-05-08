@@ -2,7 +2,7 @@ plugins {
     // Bruk samme Kotlin-version som gradlew. gradlew oppdateres med å kjøre denne kommandoen to (2) ganger etterhverandre:
     // ./gradlew wrapper --gradle-version latest --distribution-type all
     kotlin("jvm") version embeddedKotlinVersion
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.gradleup.shadow") version "8.3.6"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.5.0"
     id("com.github.ben-manes.versions") version "0.43.0"
     application
@@ -33,6 +33,11 @@ tasks.test {
     useJUnitPlatform()
 }
 
+
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    mergeServiceFiles() // TODO Are: Se om Flyway anerkjenner navn på migration filene med dette
+}
+
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.javalin:javalin:4.6.7") // Kan ikke oppdateres før https://github.com/wiremock/wiremock/pull/1942 er released
@@ -45,8 +50,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.4")
     implementation("net.logstash.logback:logstash-logback-encoder:7.2")
 
-    implementation("org.flywaydb:flyway-core:9.22.3")
-    runtimeOnly("org.flywaydb:flyway-database-postgresql:9.22.3")
+    implementation("org.flywaydb:flyway-core:10.22.0")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:10.22.0")
     implementation("org.postgresql:postgresql:42.5.1")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("no.nav:vault-jdbc:1.3.10")
