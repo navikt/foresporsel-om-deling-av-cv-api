@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to dev
     needs: build-and-publish
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/bruk-validate-i-rapida-and-rivers'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/flyway-failfast'
     runs-on: ubuntu-latest
     permissions:
       contents: read

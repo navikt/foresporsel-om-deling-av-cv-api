@@ -47,6 +47,7 @@ class Database {
         Flyway.configure()
             .dataSource(opprettDataSource(role = "admin"))
             .initSql("SET ROLE \"$databasenavn-admin\"")
+            .validateMigrationNaming(true)
             .load()
             .migrate()
     }
