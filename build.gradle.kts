@@ -2,6 +2,7 @@ plugins {
     // Bruk samme Kotlin-version som gradlew. gradlew oppdateres med å kjøre denne kommandoen to (2) ganger etterhverandre:
     // ./gradlew wrapper --gradle-version latest --distribution-type all
     kotlin("jvm") version embeddedKotlinVersion
+
     id("com.gradleup.shadow") version "8.3.6"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.5.0"
     id("com.github.ben-manes.versions") version "0.43.0"
@@ -18,7 +19,6 @@ java {
     }
 }
 
-
 repositories {
     mavenCentral()
 
@@ -33,10 +33,9 @@ tasks.test {
     useJUnitPlatform()
 }
 
-//
-//tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-//    mergeServiceFiles() // TODO Are: Se om Flyway anerkjenner navn på migration filene med dette. Se om det funker også uten dette, bare med ny plugin.
-//}
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811
+}
 
 dependencies {
     implementation(kotlin("stdlib"))
