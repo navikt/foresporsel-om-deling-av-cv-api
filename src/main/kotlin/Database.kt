@@ -16,10 +16,12 @@ class Database {
             mountPath = "postgresql/preprod-fss",
             jdbcUrl = "jdbc:postgresql://b27dbvl035.preprod.local:5432/$databasenavn"
         )
+
         PROD_FSS -> DbConf(
             mountPath = "postgresql/prod-fss",
             jdbcUrl = "jdbc:postgresql://A01DBVL037.adeo.no:5432/$databasenavn"
         )
+
         LOKAL -> throw TODO()
     }
 
