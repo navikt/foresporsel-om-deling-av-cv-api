@@ -33,10 +33,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    mergeServiceFiles() // TODO Are: Se om Flyway anerkjenner navn på migration filene med dette. Se om det funker også uten dette, bare med ny plugin.
-}
+//
+//tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+//    mergeServiceFiles() // TODO Are: Se om Flyway anerkjenner navn på migration filene med dette. Se om det funker også uten dette, bare med ny plugin.
+//}
 
 dependencies {
     implementation(kotlin("stdlib"))
