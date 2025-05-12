@@ -91,6 +91,7 @@ tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.Dep
             "-beta.3",
             "-beta.4",
             "-ce",
+            "-ccs",
             "-RC",
             "-RC1",
             "-RC2",
@@ -98,7 +99,9 @@ tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.Dep
             "-alpha01",
             "-alpha02",
             "-alpha03",
-            "-alpha04"
+            "-alpha04",
+            "-beta12",
+            "-beta13"
         )
         excludedSuffixes.any { candidate.version.endsWith(it) }
     }
