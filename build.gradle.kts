@@ -36,6 +36,32 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
     mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811
 }
 
+
+
+/*
+The following dependencies have later milestone versions:
+ - com.github.navikt:rapids-and-rivers [2025010715371736260653.d465d681c420 -> 20210617121814-3e67e4d]
+     https://github.com/navikt/rapids-and-rivers
+ - com.github.navikt.tbd-libs:rapids-and-rivers-test [2025.01.10-08.49-9e6f64ad -> 2025.05.06-14.04-822a3b51]
+ - com.gradleup.shadow:com.gradleup.shadow.gradle.plugin [8.3.6 -> 9.0.0-beta10]
+     https://github.com/GradleUp/shadow
+ - io.confluent:kafka-avro-serializer [7.9.0 -> 7.9.1]
+     http://confluent.io
+ - net.javacrumbs.shedlock:shedlock-core [6.5.0 -> 6.6.1]
+ - net.javacrumbs.shedlock:shedlock-provider-jdbc [6.5.0 -> 6.6.1]
+ - no.nav.security:mock-oauth2-server [0.5.6 -> 2.1.11]
+     https://github.com/navikt/mock-oauth2-server
+ - no.nav.security:token-validation-core [3.0.10 -> 5.0.27]
+     https://github.com/navikt/token-support
+ - org.flywaydb:flyway-core [11.8.1 -> 11.8.2]
+     https://flywaydb.org
+ - org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable [2.0.21 -> 2.1.21]
+     https://kotlinlang.org/
+ - org.jetbrains.kotlin:kotlin-stdlib [2.0.21 -> 2.1.21]
+     https://kotlinlang.org/
+ - org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin [2.0.21 -> 2.1.21]
+     https://kotlinlang.org/
+ */
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.javalin:javalin:6.6.0")
@@ -90,6 +116,8 @@ tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.Dep
             "-beta.2",
             "-beta.3",
             "-beta.4",
+            "-beta.5",
+            "-beta.6",
             "-ce",
             "-ccs",
             "-RC",
@@ -100,6 +128,8 @@ tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.Dep
             "-alpha02",
             "-alpha03",
             "-alpha04",
+            "-beta10",
+            "-beta11",
             "-beta12",
             "-beta13"
         )
