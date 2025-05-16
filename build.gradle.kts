@@ -39,8 +39,6 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 
 
 /*
- - no.nav.security:mock-oauth2-server [0.5.6 -> 2.1.11]
-     https://github.com/navikt/mock-oauth2-server
  - no.nav.security:token-validation-core [3.0.10 -> 5.0.27]
      https://github.com/navikt/token-support
  */
@@ -65,7 +63,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:6.3.0")
 
     implementation("no.nav:vault-jdbc:1.3.10")
-    implementation("no.nav.security:token-validation-core:3.0.10")
+    implementation("no.nav.security:token-validation-core:3.2.0")
 
     implementation("org.apache.kafka:kafka-clients:4.0.0")
     implementation("io.confluent:kafka-avro-serializer:7.9.1")
@@ -83,7 +81,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.3.232")
     testImplementation("org.assertj:assertj-core:3.27.3")
-    testImplementation("no.nav.security:mock-oauth2-server:0.5.6")
+    testImplementation("no.nav.security:mock-oauth2-server:2.1.11")
     testImplementation("org.wiremock:wiremock:3.13.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 }
