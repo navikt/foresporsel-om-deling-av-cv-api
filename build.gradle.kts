@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm") version embeddedKotlinVersion
     id("com.gradleup.shadow") version "8.3.6"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
-    id("com.github.ben-manes.versions") version "0.52.0" // Gir kommando (Gradle task) for å se dependecies som kan oppgraderes: ./gradlew dependencyUpdates
     application
 }
 
@@ -33,15 +32,9 @@ tasks.test {
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811
+    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811  En bedre løsning ville kanskje vært å droppe shadowJar?
 }
 
-
-
-/*
- - no.nav.security:token-validation-core [3.0.10 -> 5.0.27]
-     https://github.com/navikt/token-support
- */
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.javalin:javalin:6.6.0")
@@ -84,35 +77,4 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:2.1.11")
     testImplementation("org.wiremock:wiremock:3.13.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-}
-
-tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class) {
-    rejectVersionIf {
-        val excludedSuffixes = listOf(
-            "-Beta1",
-            "-Beta2",
-            "-M1",
-            "-beta.1",
-            "-beta.2",
-            "-beta.3",
-            "-beta.4",
-            "-beta.5",
-            "-beta.6",
-            "-ce",
-            "-ccs",
-            "-RC",
-            "-RC1",
-            "-RC2",
-            "-alpha1",
-            "-alpha01",
-            "-alpha02",
-            "-alpha03",
-            "-alpha04",
-            "-beta10",
-            "-beta11",
-            "-beta12",
-            "-beta13"
-        )
-        excludedSuffixes.any { candidate.version.endsWith(it) }
-    }
 }
