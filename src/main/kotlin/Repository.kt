@@ -85,7 +85,12 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun oppdaterMedRespons(forespørselId: UUID, tilstand: Tilstand, svar: Svar?, begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?) {
+    fun oppdaterMedRespons(
+        forespørselId: UUID,
+        tilstand: Tilstand,
+        svar: Svar?,
+        begrunnelseForAtAktivitetIkkeBleOpprettet: BegrunnelseForAtAktivitetIkkeBleOpprettet?
+    ) {
         val oppdaterSvarSql = """
             UPDATE foresporsel_om_deling_av_cv
                 SET tilstand = ?, svar = ?, svar_tidspunkt = ?, svart_av_ident = ?, svart_av_ident_type = ?, begrunnelse_for_at_aktivitet_ikke_ble_opprettet = ?
@@ -164,10 +169,12 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
-    fun insertParameters(count: Int): String =
-        Array(count) { "?" }.joinToString(",")
-
     fun minstEnKandidatHarFåttForespørsel(stillingsId: UUID, aktorIder: List<String>): Boolean {
+        if (aktorIder.isEmpty()) return false
+
+        fun insertParameters(count: Int): String =
+            Array(count) { "?" }.joinToString(",")
+
         val forespørselFinnesSql = """
             SELECT * FROM foresporsel_om_deling_av_cv
                 WHERE stilling_id = ?
