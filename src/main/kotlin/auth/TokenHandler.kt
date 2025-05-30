@@ -27,7 +27,7 @@ class TokenHandler(
     }
 
     fun validerToken(ctx: Context) {
-        val url = ctx.req.requestURL.toString()
+        val url = ctx.req().requestURL.toString()
         if (endepunktUtenTokenvalidering.none { url.contains(it) }) {
             val validerteTokens = hentValiderteTokens(ctx)
 
