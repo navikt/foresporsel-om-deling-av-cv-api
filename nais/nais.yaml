@@ -58,3 +58,9 @@ spec:
       value: {{ad_gruppe_arbeidsgiverrettet}}
     - name: REKRUTTERINGSBISTAND_UTVIKLER
       value: {{ad_gruppe_utvikler}}
+  observability:
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
+      enabled: true
