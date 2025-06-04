@@ -48,11 +48,11 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 
-    val flywayVersion = "11.8.2"
+    val flywayVersion = "11.9.0"
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
-    implementation("org.postgresql:postgresql:42.7.5")
+    implementation("org.postgresql:postgresql:42.7.6")
     implementation("com.zaxxer:HikariCP:6.3.0")
 
     implementation("no.nav:vault-jdbc:1.3.10")
@@ -62,7 +62,7 @@ dependencies {
     implementation("io.confluent:kafka-avro-serializer:7.9.1")
     implementation("org.apache.avro:avro:1.12.0")
 
-    val shedlockVersion = "6.6.1"
+    val shedlockVersion = "6.8.0"
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc:$shedlockVersion")
 
