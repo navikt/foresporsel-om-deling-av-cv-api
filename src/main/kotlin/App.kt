@@ -3,7 +3,7 @@ import auth.obo.KandidatsokApiKlient
 import auth.obo.OnBehalfOfTokenClient
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.javalin.Javalin
-import io.javalin.plugin.json.JavalinJackson
+import io.javalin.json.JavalinJackson
 import kandidatevent.DelCvMedArbeidsgiverLytter
 import kandidatevent.KandidatlisteLukketLytter
 import kandidatevent.RegistrertFåttJobbenLytter
@@ -19,13 +19,12 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import stilling.StillingKlient
-import utils.Miljø
-import utils.log
-import utils.objectMapper
-import utils.settCallId
+import utils.*
 import java.io.Closeable
 import java.util.*
 import kotlin.concurrent.thread
+
+private val log = noClassLogger()
 
 class App(
     private val forespørselController: ForespørselController,
@@ -41,20 +40,30 @@ class App(
     }
 
     private val webServer = Javalin.create { config ->
-        config.defaultContentType = "application/json"
+        config.http.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
     }.apply {
         before(tokenHandler::validerToken)
         before(settCallId)
-        routes {
-            get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
-            get("/internal/isReady") { it.status(200) }
-            get("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.hentForespørslerForKandidat) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
-            get("/foresporsler/{$stillingsIdParamName}", forespørselController.hentForespørsler) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
-            post("/foresporsler", forespørselController.sendForespørselOmDelingAvCv) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
-            post("/foresporsler/kandidat/{$aktorIdParamName}", forespørselController.resendForespørselOmDelingAvCv) // Kun arbeidsgiverrettet/utvikler
-            get("/statistikk", svarstatistikkController.hentSvarstatistikk) // På forsiden, tilgjengelig for alle
-        }
+        get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
+        get("/internal/isReady") { it.status(200) }
+        get(
+            "/foresporsler/kandidat/{$aktorIdParamName}",
+            forespørselController.hentForespørslerForKandidat
+        ) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
+        get(
+            "/foresporsler/{$stillingsIdParamName}",
+            forespørselController.hentForespørsler
+        ) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
+        post(
+            "/foresporsler",
+            forespørselController.sendForespørselOmDelingAvCv
+        ) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
+        post(
+            "/foresporsler/kandidat/{$aktorIdParamName}",
+            forespørselController.resendForespørselOmDelingAvCv
+        ) // Kun arbeidsgiverrettet/utvikler
+        get("/statistikk", svarstatistikkController.hentSvarstatistikk) // På forsiden, tilgjengelig for alle
     }
 
     fun start() {
@@ -79,7 +88,7 @@ class App(
 fun main() {
 
     try {
-        log("main").info("Starter app i cluster ${Miljø.current.asString()}")
+        log.info("Starter app i cluster ${Miljø.current.asString()}")
         val rollekeys = initierRollekeys()
 
         val database = Database()
@@ -101,7 +110,13 @@ fun main() {
 
         val usendtScheduler = UsendtScheduler(database.dataSource, forespørselService::sendUsendte)
         val forespørselController =
-            ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, stillingKlient::hentStilling, autorisasjon)
+            ForespørselController(
+                repository,
+                tokenHandler,
+                usendtScheduler::kjørEnGang,
+                stillingKlient::hentStilling,
+                autorisasjon
+            )
         val svarstatistikkController = SvarstatistikkController(repository)
 
         lateinit var rapidIsAlive: () -> Boolean
@@ -127,8 +142,8 @@ fun main() {
             tokenHandler
         ).start()
 
-    } catch (exception: Exception) {
-        log("main()").error("Noe galt skjedde", exception)
+    } catch (e: Exception) {
+        log.error("Noe galt skjedde: $e", e)
     }
 }
 
@@ -139,7 +154,7 @@ data class Rollekeys(
     val utviklerGruppe: String
 )
 
-fun initierRollekeys() : Rollekeys {
+fun initierRollekeys(): Rollekeys {
     val jobbsokerrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
         ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_JOBBSOKERRETTET' er ikke satt")
 
