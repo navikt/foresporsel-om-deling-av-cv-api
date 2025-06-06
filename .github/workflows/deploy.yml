@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to dev
     needs: build-and-publish
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/oppgrader-avhengigheter'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/timestamp-hendelser'
     runs-on: ubuntu-latest
     permissions:
       contents: read
