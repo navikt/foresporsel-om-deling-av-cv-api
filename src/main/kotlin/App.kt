@@ -36,7 +36,7 @@ class App(
 ) : Closeable {
 
     init {
-        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
+        TimeZone.setDefault(osloTimeZone)
     }
 
     private val webServer = Javalin.create { config ->

@@ -9,6 +9,6 @@ import java.util.*
 
 val objectMapper: ObjectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
-    .setTimeZone(TimeZone.getTimeZone("Europe/Oslo"))
+    .setTimeZone(osloTimeZone)
     .enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
