@@ -2,12 +2,11 @@ import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.KontaktInfo
 import stilling.Stilling
+import utils.atOslo
 import utils.getNullableBoolean
 import utils.toUUID
 import java.sql.ResultSet
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -26,7 +25,7 @@ data class Svar(
             return if (melding != null) {
                 Svar(
                     harSvartJa = melding.getSvar(),
-                    svarTidspunkt = LocalDateTime.ofInstant(melding.getSvarTidspunkt(), ZoneOffset.UTC),
+                    svarTidspunkt = melding.getSvarTidspunkt().atOslo().toLocalDateTime(),
                     svartAv = Ident(
                         ident = melding.getSvartAv().getIdent(),
                         identType = IdentType.valueOf(melding.getSvartAv().getIdentType().toString())
@@ -71,7 +70,7 @@ data class Forespørsel(
         aktørId,
         stillingsId.toString(),
         deltAv,
-        ZonedDateTime.of(deltTidspunkt, ZoneId.of("Europe/Oslo")).toInstant(),
+        deltTidspunkt.atOslo().toInstant(),
         svarfrist.toInstant(),
         callId,
         stilling.stillingtittel,
@@ -136,7 +135,7 @@ data class Forespørsel(
                 deltTidspunkt = rs.getTimestamp("delt_tidspunkt").toLocalDateTime(),
                 deltAv = rs.getString("delt_av"),
                 navKontor = rs.getString("nav_kontor"),
-                svarfrist = ZonedDateTime.ofInstant(rs.getTimestamp("svarfrist").toInstant(), ZoneId.of("Europe/Oslo")),
+                svarfrist = rs.getTimestamp("svarfrist").toInstant().atOslo(),
                 tilstand = tilstandEllerNull(rs.getString("tilstand")),
                 svar = svar,
                 begrunnelseForAtAktivitetIkkeBleOpprettet = begrunnelseEllerNull(rs.getString("begrunnelse_for_at_aktivitet_ikke_ble_opprettet")),
