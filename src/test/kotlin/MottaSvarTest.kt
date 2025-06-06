@@ -7,8 +7,8 @@ import org.junit.jupiter.api.TestInstance
 import setup.TestDatabase
 import setup.mockConsumer
 import setup.mottaSvarKafkamelding
+import utils.atOslo
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.*
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -36,7 +36,7 @@ class MottaSvarTest {
                 aktivitetId.toString(),
                 TilstandEnum.HAR_SVART,
                 Svar(
-                    svarTidspunkt.toInstant(ZoneOffset.UTC),
+                    svarTidspunkt.atOslo().toInstant(),
                     svartAv,
                     true
                 ),
@@ -78,7 +78,7 @@ class MottaSvarTest {
                 aktivitetId.toString(),
                 TilstandEnum.HAR_SVART,
                 Svar(
-                    svarTidspunkt.toInstant(ZoneOffset.UTC),
+                    svarTidspunkt.atOslo().toInstant(),
                     svartAv,
                     true
                 ),
@@ -117,7 +117,7 @@ class MottaSvarTest {
                 aktivitetId.toString(),
                 TilstandEnum.HAR_SVART,
                 Svar(
-                    LocalDateTime.now().toInstant(ZoneOffset.UTC),
+                    LocalDateTime.now().atOslo().toInstant(),
                     Ident(enForespørsel.aktørId, IdentTypeEnum.AKTOR_ID),
                     true
                 ),
