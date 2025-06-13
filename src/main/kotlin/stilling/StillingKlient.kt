@@ -67,18 +67,18 @@ class StillingKlient(private val accessToken: () -> String) {
         )
 
         private data class EsContact(
-            val name: String,
-            val title: String,
-            val email: String,
-            val phone: String,
-            val role: String
+            val name: String?,
+            val title: String?,
+            val email: String?,
+            val phone: String?,
+            val role: String?
         ) {
             fun toKontakt() = Kontakt(
-                navn = name,
-                tittel = title,
-                epost = email,
-                mobil = phone,
-                rolle = role
+                navn = name ?: "",
+                tittel = title ?: "",
+                epost = email ?: "",
+                mobil = phone ?: "",
+                rolle = role ?: ""
             )
         }
 
@@ -96,7 +96,7 @@ class StillingKlient(private val accessToken: () -> String) {
             val city: String?,
             val county: String?,
             val municipal: String?,
-            val country: String,
+            val country: String?,
         ) {
             fun toArbeidssted() = Arbeidssted(
                 adresse = address,
@@ -104,7 +104,7 @@ class StillingKlient(private val accessToken: () -> String) {
                 by = city,
                 kommune = municipal,
                 fylke = county,
-                land = country
+                land = country ?: ""
             )
         }
     }
