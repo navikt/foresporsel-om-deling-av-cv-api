@@ -1,4 +1,5 @@
 FROM gcr.io/distroless/java21:nonroot
+WORKDIR /foresporsel-om-deling-av-cv-api
 ADD build/distributions/foresporsel-om-deling-av-cv-api.tar /
 
 # Asume that logback.xml is located in the project/app root dir.
