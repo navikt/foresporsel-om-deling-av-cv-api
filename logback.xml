@@ -7,3 +7,4 @@
         <appender-ref ref="loggIJsonFormatTilKibana"/>
     </root>
 </configuration>
+
