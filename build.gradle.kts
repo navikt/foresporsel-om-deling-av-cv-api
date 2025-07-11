@@ -31,9 +31,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811  En bedre løsning ville kanskje vært å droppe shadowJar?
-}
+// TODO Are: slett
+//tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+//    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811  En bedre løsning ville kanskje vært å droppe shadowJar?
+//}
 
 dependencies {
     implementation(kotlin("stdlib"))
