@@ -34,10 +34,10 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: rekrutteringsbistand
+        - application: rekrutteringsbistand-frontend
           namespace: toi
           cluster: {{ gcp-cluster }}
-        - application: rekrutteringsbistand-frontend
+        - application: rekrutteringsbistand-frontend2
           namespace: toi
           cluster: {{ gcp-cluster }}
         - application: rekrutteringsbistand-kandidat-api
