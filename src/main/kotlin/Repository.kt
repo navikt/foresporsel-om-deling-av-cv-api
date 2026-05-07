@@ -126,6 +126,34 @@ class Repository(private val dataSource: DataSource) {
         }
     }
 
+    fun opprettSelvbetjentForespørselMedSvarJa(stillingsId: UUID, aktørId: String, navKontor: String, callId: String): Int {
+        val lagreSql = """
+                INSERT INTO foresporsel_om_deling_av_cv (
+                    aktor_id, stilling_id, foresporsel_id, delt_status, delt_tidspunkt, delt_av, svarfrist, call_id, nav_kontor, svar, svar_tidspunkt, tilstand, svart_av_ident, svart_av_ident_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
+        dataSource.connection.use { connection ->
+            val antallOppdaterteRader = connection.prepareStatement(lagreSql).apply {
+                setString(1, aktørId)
+                setObject(2, stillingsId)
+                setObject(3, UUID.randomUUID())
+                setString(4, DeltStatus.SENDT.toString())
+                setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()))
+                setString(6, "Selvbetjent")
+                setTimestamp(7, Timestamp.valueOf(LocalDateTime.now().plusDays(1)))
+                setString(8, callId)
+                setString(9, navKontor)
+                setBoolean(10, true)
+                setTimestamp(11, Timestamp.valueOf(LocalDateTime.now()))
+                setString(12, Tilstand.HAR_SVART.toString())
+                setString(13, aktørId)
+                setString(14, IdentType.AKTOR_ID.toString())
+            }.executeUpdate()
+            return antallOppdaterteRader
+        }
+    }
+
     fun hentForespørsler(stillingsId: UUID): List<Forespørsel> {
         val hentForespørslerSql = """
             SELECT * from foresporsel_om_deling_av_cv WHERE stilling_id = ?

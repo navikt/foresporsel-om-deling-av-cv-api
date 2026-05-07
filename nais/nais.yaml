@@ -19,6 +19,8 @@ spec:
   readiness:
     path: /internal/isReady
   webproxy: true
+  tokenx:
+    enabled: true
   azure:
     application:
       enabled: true
@@ -43,6 +45,9 @@ spec:
         - application: rekrutteringsbistand-kandidat-api
           namespace: toi
           cluster: {{ fss-cluster }}
+        - application: pam-dir-api
+          namespace: teampam
+          cluster: {{ gcp-cluster }}
   kafka:
     pool: {{ kafka-pool }}
   env:
@@ -58,6 +63,8 @@ spec:
       value: {{ad_gruppe_arbeidsgiverrettet}}
     - name: REKRUTTERINGSBISTAND_UTVIKLER
       value: {{ad_gruppe_utvikler}}
+    - name: PERSONOPPSLAG_BASE_URL
+      value: {{personoppslag_base_url}}
   observability:
     logging:
       destinations:

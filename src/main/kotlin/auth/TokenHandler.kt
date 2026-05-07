@@ -17,8 +17,10 @@ class TokenHandler(
 ) {
     private val endepunktUtenTokenvalidering = listOf("/internal/isAlive", "/internal/isReady")
     private val navIdentClaimKey = "NAVident"
+    private val foedselsnummerClaimKey = "pid"
     private val rolleClaimKey = "groups"
     private val navIdentAttributeKey = "navIdent"
+    private val fnrAttributeKey = "fnr"
 
     private var cachedHandler: CachedHandler? = null
 
@@ -33,7 +35,9 @@ class TokenHandler(
 
             if (validerteTokens.hasValidToken()) {
                 val navIdent = hentNavIdent(validerteTokens)
-                ctx.attribute(navIdentAttributeKey, navIdent)
+                navIdent?.let { ctx.attribute(navIdentAttributeKey, it) }
+
+                hentFoedselsnummer(validerteTokens)?.let { ctx.attribute(fnrAttributeKey, it) }
             } else {
                 throw UnauthorizedResponse()
             }
@@ -42,6 +46,10 @@ class TokenHandler(
 
     fun hentNavIdent(ctx: Context): String {
         return ctx.attribute(navIdentAttributeKey) ?: throw UnauthorizedResponse("NAVident ikke funnet i kontekst")
+    }
+
+    fun hentFnr(ctx: Context): String {
+        return ctx.attribute(fnrAttributeKey) ?: throw UnauthorizedResponse("Fnr ikke funnet i kontekst")
     }
 
     fun clearCache() {
@@ -57,10 +65,16 @@ class TokenHandler(
         return validatedTokens
     }
 
-    private fun hentNavIdent(validerteTokens: TokenValidationContext): String {
+    private fun hentNavIdent(validerteTokens: TokenValidationContext): String? {
         return issuerProperties.mapNotNull { issuerProperty ->
             validerteTokens.getClaims(issuerProperty.cookieName)?.getStringClaim(navIdentClaimKey)
-        }.first()
+        }.firstOrNull()
+    }
+
+    private fun hentFoedselsnummer(validerteTokens: TokenValidationContext): String? {
+        return issuerProperties.mapNotNull { issuerProperty ->
+            validerteTokens.getClaims(issuerProperty.cookieName)?.getStringClaim(foedselsnummerClaimKey)
+        }.firstOrNull()
     }
 
     fun hentRoller(ctx: Context): List<Rolle> {

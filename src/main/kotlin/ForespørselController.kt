@@ -6,6 +6,7 @@ import io.javalin.http.Context
 import org.slf4j.event.Level
 import org.slf4j.event.Level.*
 import stilling.Stilling
+import utils.PersonOppslagKlient
 import utils.hentCallId
 import utils.log
 import utils.toUUID
@@ -14,6 +15,7 @@ import java.time.ZonedDateTime
 import java.util.*
 
 const val stillingsIdParamName = "stillingsId"
+const val navKontorParamName = "navKontor"
 const val aktorIdParamName = "aktørId"
 
 class ForespørselController(
@@ -21,8 +23,37 @@ class ForespørselController(
     private val tokenHandler: TokenHandler,
     private val sendUsendteForespørsler: () -> Unit,
     private val hentStilling: (UUID) -> Stilling?,
+    private val personoppslagKlient: PersonOppslagKlient,
     private val autorisasjon: Autorisasjon
 ) {
+    val samtykkTilDelingAvCV: (Context) -> Unit = { ctx ->
+        var navKontor: String? = null
+        try {
+            navKontor = ctx.pathParam(navKontorParamName)
+            ctx.pathParam(stillingsIdParamName)
+        } catch (exception: IllegalArgumentException) {
+            ctx.status(400)
+            null
+        }?.let { stillingsId ->
+            val fnr = tokenHandler.hentFnr(ctx)
+            val personInfo = personoppslagKlient.personoppslag(fnr)!!
+            val eksisterendeForespørsel = repository.hentForespørsler(stillingsId.toUUID())
+                .filter { it.aktørId == personInfo.aktorId }
+                .firstOrNull()
+
+            if (eksisterendeForespørsel != null) {
+                // TODO Her må vi vurdere litt hva vi skal gjøre. Skal vi overskrive svaret uansett, eller skal vi feile litt avhengig av hva tilstanden er?
+                // Dette må diskuteres med toi
+                repository.oppdaterMedRespons(eksisterendeForespørsel.forespørselId, Tilstand.HAR_SVART, Svar(true,
+                    LocalDateTime.now(), Ident(personInfo.aktorId!!, IdentType.AKTOR_ID)), null)
+            } else {
+                repository.opprettSelvbetjentForespørselMedSvarJa(stillingsId.toUUID(), personInfo.aktorId!!, navKontor ?: "", ctx.hentCallId())
+            }
+
+            ctx.status(200)
+        }
+    }
+
     val hentForespørsler: (Context) -> Unit = { ctx ->
         try {
             ctx.pathParam(stillingsIdParamName)

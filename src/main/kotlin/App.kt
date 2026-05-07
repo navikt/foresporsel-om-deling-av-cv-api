@@ -63,7 +63,9 @@ class App(
             "/foresporsler/kandidat/{$aktorIdParamName}",
             forespørselController.resendForespørselOmDelingAvCv
         ) // Kun arbeidsgiverrettet/utvikler
-        get("/statistikk", svarstatistikkController.hentSvarstatistikk) // På forsiden, tilgjengelig for alle
+        get("/statistikk", svarstatistikkController.hentSvarstatistikk)
+        post("/foresporsler/samtykke_til_deling_av_cv/{$navKontorParamName}/{$stillingsIdParamName}",
+            forespørselController.samtykkTilDelingAvCV)
     }
 
     fun start() {
@@ -93,10 +95,11 @@ fun main() {
 
         val database = Database()
         val repository = Repository(database.dataSource)
-        val tokenHandler = TokenHandler(listOf(azureIssuerProperties), rollekeys)
+        val tokenHandler = TokenHandler(listOf(azureIssuerProperties, tokenxIssuerProperties), rollekeys)
         val tokenCache = TokenCache()
         val accessTokenClient = AccessTokenClient(azureConfig, tokenCache)
         val oboTokenClient = OnBehalfOfTokenClient(azureConfig, tokenHandler, tokenCache)
+        val personoppslagKlient = PersonOppslagKlient(System.getenv("PERSONOPPSLAG_BASE_URL"), accessTokenClient::getPersonoppslagAccessToken)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
         val kandidatsokApiKlient = KandidatsokApiKlient(oboTokenClient)
         val autorisasjon = Autorisasjon(kandidatsokApiKlient)
@@ -115,6 +118,7 @@ fun main() {
                 tokenHandler,
                 usendtScheduler::kjørEnGang,
                 stillingKlient::hentStilling,
+                personoppslagKlient,
                 autorisasjon
             )
         val svarstatistikkController = SvarstatistikkController(repository)
