@@ -28,11 +28,7 @@ class ForespørselController(
     private val personoppslagKlient: PersonOppslagKlient,
     private val autorisasjon: Autorisasjon
 ) {
-    companion object {
-        private val LOG = LoggerFactory.getLogger(ForespørselController::class.java)
-        // TODO team logs er ikke satt opp for denne applikasjonen
-        private val teamLogsMarker = MarkerFactory.getMarker("TEAM_LOGS")
-    }
+
     val samtykkTilDelingAvCV: (Context) -> Unit = { ctx ->
         var navKontor: String? = null
         try {
@@ -42,25 +38,20 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { stillingsId ->
-            LOG.info("Bruker fra $navKontor samtykker til deling av CV for stilling $stillingsId")
             val fnr = tokenHandler.hentFnr(ctx)
-            val personInfo = personoppslagKlient.personoppslag(fnr)!!
-            val eksisterendeForespørsel = repository.hentForespørsler(stillingsId.toUUID())
-                .filter { it.aktørId == personInfo.aktorId }
-                .firstOrNull()
-
-            if (eksisterendeForespørsel != null) {
-                // TODO Her må vi vurdere litt hva vi skal gjøre. Skal vi overskrive svaret uansett, eller skal vi feile litt avhengig av hva tilstanden er?
-                // Dette må diskuteres med toi
-                LOG.info("Bruker fra $navKontor har allerede samtykket til deling av CV for stilling $stillingsId – eller forespørsel om deleing er sendt av markedskontakt: ${eksisterendeForespørsel.forespørselId}")
-
-                repository.oppdaterMedRespons(eksisterendeForespørsel.forespørselId, Tilstand.HAR_SVART, Svar(true,
-                    LocalDateTime.now(), Ident(personInfo.aktorId!!, IdentType.AKTOR_ID)), null)
-            } else {
-                repository.opprettSelvbetjentForespørselMedSvarJa(stillingsId.toUUID(), personInfo.aktorId!!, navKontor ?: "", ctx.hentCallId())
+            when (val resultat = registrerSelvbetjentSamtykke(navKontor ?: "", stillingsId, fnr, ctx.hentCallId())) {
+                is Feil -> {
+                    loggFeilMedStilling(
+                        resultat.feilmelding,
+                        stillingsId,
+                        resultat.loggLevel
+                    )
+                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
+                }
+                is Ok -> {
+                    ctx.status(200)
+                }
             }
-
-            ctx.status(200)
         }
     }
 
@@ -218,6 +209,27 @@ class ForespørselController(
         repository.hentForespørsler(stillingsId.toUUID())
             .map { it.tilOutboundDto() }
             .groupBy { it.aktørId }
+
+    private fun registrerSelvbetjentSamtykke(navKontor: String, stillingsId: String, fnr: String, callId: String): Resultat {
+        log.info("Bruker fra $navKontor samtykker til deling av CV for stilling $stillingsId")
+        val personInfo = personoppslagKlient.personoppslag(fnr)!!
+        val eksisterendeForespørsel = repository.hentForespørsler(stillingsId.toUUID())
+            .filter { it.aktørId == personInfo.aktorId }
+            .firstOrNull()
+
+        if (eksisterendeForespørsel != null) {
+            // TODO Her må vi vurdere litt hva vi skal gjøre. Skal vi overskrive svaret uansett, eller skal vi feile litt avhengig av hva tilstanden er?
+            // Dette må diskuteres med toi
+            log.info("Bruker fra $navKontor har allerede samtykket til deling av CV for stilling $stillingsId – eller forespørsel om deleing er sendt av markedskontakt: ${eksisterendeForespørsel.forespørselId}")
+
+            repository.oppdaterMedRespons(eksisterendeForespørsel.forespørselId, Tilstand.HAR_SVART, Svar(true,
+                LocalDateTime.now(), Ident(personInfo.aktorId!!, IdentType.AKTOR_ID)), null)
+        } else {
+            repository.opprettSelvbetjentForespørselMedSvarJa(stillingsId.toUUID(), personInfo.aktorId!!, navKontor, callId)
+        }
+
+        return Ok
+    }
 
     private fun loggFeilMedStilling(feilmelding: String, stillingsId: String, loggLevel: Level) {
         val msg = feilmelding.dropLastWhile { it == '.' || it == ':' } + ". StillingsId: $stillingsId"

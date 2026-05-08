@@ -50,9 +50,6 @@ spec:
           cluster: {{ gcp-cluster }}
     outbound:
       rules:
-        - application: logging
-          namespace: nais-system
-          cluster: {{ gcp-cluster }}
         - application: pam-personoppslag
           namespace: teampam
           cluster: {{ gcp-cluster }}
