@@ -3,6 +3,8 @@ import auth.TokenHandler
 import auth.TokenHandler.Rolle.*
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.javalin.http.Context
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import org.slf4j.event.Level
 import org.slf4j.event.Level.*
 import stilling.Stilling
@@ -26,6 +28,11 @@ class ForespørselController(
     private val personoppslagKlient: PersonOppslagKlient,
     private val autorisasjon: Autorisasjon
 ) {
+    companion object {
+        private val LOG = LoggerFactory.getLogger(ForespørselController::class.java)
+        // TODO team logs er ikke satt opp for denne applikasjonen
+        private val teamLogsMarker = MarkerFactory.getMarker("TEAM_LOGS")
+    }
     val samtykkTilDelingAvCV: (Context) -> Unit = { ctx ->
         var navKontor: String? = null
         try {
@@ -35,6 +42,7 @@ class ForespørselController(
             ctx.status(400)
             null
         }?.let { stillingsId ->
+            LOG.info("Bruker fra $navKontor samtykker til deling av CV for stilling $stillingsId")
             val fnr = tokenHandler.hentFnr(ctx)
             val personInfo = personoppslagKlient.personoppslag(fnr)!!
             val eksisterendeForespørsel = repository.hentForespørsler(stillingsId.toUUID())
@@ -44,6 +52,8 @@ class ForespørselController(
             if (eksisterendeForespørsel != null) {
                 // TODO Her må vi vurdere litt hva vi skal gjøre. Skal vi overskrive svaret uansett, eller skal vi feile litt avhengig av hva tilstanden er?
                 // Dette må diskuteres med toi
+                LOG.info("Bruker fra $navKontor har allerede samtykket til deling av CV for stilling $stillingsId – eller forespørsel om deleing er sendt av markedskontakt: ${eksisterendeForespørsel.forespørselId}")
+
                 repository.oppdaterMedRespons(eksisterendeForespørsel.forespørselId, Tilstand.HAR_SVART, Svar(true,
                     LocalDateTime.now(), Ident(personInfo.aktorId!!, IdentType.AKTOR_ID)), null)
             } else {
