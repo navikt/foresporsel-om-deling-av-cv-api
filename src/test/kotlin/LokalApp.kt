@@ -84,6 +84,8 @@ fun startLokalApp(
     )
     val autorisasjon = Autorisasjon(kandidatsokApiKlient)
 
+    // Hvis man faktisk skal få personoppslagklienten til å fungere så må man lage seg en fornuftig teststrategi her
+    // Personoppslagklienten brukes i tjenesten(e) for selvbetjent samtykke
     val personoppslagKlient = PersonOppslagKlient(System.getenv("PERSONOPPSLAG_BASE_URL") ?: "http://localhost:18300/",
         { "token" })
     val forespørselController =
