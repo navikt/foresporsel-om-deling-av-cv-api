@@ -15,12 +15,14 @@ import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
+import org.mockito.Mockito.mock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sendforespørsel.ForespørselService
 import sendforespørsel.UsendtScheduler
 import setup.*
 import stilling.Stilling
+import utils.PersonOppslagKlient
 import java.net.URL
 import java.util.*
 
@@ -82,8 +84,12 @@ fun startLokalApp(
     )
     val autorisasjon = Autorisasjon(kandidatsokApiKlient)
 
+    // Hvis man faktisk skal få personoppslagklienten til å fungere så må man lage seg en fornuftig teststrategi her
+    // Personoppslagklienten brukes i tjenesten(e) for selvbetjent samtykke
+    val personoppslagKlient = PersonOppslagKlient(System.getenv("PERSONOPPSLAG_BASE_URL") ?: "http://localhost:18300/",
+        { "token" })
     val forespørselController =
-        ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, hentStilling, autorisasjon)
+        ForespørselController(repository, tokenHandler, usendtScheduler::kjørEnGang, hentStilling, personoppslagKlient, autorisasjon)
     val svarstatistikkController = SvarstatistikkController(repository)
 
 

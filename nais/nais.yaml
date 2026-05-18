@@ -48,6 +48,11 @@ spec:
         - application: pam-dir-api
           namespace: teampam
           cluster: {{ gcp-cluster }}
+    outbound:
+      rules:
+        - application: pam-personoppslag
+          namespace: teampam
+          cluster: {{ gcp-cluster }}
   kafka:
     pool: {{ kafka-pool }}
   env:
