@@ -37,7 +37,7 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:6.6.0")
+    implementation("io.javalin:javalin:6.7.0")
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
