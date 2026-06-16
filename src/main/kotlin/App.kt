@@ -42,30 +42,31 @@ class App(
     private val webServer = Javalin.create { config ->
         config.http.defaultContentType = "application/json"
         config.jsonMapper(JavalinJackson(objectMapper))
-    }.apply {
-        before(tokenHandler::validerToken)
-        before(settCallId)
-        get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
-        get("/internal/isReady") { it.status(200) }
-        get(
-            "/foresporsler/kandidat/{$aktorIdParamName}",
-            forespørselController.hentForespørslerForKandidat
-        ) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
-        get(
-            "/foresporsler/{$stillingsIdParamName}",
-            forespørselController.hentForespørsler
-        ) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
-        post(
-            "/foresporsler",
-            forespørselController.sendForespørselOmDelingAvCv
-        ) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
-        post(
-            "/foresporsler/kandidat/{$aktorIdParamName}",
-            forespørselController.resendForespørselOmDelingAvCv
-        ) // Kun arbeidsgiverrettet/utvikler
-        get("/statistikk", svarstatistikkController.hentSvarstatistikk)
-        post("/foresporsler/samtykke_til_deling_av_cv/{$navKontorParamName}/{$stillingsIdParamName}",
-            forespørselController.samtykkTilDelingAvCV)
+        config.routes.apply {
+            before(tokenHandler::validerToken)
+            before(settCallId)
+            get("/internal/isAlive") { it.status(if (svarService.isOk()) 200 else 500) }
+            get("/internal/isReady") { it.status(200) }
+            get(
+                "/foresporsler/kandidat/{$aktorIdParamName}",
+                forespørselController.hentForespørslerForKandidat
+            ) // historikkside, rad, hendelsesetikett, synlig for den som kan se historikken
+            get(
+                "/foresporsler/{$stillingsIdParamName}",
+                forespørselController.hentForespørsler
+            ) // Brukes i kandidatlisten, ved visning av feilmeldinger for sende forespørsler, kun arbeidsgiverrettet/utvikler
+            post(
+                "/foresporsler",
+                forespørselController.sendForespørselOmDelingAvCv
+            ) // For sending av forespørsler, kun arbeidgiverrettet/utvikler
+            post(
+                "/foresporsler/kandidat/{$aktorIdParamName}",
+                forespørselController.resendForespørselOmDelingAvCv
+            ) // Kun arbeidsgiverrettet/utvikler
+            get("/statistikk", svarstatistikkController.hentSvarstatistikk)
+            post("/foresporsler/samtykke_til_deling_av_cv/{$navKontorParamName}/{$stillingsIdParamName}",
+                forespørselController.samtykkTilDelingAvCV)
+        }
     }
 
     fun start() {

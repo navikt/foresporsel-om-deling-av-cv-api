@@ -1,10 +1,8 @@
 import auth.Autorisasjon
 import auth.TokenHandler
 import auth.TokenHandler.Rolle.*
-import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.javalin.http.Context
-import org.slf4j.LoggerFactory
-import org.slf4j.MarkerFactory
 import org.slf4j.event.Level
 import org.slf4j.event.Level.*
 import stilling.Stilling
@@ -101,7 +99,7 @@ class ForespørselController(
 
         val forespørselOmDelingAvCvDto = try {
             ctx.bodyAsClass(ForespørselInboundDto::class.java)
-        } catch (e: MissingKotlinParameterException) {
+        } catch (e: MismatchedInputException) {
             null
         }
 
