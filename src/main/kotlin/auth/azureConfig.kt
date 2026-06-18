@@ -1,7 +1,7 @@
 package auth
 
 import no.nav.security.token.support.core.configuration.IssuerProperties
-import java.net.URI
+import java.net.URL
 
 data class AzureConfig (
     val azureClientSecret: String,
@@ -16,12 +16,12 @@ val azureConfig = AzureConfig(
 )
 
 val azureIssuerProperties = IssuerProperties(
-    URI(System.getenv("AZURE_APP_WELL_KNOWN_URL")).toURL(),
+    URL(System.getenv("AZURE_APP_WELL_KNOWN_URL")),
     listOf(System.getenv("AZURE_APP_CLIENT_ID")),
     System.getenv("AZURE_OPENID_CONFIG_ISSUER")
 )
 val tokenxIssuerProperties = IssuerProperties(
-    URI(System.getenv("TOKEN_X_WELL_KNOWN_URL")).toURL(),
+    URL(System.getenv("TOKEN_X_WELL_KNOWN_URL")),
     listOf(System.getenv("TOKEN_X_CLIENT_ID")),
     System.getenv("TOKEN_X_ISSUER")
 )

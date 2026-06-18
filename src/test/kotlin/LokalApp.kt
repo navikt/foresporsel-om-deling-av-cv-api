@@ -15,6 +15,7 @@ import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.ForesporselOmDelingAvCv
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.producer.Producer
+import org.mockito.Mockito.mock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sendforespørsel.ForespørselService
@@ -22,7 +23,7 @@ import sendforespørsel.UsendtScheduler
 import setup.*
 import stilling.Stilling
 import utils.PersonOppslagKlient
-import java.net.URI
+import java.net.URL
 import java.util.*
 
 fun main() {
@@ -57,7 +58,7 @@ fun startLokalApp(
     val tokenHandler = TokenHandler(
         listOf(
             IssuerProperties(
-                URI("http://localhost:18300/default/.well-known/openid-configuration").toURL(),
+                URL("http://localhost:18300/default/.well-known/openid-configuration"),
                 listOf("default"),
                 "azuread"
             )
@@ -66,7 +67,7 @@ fun startLokalApp(
     )
     val issuerProperties = listOf(
         IssuerProperties(
-            URI("http://localhost:18300/default/.well-known/openid-configuration").toURL(),
+            URL("http://localhost:18300/default/.well-known/openid-configuration"),
             listOf("default"),
             "azuread"
         )
