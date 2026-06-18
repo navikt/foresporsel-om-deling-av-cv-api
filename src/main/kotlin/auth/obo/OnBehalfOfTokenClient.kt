@@ -4,6 +4,7 @@ import auth.AzureConfig
 import auth.TokenCache
 import auth.TokenClient
 import auth.TokenHandler
+import getenv
 import io.javalin.http.Context
 import utils.Miljø
 import utils.Miljø.*
@@ -13,7 +14,7 @@ class OnBehalfOfTokenClient(private val config: AzureConfig, private val tokenHa
 
 
     private val issuernavn = when (Miljø.current) {
-        DEV_FSS, PROD_FSS -> System.getenv("AZURE_OPENID_CONFIG_ISSUER")
+        DEV_FSS, PROD_FSS -> getenv("AZURE_OPENID_CONFIG_ISSUER")
         LOKAL -> "azuread"
     }
 
