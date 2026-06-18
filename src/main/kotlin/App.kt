@@ -100,7 +100,7 @@ fun main() {
         val tokenCache = TokenCache()
         val accessTokenClient = AccessTokenClient(azureConfig, tokenCache)
         val oboTokenClient = OnBehalfOfTokenClient(azureConfig, tokenHandler, tokenCache)
-        val personoppslagKlient = PersonOppslagKlient(getenv("PERSONOPPSLAG_BASE_URL"), accessTokenClient::getPersonoppslagAccessToken)
+        val personoppslagKlient = PersonOppslagKlient(System.getenv("PERSONOPPSLAG_BASE_URL"), accessTokenClient::getPersonoppslagAccessToken)
         val stillingKlient = StillingKlient(accessTokenClient::getAccessToken)
         val kandidatsokApiKlient = KandidatsokApiKlient(oboTokenClient)
         val autorisasjon = Autorisasjon(kandidatsokApiKlient)
@@ -160,9 +160,14 @@ data class Rollekeys(
 )
 
 fun initierRollekeys(): Rollekeys {
-    val jobbsokerrettetGruppe: String = getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
-    val arbeidsgiverrettetGruppe: String = getenv("REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET")
-    val utviklerGruppe: String = getenv("REKRUTTERINGSBISTAND_UTVIKLER")
+    val jobbsokerrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_JOBBSOKERRETTET")
+        ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_JOBBSOKERRETTET' er ikke satt")
+
+    val arbeidsgiverrettetGruppe: String = System.getenv("REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET")
+        ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_ARBEIDSGIVERRETTET' er ikke satt")
+
+    val utviklerGruppe: String = System.getenv("REKRUTTERINGSBISTAND_UTVIKLER")
+        ?: throw RuntimeException("Miljøvariabel 'REKRUTTERINGSBISTAND_UTVIKLER' er ikke satt")
 
     return Rollekeys(
         jobbsokerrettetGruppe = jobbsokerrettetGruppe,
@@ -170,5 +175,3 @@ fun initierRollekeys(): Rollekeys {
         utviklerGruppe = utviklerGruppe
     )
 }
-
-fun getenv(key: String): String = requireNotNull(System.getenv(key)) { "Miljøvariabel med navn [$key] er ikke satt" }
