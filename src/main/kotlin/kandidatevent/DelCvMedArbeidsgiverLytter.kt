@@ -47,7 +47,7 @@ class DelCvMedArbeidsgiverLytter(
         val navIdent = packet["utførtAvNavIdent"].asText()
         val tidspunkt = packet["tidspunkt"].asText()
 
-        packet["kandidater"].fields().asSequence()
+        packet["kandidater"].properties().asSequence()
             .map(MutableMap.MutableEntry<String, JsonNode>::key)
             .mapNotNull {
                 val forespørsel =

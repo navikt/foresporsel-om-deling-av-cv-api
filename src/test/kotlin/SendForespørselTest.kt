@@ -3,6 +3,7 @@ import DeltStatus.SENDT
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.Arbeidssted
 import no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv.KontaktInfo
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import sendforespørsel.ForespørselService
@@ -12,6 +13,7 @@ import setup.mockProducerUtenAutocomplete
 import stilling.Stilling
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.test.assertNotNull
 
@@ -109,10 +111,10 @@ class SendForespørselTest {
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
-            assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isEqualToIgnoringSeconds(nå)
+            assertThat(lagredeForespørsler["123"]!!.deltTidspunkt).isCloseTo(nå, within(1, ChronoUnit.MINUTES))
             assertThat(lagredeForespørsler["123"]!!.deltStatus).isEqualTo(SENDT)
 
-            assertThat(lagredeForespørsler["234"]!!.deltTidspunkt).isEqualToIgnoringSeconds(nå)
+            assertThat(lagredeForespørsler["234"]!!.deltTidspunkt).isCloseTo(nå, within(1, ChronoUnit.MINUTES))
             assertThat(lagredeForespørsler["234"]!!.deltStatus).isEqualTo(SENDT)
 
             assertThat(lagredeForespørsler["345"]!!.deltTidspunkt).isEqualToIgnoringNanos(enHalvtimeSiden)
@@ -140,8 +142,8 @@ class SendForespørselTest {
 
             val lagredeForespørsler = database.hentAlleForespørsler().associateBy { it.aktørId }
 
-            assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltTidspunkt).isEqualToIgnoringSeconds(
-                enHalvtimeSiden
+            assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltTidspunkt).isCloseTo(
+                enHalvtimeSiden, within(1, ChronoUnit.MINUTES)
             )
             assertThat(lagredeForespørsler[forespørsel.aktørId]!!.deltStatus).isEqualTo(IKKE_SENDT)
         }
