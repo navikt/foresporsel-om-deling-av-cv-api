@@ -30,6 +30,13 @@ tasks.test {
     useJUnitPlatform()
 }
 
+// installDist (fra application-pluginen) samler app-jar + alle avhengigheter i
+// build/install/<navn>/lib. Vi kobler den på build slik at CI (./gradlew build)
+// og lokale Docker-bygg alltid produserer lib-katalogen Dockerfilen kopierer.
+tasks.named("build") {
+    dependsOn("installDist")
+}
+
 
 dependencies {
     implementation(kotlin("stdlib"))
