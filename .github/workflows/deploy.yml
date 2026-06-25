@@ -17,7 +17,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
-      - run: ./gradlew shadowJar
+      - run: ./gradlew build
       - uses: nais/docker-build-push@v0
         id: docker
         with:
@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to dev
     needs: build-and-publish
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/SelvbetjentSamtykke'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/oppgrader_javalin'
     runs-on: ubuntu-latest
     permissions:
       contents: read

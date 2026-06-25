@@ -2,7 +2,6 @@ plugins {
     // Bruk samme Kotlin-version som gradlew. gradlew oppdateres med å kjøre denne kommandoen to (2) ganger etterhverandre:
     // ./gradlew wrapper --gradle-version latest --distribution-type all
     kotlin("jvm") version embeddedKotlinVersion
-    id("com.gradleup.shadow") version "9.4.2"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
     application
 }
@@ -31,9 +30,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811  En bedre løsning ville kanskje vært å droppe shadowJar?
-}
 
 dependencies {
     implementation(kotlin("stdlib"))
