@@ -2,7 +2,6 @@ plugins {
     // Bruk samme Kotlin-version som gradlew. gradlew oppdateres med å kjøre denne kommandoen to (2) ganger etterhverandre:
     // ./gradlew wrapper --gradle-version latest --distribution-type all
     kotlin("jvm") version embeddedKotlinVersion
-    id("com.gradleup.shadow") version "8.3.6"
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
     application
 }
@@ -31,13 +30,17 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    mergeServiceFiles() // Nødvendig for å få Flyway versjon >= 10 til å funke sammen med shadowJar. Se bug https://github.com/flyway/flyway/issues/3811  En bedre løsning ville kanskje vært å droppe shadowJar?
+// installDist (fra application-pluginen) samler app-jar + alle avhengigheter i
+// build/install/<navn>/lib. Vi kobler den på build slik at CI (./gradlew build)
+// og lokale Docker-bygg alltid produserer lib-katalogen Dockerfilen kopierer.
+tasks.named("build") {
+    dependsOn("installDist")
 }
+
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:6.6.0")
+    implementation("io.javalin:javalin:7.2.2")
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
@@ -73,8 +76,8 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation("com.h2database:h2:2.3.232")
-    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("no.nav.security:mock-oauth2-server:2.1.11")
-    testImplementation("org.wiremock:wiremock:3.13.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 }
