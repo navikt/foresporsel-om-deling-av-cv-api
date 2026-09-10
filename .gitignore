@@ -6,3 +6,6 @@ build
 .settings/
 *.DS_Store
 .kotlin/
+
+# https://mise.jdx.dev/
+mise.toml
