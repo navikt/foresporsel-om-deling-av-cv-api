@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'gradle'
       - run: ./gradlew build
       - uses: nais/docker-build-push@v0
@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to dev
     needs: build-and-publish
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/oppgrader_javalin'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/oppgrader-java-til-25'
     runs-on: ubuntu-latest
     permissions:
       contents: read
