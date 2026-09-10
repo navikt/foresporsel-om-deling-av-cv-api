@@ -39,13 +39,10 @@ class ForespørselController(
             val fnr = tokenHandler.hentFnr(ctx)
             when (val resultat = registrerSelvbetjentSamtykke(navKontor ?: "", stillingsId, fnr, ctx.hentCallId())) {
                 is Feil -> {
-                    loggFeilMedStilling(
-                        resultat.feilmelding,
-                        stillingsId,
-                        resultat.loggLevel
-                    )
-                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
+                    logg(resultat, stillingsId)
+                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmeldingSomJson)
                 }
+
                 is Ok -> {
                     ctx.status(200)
                 }
@@ -131,12 +128,8 @@ class ForespørselController(
                 }
 
                 is Feil -> {
-                    loggFeilMedStilling(
-                        resultat.feilmelding,
-                        forespørselOmDelingAvCvDto.stillingsId,
-                        resultat.loggLevel
-                    )
-                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
+                    logg(resultat, forespørselOmDelingAvCvDto.stillingsId)
+                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmeldingSomJson)
                 }
             }
         }
@@ -184,8 +177,8 @@ class ForespørselController(
             }
 
             is Feil -> {
-                loggFeilMedStilling(resultat.feilmelding, inboundDto.stillingsId, WARN)
-                ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
+                logg(resultat, inboundDto.stillingsId, WARN)
+                ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmeldingSomJson)
             }
         }
     }
@@ -208,7 +201,12 @@ class ForespørselController(
             .map { it.tilOutboundDto() }
             .groupBy { it.aktørId }
 
-    private fun registrerSelvbetjentSamtykke(navKontor: String, stillingsId: String, fnr: String, callId: String): Resultat {
+    private fun registrerSelvbetjentSamtykke(
+        navKontor: String,
+        stillingsId: String,
+        fnr: String,
+        callId: String
+    ): Resultat {
         log.info("Bruker fra $navKontor samtykker til deling av CV for stilling $stillingsId")
         val personInfo = personoppslagKlient.personoppslag(fnr)!!
         val eksisterendeForespørsel = repository.hentForespørsler(stillingsId.toUUID())
@@ -220,17 +218,26 @@ class ForespørselController(
             // Dette må diskuteres med toi
             log.info("Bruker fra $navKontor har allerede samtykket til deling av CV for stilling $stillingsId – eller forespørsel om deleing er sendt av markedskontakt: ${eksisterendeForespørsel.forespørselId}")
 
-            repository.oppdaterMedRespons(eksisterendeForespørsel.forespørselId, Tilstand.HAR_SVART, Svar(true,
-                LocalDateTime.now(), Ident(personInfo.aktorId!!, IdentType.AKTOR_ID)), null)
+            repository.oppdaterMedRespons(
+                eksisterendeForespørsel.forespørselId, Tilstand.HAR_SVART, Svar(
+                    true,
+                    LocalDateTime.now(), Ident(personInfo.aktorId!!, IdentType.AKTOR_ID)
+                ), null
+            )
         } else {
-            repository.opprettSelvbetjentForespørselMedSvarJa(stillingsId.toUUID(), personInfo.aktorId!!, navKontor, callId)
+            repository.opprettSelvbetjentForespørselMedSvarJa(
+                stillingsId.toUUID(),
+                personInfo.aktorId!!,
+                navKontor,
+                callId
+            )
         }
 
         return Ok
     }
 
-    private fun loggFeilMedStilling(feilmelding: String, stillingsId: String, loggLevel: Level) {
-        val msg = feilmelding.dropLastWhile { it == '.' || it == ':' } + ". StillingsId: $stillingsId"
+    private fun logg(feil: Feil, stillingsId: String, loggLevel: Level = feil.loggLevel) {
+        val msg = feil.feilmeldingSomString.dropLastWhile { it == '.' || it == ':' } + ". StillingsId: $stillingsId"
         when (loggLevel) {
             ERROR -> log.error(msg)
             WARN -> log.warn(msg)
@@ -239,7 +246,9 @@ class ForespørselController(
             TRACE -> log.trace(msg)
         }
     }
+
 }
+
 
 data class ForespørselInboundDto(
     val stillingsId: String,
@@ -273,4 +282,8 @@ typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutbou
 
 private sealed interface Resultat
 private object Ok : Resultat
-private data class Feil(val feilmelding: String, val httpResponsStatusKode: Int, val loggLevel: Level) : Resultat
+private data class Feil(private val feilmelding: String, val httpResponsStatusKode: Int, val loggLevel: Level) :
+    Resultat {
+    val feilmeldingSomString: String = feilmelding
+    val feilmeldingSomJson: String = """{"feilmelding": "$feilmelding"}"""
+}
