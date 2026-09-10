@@ -40,7 +40,7 @@ class ForespørselController(
             when (val resultat = registrerSelvbetjentSamtykke(navKontor ?: "", stillingsId, fnr, ctx.hentCallId())) {
                 is Feil -> {
                     logg(resultat, stillingsId)
-                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmeldingSomJson)
+                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
                 }
 
                 is Ok -> {
@@ -101,7 +101,7 @@ class ForespørselController(
         }
 
         if (forespørselOmDelingAvCvDto == null) {
-            ctx.status(400).json("Ugyldig input")
+            ctx.status(400).json(Feil.Feilmelding("Ugyldig input"))
         } else {
             val minstEnKandidatHarFåttForespørselFør: () -> Boolean = {
                 repository.minstEnKandidatHarFåttForespørsel(
@@ -129,7 +129,7 @@ class ForespørselController(
 
                 is Feil -> {
                     logg(resultat, forespørselOmDelingAvCvDto.stillingsId)
-                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmeldingSomJson)
+                    ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
                 }
             }
         }
@@ -178,7 +178,7 @@ class ForespørselController(
 
             is Feil -> {
                 logg(resultat, inboundDto.stillingsId, WARN)
-                ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmeldingSomJson)
+                ctx.status(resultat.httpResponsStatusKode).json(resultat.feilmelding)
             }
         }
     }
@@ -237,7 +237,7 @@ class ForespørselController(
     }
 
     private fun logg(feil: Feil, stillingsId: String, loggLevel: Level = feil.loggLevel) {
-        val msg = feil.feilmeldingSomString.dropLastWhile { it == '.' || it == ':' } + ". StillingsId: $stillingsId"
+        val msg = feil.feilmelding.feilmelding.dropLastWhile { it == '.' || it == ':' } + ". StillingsId: $stillingsId"
         when (loggLevel) {
             ERROR -> log.error(msg)
             WARN -> log.warn(msg)
@@ -282,8 +282,12 @@ typealias ForespørslerGruppertPåAktørId = Map<String, List<ForespørselOutbou
 
 private sealed interface Resultat
 private object Ok : Resultat
-private data class Feil(private val feilmelding: String, val httpResponsStatusKode: Int, val loggLevel: Level) :
+private data class Feil(private val melding: String, val httpResponsStatusKode: Int, val loggLevel: Level) :
     Resultat {
-    val feilmeldingSomString: String = feilmelding
-    val feilmeldingSomJson: String = """{"feilmelding": "$feilmelding"}"""
+    /**
+     * Brukes for at Javalin kan gjøre om raw String til JSON i HTTP-responsen
+     */
+    data class Feilmelding(val feilmelding: String)
+
+    val feilmelding: Feilmelding = Feilmelding(melding)
 }
