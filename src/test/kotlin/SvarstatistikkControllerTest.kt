@@ -1,5 +1,6 @@
 import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.jackson.responseObject
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -47,7 +48,7 @@ class SvarstatistikkControllerTest {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
             val aktørId = "123"
-            val navKontor = "0314";
+            val navKontor = "0314"
 
             val stillingUuid = UUID.randomUUID()
             val sendtdato = LocalDateTime.of(2020, Month.APRIL, 3, 0, 0)
@@ -65,7 +66,7 @@ class SvarstatistikkControllerTest {
             database.lagreBatch(listOf(forespørsel))
 
 
-            val fraOgMed = "2020-04-03";
+            val fraOgMed = "2020-04-03"
             val tilOgMed = "2020-04-03"
 
             val lagredeForespørslerForKandidat =
@@ -89,7 +90,7 @@ class SvarstatistikkControllerTest {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
             val aktørId = "123"
-            val navKontor = "0314";
+            val navKontor = "0314"
 
             val stillingUuid = UUID.randomUUID()
             val sendtdato = LocalDateTime.of(2020, Month.APRIL, 3, 0, 0)
@@ -107,7 +108,7 @@ class SvarstatistikkControllerTest {
             database.lagreBatch(listOf(forespørsel))
 
 
-            val fraOgMed = "2020-04-04";
+            val fraOgMed = "2020-04-04"
             val tilOgMed = "2020-04-04"
 
             val lagredeForespørslerForKandidat =
@@ -131,7 +132,7 @@ class SvarstatistikkControllerTest {
             val navIdent = "X12345"
             val callId = UUID.randomUUID()
             val aktørId = "123"
-            val navKontor = "0314";
+            val navKontor = "0314"
 
             val stillingUuid = UUID.randomUUID()
             val sendtdato = LocalDateTime.of(2020, Month.APRIL, 3, 0, 0)
@@ -149,7 +150,7 @@ class SvarstatistikkControllerTest {
             database.lagreBatch(listOf(forespørsel))
 
 
-            val fraOgMed = "2020-04-02";
+            val fraOgMed = "2020-04-02"
             val tilOgMed = "2020-04-02"
 
             val lagredeForespørslerForKandidat =
@@ -172,7 +173,7 @@ class SvarstatistikkControllerTest {
         startLokalApp(database).use {
             val navIdent = "X12345"
             val aktørId = "123"
-            val navKontor = "0314";
+            val navKontor = "0314"
 
             val stillingUuid = UUID.randomUUID()
             val sendtdato = LocalDateTime.of(2020, Month.APRIL, 3, 0, 0)
@@ -238,7 +239,7 @@ class SvarstatistikkControllerTest {
             )
 
 
-            val fraOgMed = "2020-04-02";
+            val fraOgMed = "2020-04-02"
             val tilOgMed = "2020-04-04"
 
             val lagredeForespørslerForKandidat =
@@ -254,15 +255,28 @@ class SvarstatistikkControllerTest {
     }
 
     @Test
-    fun `GET mot statistikk skal returnere 403 Bad Request hvis requesten mangler en query-parameter`() {
-        val fraOgMed = "2020-04-02";
+    fun `GET mot statistikk skal returnere 400 Bad Request hvis requesten mangler en query-parameter`() {
+        val fraOgMed = "2020-04-02"
         val tilOgMed = "2020-04-04"
 
         startLokalApp(database = TestDatabase()).use {
             val (_, response) = Fuel.get("http://localhost:8333/statistikk?fraOgMed=${fraOgMed}&tilOgMed=${tilOgMed}")
                 .medToken(mockOAuth2Server, "X12345", listOf(ARBEIDSGIVERRETTET)).response()
 
-            assertThat(response.statusCode).isEqualTo(400)
+            assertJsonFeilmelding(
+                response,
+                400,
+                "Du mangler én eller flere query-params, trenger fraOgMed, tilOgMed og navKontor"
+            )
         }
+    }
+
+    private fun assertJsonFeilmelding(response: Response, statuskode: Int, forventetFeilmelding: String) {
+        assertThat(response.statusCode).isEqualTo(statuskode)
+        assertThat(response.header("Content-Type")).anyMatch { it.startsWith("application/json") }
+
+        val json = objectMapper.readTree(response.data)
+        assertThat(json.isObject).isTrue()
+        assertThat(json.path("feilmelding").asText()).isEqualTo(forventetFeilmelding)
     }
 }
