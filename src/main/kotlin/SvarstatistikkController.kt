@@ -11,7 +11,8 @@ class SvarstatistikkController(private val repository: Repository) {
         val navKontor = ctx.queryParam("navKontor")
 
         if (fraOgMed == null || tilOgMed == null || navKontor == null) {
-            ctx.status(400).json("Du mangler én eller flere query-params, trenger fraOgMed, tilOgMed og navKontor")
+            ctx.status(400)
+                .json(Feilmelding("Du mangler én eller flere query-params, trenger fraOgMed, tilOgMed og navKontor"))
         } else {
             val forespørsler: List<Forespørsel> = repository.hentForespørsler(
                 LocalDate.parse(fraOgMed).atStartOfDay(),
@@ -43,3 +44,8 @@ data class Svarstatistikk(
     val antallVenterPåSvar: Number,
     val antallUtløpteSvar: Number,
 )
+
+/**
+ * Brukes for at Javalin kan gjøre om raw String til JSON i HTTP-responsen
+ */
+private data class Feilmelding(val feilmelding: String)

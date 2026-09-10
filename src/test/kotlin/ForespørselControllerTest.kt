@@ -1,6 +1,7 @@
 import auth.TokenHandler.Rolle.ARBEIDSGIVERRETTET
 import auth.TokenHandler.Rolle.JOBBSØKERRETTET
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.responseObject
@@ -260,7 +261,11 @@ class ForespørselControllerTest {
                 .objectBody(inboundDto, mapper = objectMapper)
                 .response()
 
-            assertThat(response.statusCode).isEqualTo(409)
+            assertJsonFeilmelding(
+                response,
+                409,
+                "Minst én kandidat har fått forespørselen fra før."
+            )
         }
     }
 
@@ -308,7 +313,7 @@ class ForespørselControllerTest {
                 .jsonBody(inboundDto)
                 .response()
 
-            assertThat(response.statusCode).isEqualTo(400)
+            assertJsonFeilmelding(response, 400, "Ugyldig input")
         }
     }
 
@@ -838,7 +843,11 @@ class ForespørselControllerTest {
                 .objectBody(nyForespørsel, mapper = objectMapper)
                 .response()
 
-            assertThat(response.statusCode).isEqualTo(400)
+            assertJsonFeilmelding(
+                response,
+                400,
+                "Kan ikke resende forespørsel fordi kandidaten ennå ikke har besvart en aktiv forespørsel"
+            )
         }
     }
 
@@ -1031,6 +1040,15 @@ class ForespørselControllerTest {
                         .withStatus(status)
                 )
         )
+    }
+
+    private fun assertJsonFeilmelding(response: Response, statuskode: Int, forventetFeilmelding: String) {
+        assertThat(response.statusCode).isEqualTo(statuskode)
+        assertThat(response.header("Content-Type")).anyMatch { it.startsWith("application/json") }
+
+        val json = objectMapper.readTree(response.data)
+        assertThat(json.isObject).isTrue()
+        assertThat(json.path("feilmelding").asText()).isEqualTo(forventetFeilmelding)
     }
 }
 
