@@ -4,9 +4,9 @@ import mottasvar.svarTopic
 import no.nav.veilarbaktivitet.avro.DelingAvCvRespons
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.MockConsumer
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
+import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy.StrategyType
 
-fun mockConsumer() = MockConsumer<String, DelingAvCvRespons>(OffsetResetStrategy.EARLIEST).apply {
+fun mockConsumer() = MockConsumer<String, DelingAvCvRespons>(StrategyType.EARLIEST.toString()).apply {
     schedulePollTask {
         rebalance(listOf(svarTopic))
         updateBeginningOffsets(mapOf(Pair(svarTopic, 0)))

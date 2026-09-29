@@ -89,6 +89,11 @@ class App(
 }
 
 fun main() {
+    // Må settes før Avro-klassene lastes, fordi Avro leser verdien i en statisk blokk
+    System.setProperty(
+        "org.apache.avro.SERIALIZABLE_PACKAGES",
+        "no.nav.veilarbaktivitet.avro,no.nav.veilarbaktivitet.stilling_fra_nav.deling_av_cv"
+    )
 
     try {
         log.info("Starter app i cluster ${Miljø.current.asString()}")

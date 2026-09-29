@@ -8,9 +8,9 @@ import org.apache.kafka.common.serialization.StringSerializer
 
 val dummyForesporselOmDelingAvCvSerializer = { _: String, _: ForesporselOmDelingAvCv -> ByteArray(0) }
 
-val mockProducerAvro = MockProducer(true, StringSerializer(), dummyForesporselOmDelingAvCvSerializer)
+val mockProducerAvro = MockProducer(true, null, StringSerializer(), dummyForesporselOmDelingAvCvSerializer)
 
 val mockProducerJson = MockProducer(Cluster.empty(), false, null, StringSerializer(), StringSerializer())
 
 fun mockProducerUtenAutocomplete(): MockProducer<String, ForesporselOmDelingAvCv> =
-    MockProducer(false, StringSerializer(), dummyForesporselOmDelingAvCvSerializer)
+    MockProducer(false, null, StringSerializer(), dummyForesporselOmDelingAvCvSerializer)
