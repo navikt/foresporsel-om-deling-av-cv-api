@@ -1,5 +1,6 @@
 # foresporsel-om-deling-av-cv-api
-⚠️ Denne appen er på vei til å bli pensjonert etterhvert, ihvertfall er det tanken i dag 2026-10-08. Se [README-filen i https://github.com/navikt/toi-deling-av-cv-api/pull/12](https://github.com/navikt/toi-deling-av-cv-api/blob/main/README.md).
+⚠️ Denne appen er på vei til å bli pensjonert etterhvert, ihvertfall er det tanken i dag 2026-10-08. Se https://github.com/navikt/toi-deling-av-cv-api/blob/main/README.md.
+
 
 Mottar API-kall fra rekrutteringsbistand-kandidat som fører til sending av forespørsel om deling av brukers CV på Kafka til Aktivitetsplanen. Mottar kvittering på Kafka om at dette har gått bra.
 Bruker kan godta eller avslå at deres CV kan deles med arbeidsgiver. Svaret på forespørselen mottas også på Kafka.
