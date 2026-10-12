@@ -3,6 +3,7 @@ plugins {
     // ./gradlew wrapper --gradle-version latest --distribution-type all
     kotlin("jvm") version embeddedKotlinVersion
     id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
+    id("io.github.ben-manes.versions") version "0.65.0"
     application
 }
 
@@ -38,7 +39,7 @@ tasks.named("build") {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.javalin:javalin:7.2.2")
+    implementation("io.javalin:javalin:7.2.3")
 
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-jackson:2.3.1")
@@ -53,15 +54,15 @@ dependencies {
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
-    implementation("org.postgresql:postgresql:42.7.6")
+    implementation("org.postgresql:postgresql:42.7.14")
     implementation("com.zaxxer:HikariCP:6.3.0")
 
     implementation("no.nav:vault-jdbc:1.3.10")
     implementation("no.nav.security:token-validation-core:3.2.0")
 
     implementation("org.apache.kafka:kafka-clients:4.0.0")
-    implementation("io.confluent:kafka-avro-serializer:7.9.1")
-    implementation("org.apache.avro:avro:1.12.0")
+    implementation("io.confluent:kafka-avro-serializer:7.9.10")
+    implementation("org.apache.avro:avro:1.12.2")
 
     val shedlockVersion = "6.8.0"
     implementation("net.javacrumbs.shedlock:shedlock-core:$shedlockVersion")
@@ -73,9 +74,9 @@ dependencies {
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:2025.05.06-14.04-822a3b51")
 
     testImplementation(kotlin("test"))
-    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation("com.h2database:h2:2.5.252")
     testImplementation("org.assertj:assertj-core:3.27.7")
-    testImplementation("no.nav.security:mock-oauth2-server:2.1.11")
+    testImplementation("no.nav.security:mock-oauth2-server:2.3.0")
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 }
