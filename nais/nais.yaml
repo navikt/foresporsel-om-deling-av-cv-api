@@ -71,6 +71,9 @@ spec:
     - name: PERSONOPPSLAG_BASE_URL
       value: {{personoppslag_base_url}}
   observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
     logging:
       destinations:
         - id: loki
