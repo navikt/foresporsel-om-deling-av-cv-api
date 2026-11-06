@@ -44,6 +44,9 @@ spec:
           cluster: {{ gcp-cluster }}
         - application: rekrutteringsbistand-kandidat-api
           namespace: toi
+          cluster: {{ gcp-cluster }}
+        - application: rekrutteringsbistand-kandidat-api
+          namespace: toi
           cluster: {{ fss-cluster }}
         - application: pam-dir-api
           namespace: teampam
