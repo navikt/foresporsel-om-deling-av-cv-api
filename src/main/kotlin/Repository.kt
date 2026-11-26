@@ -169,7 +169,7 @@ class Repository(private val dataSource: DataSource) {
 
     fun hentForespørslerForKandidat(aktørId: String): List<Forespørsel> {
         val hentForespørslerForKandidatSql = """
-            SELECT * from foresporsel_om_deling_av_cv WHERE aktor_id = ?
+            SELECT * from foresporsel_om_deling_av_cv WHERE aktor_id = ? ORDER BY id DESC
         """.trimIndent()
 
         dataSource.connection.use { connection ->

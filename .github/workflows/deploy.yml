@@ -28,7 +28,7 @@ jobs:
   deploy-to-dev:
     name: Deploy to dev
     needs: build-and-publish
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/oppdater_avhengigheter'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/legg_order_by_paa_hent_foresporsler'
     runs-on: ubuntu-latest
     permissions:
       contents: read

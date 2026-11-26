@@ -199,6 +199,7 @@ class ForespørselController(
     private fun hentForespørslerGruppertPåAktørId(stillingsId: String) =
         repository.hentForespørsler(stillingsId.toUUID())
             .map { it.tilOutboundDto() }
+            .sortedByDescending { it.deltTidspunkt }
             .groupBy { it.aktørId }
 
     private fun registrerSelvbetjentSamtykke(
