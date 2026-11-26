@@ -156,7 +156,7 @@ class Repository(private val dataSource: DataSource) {
 
     fun hentForespørsler(stillingsId: UUID): List<Forespørsel> {
         val hentForespørslerSql = """
-            SELECT * from foresporsel_om_deling_av_cv WHERE stilling_id = ? ORDER BY id DESC
+            SELECT * from foresporsel_om_deling_av_cv WHERE stilling_id = ?
         """.trimIndent()
 
         dataSource.connection.use { connection ->
